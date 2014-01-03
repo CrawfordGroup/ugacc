@@ -1,0 +1,29 @@
+
+# PYTHONPATH must include directory above plugin directory.
+#     Define either externally or here, then import plugin.
+sys.path.insert(0, './..')
+import ugacc
+
+molecule {
+0 1
+    O         0.000000000000     0.000000000000    -0.116529192243
+    H        -0.000000000000     1.344767972762     0.924701422022
+    H        -0.000000000000    -1.344767972762     0.924701422022
+no_reorient
+no_com
+units bohr
+}
+
+set {
+  basis sto-3g
+  freeze_core true
+  r_convergence 1e-13
+}
+
+set ugacc {
+  wfn ccsd
+  convergence 1e-13
+}
+
+energy('ugacc')
+

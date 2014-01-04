@@ -16,25 +16,26 @@ namespace psi { namespace ugacc {
 
 void title(void);
 void get_moinfo(boost::shared_ptr<Wavefunction> wfn, boost::shared_ptr<Chkpt> chkpt);
-void integrals(boost::shared_ptr<PSIO> psio);
+void integrals(void);
 void denom(void);
-void init_amps(void);
+void init_T_amps(void);
 double energy(void);
-void tsave(void);
-void tau_build(void);
-void Fme_build(void);
-void Fae_build(void);
-void Fmi_build(void);
-void Wmnij_build(void);
-void Wmbej_build(void);
-void Wmbje_build(void);
+void amp_save(double **, double **, double ****, double ****);
+void tau_build(int);
+void F_build(void);
+void W_build(void);
 void t1_build(void);
 void t2_build(void);
-double increment_t(void);
+double increment_amps(double **, double **, double ****, double ****);
 double t1norm(void);
 void diis(int);
+
+void init_L_amps(void);
+void hbar(void);
+void G_build(int);
+
 void ccdump(void);
-void amp_write(int);
+void amp_write(int, double **, double ****);
 void cleanup(void);
 
 extern "C" 
@@ -76,9 +77,9 @@ PsiReturnType ugacc(Options& options)
   boost::shared_ptr<Chkpt> chkpt(new Chkpt(psio, PSIO_OPEN_OLD));
 
   get_moinfo(wfn, chkpt);
-  integrals(psio);
+  integrals();
   denom();
-  init_amps();
+  init_T_amps();
 
   fprintf(outfile, "\n\tThe Coupled-Cluster Iteration:\n");
   fprintf(outfile,   "\t---------------------------------------------\n");
@@ -89,19 +90,13 @@ PsiReturnType ugacc(Options& options)
 
   double rms = 0.0;
   for(int iter=1; iter <= params.maxiter; iter++) {
-    tsave();
-    tau_build();
-
-    Fae_build(); 
-    Fmi_build(); 
-    Fme_build();
-    Wmnij_build();  
-    Wmbej_build();  
-    Wmbje_build();
-
+    amp_save(moinfo.t1, moinfo.t1old, moinfo.t2, moinfo.t2old);
+    tau_build(iter);
+    F_build(); 
+    W_build();  
     t1_build();
     t2_build();
-    rms = increment_t();
+    rms = increment_amps(moinfo.t1, moinfo.t1old, moinfo.t2, moinfo.t2old);
 
     fprintf(outfile,   "\t  %3d  %20.15f  %5.3f  %5.3e\n",iter, moinfo.eccsd = energy(), t1norm(), rms);
     fflush(outfile);
@@ -110,16 +105,18 @@ PsiReturnType ugacc(Options& options)
       fflush(outfile);
       break;
     }
-    if(params.do_diis) diis(iter);
+    if(params.do_diis) diis(iter, 90, 91, moinfo.t1, moinfo.t1old,
+                            moinfo.t2, moinfo.t2old);
   }
 
   if(rms >= params.convergence)
     throw PSIEXCEPTION("Computation has not converged.");
 
-  amp_write(20); fprintf(outfile, "\n");
+  amp_write(20, moinfo.t1, moinfo.t2); fprintf(outfile, "\n");
   fprintf(outfile,  "\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
 
-  // Solve the lambda equations
+  // ****** Lambda equations
+
   hbar();
   init_L_amps();
 
@@ -127,16 +124,18 @@ PsiReturnType ugacc(Options& options)
   fprintf(outfile,   "\t-------------------------------------\n");
   fprintf(outfile,   "\t Iter   Correlation Energy  RMS   \n");
   fprintf(outfile,   "\t-------------------------------------\n");
-  fprintf(outfile,   "\t  %3d  %20.15f\n", iter, pseudoenergy());
+  fprintf(outfile,   "\t  %3d  %20.15f\n", 0, pseudoenergy());
   fflush(outfile);
 
   rms = 0.0;
   for(iter=1; iter <= params.maxiter; iter++) {
-    lsave();
-    G_build();
+    amp_save(moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
+    G_build(iter);
+/*
     l1_build();
     l2_build();
-    rms = increment_l();
+*/
+    rms = increment_amps(moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
     fprintf(outfile,   "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
     fflush(outfile);
     if(rms < params.convergence) {
@@ -144,12 +143,13 @@ PsiReturnType ugacc(Options& options)
       fflush(outfile);
       break;
     }
-    if(params.do_diis) diis(iter);
+    if(params.do_diis) diis(iter, 92, 93, moinfo.l1, moinfo.l1old,
+                            moinfo.l2, moinfo.l2old);
   }
   if(rms >= params.convergence)
     throw PSIEXCEPTION("Computation has not converged.");
 
-  amp_write(20); fprintf(outfile, "\n");
+  amp_write(20, moinfo.l1, moinfo.l2); fprintf(outfile, "\n");
 
   ccdump();
   cleanup();

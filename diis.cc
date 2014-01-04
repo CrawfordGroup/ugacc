@@ -10,10 +10,9 @@
 
 namespace psi { namespace ugacc {
 
-void diis(int iter)
+void diis(int error_file, int amp_file, int iter, double **t1, 
+          double **t1old, double ****t2, double ****t2old)
 {
-  int vector_file=90;  /* Error vector storage */
-  int amp_file=91; /* Amplitude vector storage */
   int nvector=8;  /* Number of error vectors to keep */
   int no,nv,word;
   int p,q,i,j,a,b;
@@ -28,15 +27,13 @@ void diis(int iter)
   psio_address start, end;
 
   no = moinfo.no; nv = moinfo.nv;
-  t1 = moinfo.t1; t1old = moinfo.t1old;
-  t2 = moinfo.t2; t2old = moinfo.t2old;
 
   /* Calculate the length of a single error vector */
   vector_length = no*nv + no*no*nv*nv;
 
   /* If we haven't already, open the vector files for reading/writing */
   if(iter == 1) { 
-    psio_open(vector_file, PSIO_OPEN_NEW);
+    psio_open(error_file, PSIO_OPEN_NEW);
     psio_open(amp_file, PSIO_OPEN_NEW);
   }
 
@@ -60,7 +57,7 @@ void diis(int iter)
         }
 
   start = psio_get_address(PSIO_ZERO, diis_cycle*vector_length*sizeof(double));
-  psio_write(vector_file, "DIIS Error Vectors", (char *) error, 
+  psio_write(error_file, "DIIS Error Vectors", (char *) error, 
 	     vector_length*sizeof(double), start, &end);
 
   /* Store the amplitudes, too */
@@ -93,7 +90,7 @@ void diis(int iter)
   vector = init_matrix(nvector, vector_length);
   for(p=0; p < nvector; p++) {
     start = psio_get_address(PSIO_ZERO, p*vector_length*sizeof(double));
-    psio_read(vector_file, "DIIS Error Vectors", (char *) vector[p], 
+    psio_read(error_file, "DIIS Error Vectors", (char *) vector[p], 
 	      vector_length*sizeof(double), start, &end);
   }
 

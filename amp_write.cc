@@ -7,6 +7,9 @@
 #define EXTERN
 #include "globals.h"
 
+/*
+** Print the largest num_amps amplitudes to outfile.
+*/
 namespace psi { namespace ugacc {
 
 struct onestack {
@@ -28,11 +31,11 @@ void twostack_insert(struct twostack *stack, double value, int i, int j,
 void amp_write_T1(double **T1, int length, const char *label, FILE *outfile);
 void amp_write_T2(double ****T2, int length, const char *label, FILE *outfile);
 
-void amp_write(int num_amps)
+void amp_write(int num_amps, double **t1, double ****t2)
 {
-  amp_write_T1(moinfo.t1, num_amps, "\n\tLargest T1 Amplitudes:\n", outfile);
+  amp_write_T1(t1, num_amps, "\n\tLargest T1 Amplitudes:\n", outfile);
 
-  amp_write_T2(moinfo.t2, num_amps, "\n\tLargest T2 Amplitudes:\n", outfile);
+  amp_write_T2(t2, num_amps, "\n\tLargest T2 Amplitudes:\n", outfile);
 }
 
 void amp_write_T1(double **T1, int length, const char *label, FILE *outfile)

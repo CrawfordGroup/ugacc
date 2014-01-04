@@ -5,14 +5,10 @@
 
 namespace psi { namespace ugacc {
 
-double increment_t(void)
+double increment_t(double **t1, double **t1old, double ****t2, double ****t2old)
 {
   int no = moinfo.no;
   int nv = moinfo.nv;
-  double **t1 = moinfo.t1;
-  double **t1old = moinfo.t1old;
-  double ****t2 = moinfo.t2;
-  double ****t2old = moinfo.t2old;
   double **D1 = moinfo.D1;
   double ****D2 = moinfo.D2;
 

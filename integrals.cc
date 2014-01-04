@@ -15,7 +15,7 @@ namespace psi { namespace ugacc {
 #define IOFF_MAX 32641
 #define INDEX(i,j) ((i>j) ? (ioff[(i)]+(j)) : (ioff[(j)]+(i)))
 
-void integrals(boost::shared_ptr<PSIO> psio)
+void integrals(void)
 {
   int *ioff = init_int_array(IOFF_MAX);
   ioff[0] = 0;

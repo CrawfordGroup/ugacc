@@ -5,7 +5,7 @@
 
 namespace psi { namespace ugacc {
 
-void init_amps(void)
+void init_T_amps(void)
 {
   int no = moinfo.no; 
   int nv = moinfo.nv;
@@ -32,16 +32,5 @@ void init_amps(void)
 
   moinfo.t1 = t1; moinfo.t1old = t1old;
   moinfo.t2 = t2; moinfo.t2old = t2old;
-
-  /* Allocate space for intermediates */
-  moinfo.Fae = block_matrix(nv,nv);
-  moinfo.Fmi = block_matrix(no,no);
-  moinfo.Fme = block_matrix(no,nv);
-  moinfo.Wmnij = init_4d_array(no,no,no,no);
-  moinfo.Wmbej = init_4d_array(no,nv,nv,no);
-  moinfo.Wmbje = init_4d_array(no,nv,no,nv);
-  moinfo.ttau = init_4d_array(no,no,nv,nv);
-  moinfo.tau = init_4d_array(no,no,nv,nv);
-}
 }} // namespace psi::ugacc
 

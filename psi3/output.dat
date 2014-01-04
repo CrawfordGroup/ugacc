@@ -1,0 +1,555 @@
+******************************************************************************
+INPUT tstart called on arrakis-2.local
+Fri Jan  3 22:25:06 2014
+
+                                --------------
+                                    INPUT
+                                --------------
+
+  LABEL       =	Default PSI label
+  SHOWNORM    =	0
+  PUREAM      =	0
+  PRINT_LVL   =	1
+
+  Parsed basis sets from /Users/crawdad/psi3/share/psi/pbasis.dat
+
+  -Geometry before Center-of-Mass shift (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.220208243010
+    H        -0.000000000000     2.541242986737     1.747432308871
+    H        -0.000000000000    -2.541242986737     1.747432308871
+
+
+  -Rotational constants (cm-1) :
+    A =    8.68626  B =    4.62473  C =    3.01793
+    It is an asymmetric top.
+
+  -Geometry after Center-of-Mass shift and reorientation (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000    -0.220208243009     0.000000000000
+    H         2.541242986737     1.747432308871     0.000000000000
+    H        -2.541242986737     1.747432308871     0.000000000000
+
+
+  -SYMMETRY INFORMATION:
+    Computational point group is C2v 
+    Number of irr. rep.      = 4
+    Number of atoms          = 3
+    Number of unique atoms   = 2
+
+
+  -BASIS SETS:
+
+   -Basis set on unique center 1:
+      ( (S (   130.70932000     0.15432897)
+           (    23.80886100     0.53532814)
+           (     6.44360830     0.44463454) )
+        (S (     5.03315130    -0.09996723)
+           (     1.16959610     0.39951283)
+           (     0.38038900     0.70011547) )
+        (P (     5.03315130     0.15591627)
+           (     1.16959610     0.60768372)
+           (     0.38038900     0.39195739) )
+       )
+
+   -Basis set on unique center 2:
+      ( (S (     3.42525091     0.15432897)
+           (     0.62391373     0.53532814)
+           (     0.16885540     0.44463454) )
+       )
+
+
+  -BASIS SET INFORMATION:
+    Total number of shells = 5
+    Number of primitives   = 12
+    Number of AO           = 7
+    Number of SO           = 7
+
+    Irrep    Number of SO
+    -----    ------------
+      1            4
+      2            0
+      3            1
+      4            2
+
+  -Contraction Scheme:
+    Atom     All Primitives // Unique Primitives // Shells
+    ----     ---------------------------------------------
+       1      6s 3p //  6s //  2s 1p
+       2      3s //  3s //  1s
+       3      3s //  3s //  1s
+
+
+  -Unique atoms in the canonical coordinate system (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.220208243009
+    H         0.000000000000     2.541242986737     1.747432308871
+
+
+  -Geometry in the canonical coordinate system (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.220208243009
+    H         0.000000000000     2.541242986737     1.747432308871
+    H         0.000000000000    -2.541242986737     1.747432308871
+
+
+  -Geometry in the canonical coordinate system (Angstrom):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.116529192243
+    H         0.000000000000     1.344767972762     0.924701422022
+    H         0.000000000000    -1.344767972762     0.924701422022
+
+
+  -Geometry in the reference coordinate system (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.220208243009
+    H         0.000000000000     2.541242986737     1.747432308871
+    H         0.000000000000    -2.541242986737     1.747432308871
+
+
+  --------------------------------------------------------------------------
+
+    Nuclear Repulsion Energy (a.u.) =       5.175039635539
+
+  -The Interatomic Distances in angstroms:
+
+           1           2           3
+
+    1   0.0000000
+    2   1.7007534   0.0000000
+    3   1.7007534   2.6895359   0.0000000
+
+    Note: To print *all* bond angles, out-of-plane
+          angles, and torsion angles set print = 3
+
+
+******************************************************************************
+INPUT tstop called on arrakis-2.local
+Fri Jan  3 22:25:06 2014
+
+user time   =       0.05 seconds =       0.00 minutes
+system time =       0.00 seconds =       0.00 minutes
+total time  =          0 seconds =       0.00 minutes
+******************************************************************************
+INPUT tstart called on arrakis-2.local
+Fri Jan  3 22:25:28 2014
+
+                                --------------
+                                    INPUT
+                                --------------
+
+  LABEL       =	Default PSI label
+  SHOWNORM    =	0
+  PUREAM      =	0
+  PRINT_LVL   =	1
+
+  Parsed basis sets from /Users/crawdad/psi3/share/psi/pbasis.dat
+
+  -Geometry before Center-of-Mass shift (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.116529192243
+    H        -0.000000000000     1.344767972762     0.924701422022
+    H        -0.000000000000    -1.344767972762     0.924701422022
+
+
+  -Rotational constants (cm-1) :
+    A =   31.01920  B =   16.51522  C =   10.77722
+    It is an asymmetric top.
+
+  -Geometry after Center-of-Mass shift and reorientation (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000    -0.116529192243     0.000000000000
+    H         1.344767972762     0.924701422022     0.000000000000
+    H        -1.344767972762     0.924701422022     0.000000000000
+
+
+  -SYMMETRY INFORMATION:
+    Computational point group is C2v 
+    Number of irr. rep.      = 4
+    Number of atoms          = 3
+    Number of unique atoms   = 2
+
+
+  -BASIS SETS:
+
+   -Basis set on unique center 1:
+      ( (S (   130.70932000     0.15432897)
+           (    23.80886100     0.53532814)
+           (     6.44360830     0.44463454) )
+        (S (     5.03315130    -0.09996723)
+           (     1.16959610     0.39951283)
+           (     0.38038900     0.70011547) )
+        (P (     5.03315130     0.15591627)
+           (     1.16959610     0.60768372)
+           (     0.38038900     0.39195739) )
+       )
+
+   -Basis set on unique center 2:
+      ( (S (     3.42525091     0.15432897)
+           (     0.62391373     0.53532814)
+           (     0.16885540     0.44463454) )
+       )
+
+
+  -BASIS SET INFORMATION:
+    Total number of shells = 5
+    Number of primitives   = 12
+    Number of AO           = 7
+    Number of SO           = 7
+
+    Irrep    Number of SO
+    -----    ------------
+      1            4
+      2            0
+      3            1
+      4            2
+
+  -Contraction Scheme:
+    Atom     All Primitives // Unique Primitives // Shells
+    ----     ---------------------------------------------
+       1      6s 3p //  6s //  2s 1p
+       2      3s //  3s //  1s
+       3      3s //  3s //  1s
+
+
+  -Unique atoms in the canonical coordinate system (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.116529192243
+    H         0.000000000000     1.344767972762     0.924701422022
+
+
+  -Geometry in the canonical coordinate system (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.116529192243
+    H         0.000000000000     1.344767972762     0.924701422022
+    H         0.000000000000    -1.344767972762     0.924701422022
+
+
+  -Geometry in the canonical coordinate system (Angstrom):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.061664597379
+    H         0.000000000000     0.711620616370     0.489330954652
+    H         0.000000000000    -0.711620616370     0.489330954652
+
+
+  -Geometry in the reference coordinate system (a.u.):
+   Atom            X                  Y                   Z
+  ------   -----------------  -----------------  -----------------
+    O         0.000000000000     0.000000000000    -0.116529192243
+    H         0.000000000000     1.344767972762     0.924701422022
+    H         0.000000000000    -1.344767972762     0.924701422022
+
+
+  --------------------------------------------------------------------------
+
+    Nuclear Repulsion Energy (a.u.) =       9.779406891204
+
+  -The Interatomic Distances in angstroms:
+
+           1           2           3
+
+    1   0.0000000
+    2   0.9000000   0.0000000
+    3   0.9000000   1.4232412   0.0000000
+
+    Note: To print *all* bond angles, out-of-plane
+          angles, and torsion angles set print = 3
+
+
+******************************************************************************
+INPUT tstop called on arrakis-2.local
+Fri Jan  3 22:25:28 2014
+
+user time   =       0.05 seconds =       0.00 minutes
+system time =       0.00 seconds =       0.00 minutes
+total time  =          0 seconds =       0.00 minutes
+******************************************************************************
+cints tstart called on arrakis-2.local
+Fri Jan  3 22:25:32 2014
+
+                  --------------------------------------------
+                    CINTS: An integrals program written in C
+                     Justin T. Fermann and Edward F. Valeev
+                  --------------------------------------------
+
+
+  -OPTIONS:
+    Print level                 = 1
+    Integral tolerance          = 1e-15
+    Max. memory to use          = 2500000 double words
+    Number of threads           = 1
+    LIBINT's real type length   = 64 bit
+
+  -CALCULATION CONSTANTS:
+    Label                       = Default PSI label
+    Number of atoms             = 3
+    Number of atomic orbitals   = 7
+    Number of symmetry orbitals = 7
+    Maximum AM in the basis     = 1
+
+  -SYMMETRY INFORMATION;
+    Computational point group        = C2v
+    Number of irreps                 = 4
+
+    Wrote 138 two-electron integrals to IWL file 33
+
+******************************************************************************
+cints tstop called on arrakis-2.local
+Fri Jan  3 22:25:32 2014
+
+user time   =       0.00 seconds =       0.00 minutes
+system time =       0.00 seconds =       0.00 minutes
+total time  =          0 seconds =       0.00 minutes
+******************************************************************************
+SCF tstart called on arrakis-2.local
+Fri Jan  3 22:25:32 2014
+
+
+             ------------------------------------------
+
+                CSCF3.0: An SCF program written in C
+
+              Written by too many people to mention here
+
+             ------------------------------------------
+
+  I think the multiplicity is 1.
+  If this is wrong, please specify the MULTP keyword
+
+  wfn          = CCSD
+  reference    = RHF
+  multiplicity = 1
+  charge       = 0
+  direct       = false
+  dertype      = NONE
+  convergence  = 13
+  maxiter      = 100
+  guess        = AUTO
+
+  nuclear repulsion energy        9.7794068912039
+  first run, so defaulting to core-hamiltonian guess
+
+  level shift                      = 0.100000
+
+  level shifting will stop after 10 cycles
+  diis scale factor                = 1.000000
+  iterations before extrapolation  = 0
+  6 error matrices will be kept
+
+  keeping integrals in 1760 bytes of core
+
+  The lowest  eigenvalue of the overlap matrix was 3.045139e-01
+  The highest eigenvalue of the overlap matrix was 2.006253e+00
+
+  Using core guess to determine occupations
+
+
+  Symmetry block:   A1    A2    B1    B2   
+  DOCC:              3     0     1     1   
+  SOCC:              0     0     0     0   
+
+  reading integrals in the IWL format from files 33,35,36,37
+  wrote 93 integrals to file92
+
+  iter       total energy        delta E         delta P          diiser
+    1       -73.1969538723    8.297636e+01    0.000000e+00    0.000000e+00
+    2       -74.9391095344    1.742156e+00    3.458732e-01    5.698018e-01
+    3       -74.9445949653    5.485431e-03    1.882862e-02    4.182787e-02
+    4       -74.9449745856    3.796203e-04    5.391077e-03    1.073821e-02
+    5       -74.9450194641    4.487849e-05    2.307555e-03    3.570500e-03
+    6       -74.9450209750    1.510864e-06    4.264060e-04    5.946474e-04
+    7       -74.9450209761    1.165247e-09    7.563333e-06    1.894122e-05
+    8       -74.9450209761    1.421085e-13    1.459350e-07    2.439759e-07
+    9       -74.9450209761    1.421085e-14    2.170442e-09    3.816099e-09
+   10       -74.9450209761    0.000000e+00    2.258201e-12    3.898520e-12
+   11       -74.9450209761    1.421085e-14    1.056529e-16    3.830269e-15
+
+Orbital energies (a.u.):
+
+  Doubly occupied orbitals
+   1A1    -20.236192     2A1     -1.300480     1B2     -0.649309  
+   3A1     -0.460194     1B1     -0.396298  
+
+
+  Unoccupied orbitals
+   4A1      0.664827     2B2      0.813314  
+
+
+      * SCF total energy   =     -74.945020976116
+        kinetic energy     =      74.740193111594
+        nuc. attr. energy  =    -198.104102121726
+        elec. rep. energy  =      38.639481142813
+        potential energy   =    -149.685214087709
+        virial ratio (V/T) =      -2.002740531647
+        wavefunction norm  =       1.000000000000
+******************************************************************************
+SCF tstop called on arrakis-2.local
+Fri Jan  3 22:25:32 2014
+
+user time   =       0.00 seconds =       0.00 minutes
+system time =       0.00 seconds =       0.00 minutes
+total time  =          0 seconds =       0.00 minutes
+******************************************************************************
+TRANSQT tstart called on arrakis-2.local
+Fri Jan  3 22:25:39 2014
+
+
+	**************************************************
+	* TRANSQT2: Program to transform integrals from  *
+	*           the SO basis to the MO basis.        *
+	*                                                *
+	*            Daniel, David, & Justin             *
+	**************************************************
+
+
+	Input parameters:
+	-----------------
+	Wave function   =	CCSD
+	Backtransform   =	No
+	Print Level     =	1
+	Print TEIs      =	No
+	Reference wfn   =	RHF
+	Derivative      =	None
+	Delete TEI File =	Yes
+	Memory (Mbytes) =	256.0
+	Cache Level     =	2
+	Cache Type      =	LRU
+	Chkpt Parameters:
+	--------------------
+	Number of irreps     = 4
+	Number of SOs        = 7
+	Number of MOs        = 7
+	Number of active MOs = 6
+
+	Label	# SOs	# FZDC	# DOCC	# SOCC	# VIRT	# FZVR
+	-----	-----	------	------	------	------	------
+	 A1 	   4	    1	    2	    0	    1	    0
+	 A2 	   0	    0	    0	    0	    0	    0
+	 B1 	   1	    0	    1	    0	    0	    0
+	 B2 	   2	    0	    1	    0	    1	    0
+
+	Nuclear Rep. energy (chkpt) =      9.77940689120386
+	SCF energy          (chkpt) =    -74.94502097611554
+
+	Presorting SO-basis two-electron integrals.
+	Sorting File: SO Ints (pq,rs) nbuckets = 1
+	Frozen-core energy =  -60.802611911773809
+	Starting first half-transformation.
+	Sorting half-transformed integrals.
+	Starting second half-transformation.
+	Two-electron integral transformation complete.
+******************************************************************************
+TRANSQT tstop called on arrakis-2.local
+Fri Jan  3 22:25:39 2014
+
+user time   =       0.00 seconds =       0.00 minutes
+system time =       0.00 seconds =       0.00 minutes
+total time  =          0 seconds =       0.00 minutes
+******************************************************************************
+RHF-CC-ENERGY tstart called on arrakis-2.local
+Fri Jan  3 22:25:54 2014
+
+
+			**************************
+			*                        *
+			*     RHF-CC-ENERGY      *
+			*                        *
+			**************************
+
+	Wave function  = CCSD
+	Reference      = RHF
+	Maxiter        = 100
+	Convergence    = 1.0e-13
+	DIIS           = Yes
+
+	Checkpoint Parameters:
+	------------------------
+	Number of irreps        = 4
+	Number of MOs           = 7
+	Number of active MOs    = 6
+
+	Label	# MOs	# FZDC	# DOCC	# VIRT	# FZVR
+	-----	-----	------	------	------	------
+	 A1 	   4	    1	    3	    1	    0
+	 A2 	   0	    0	    0	    0	    0
+	 B1 	   1	    0	    1	    0	    0
+	 B2 	   2	    0	    1	    1	    0
+
+	Nuclear Repulsion Energy    =    9.779406891203863
+	Frozen Core Energy          =  -60.802611911773809
+	Total SCF Energy (chkpt)    =  -74.945020976115543
+	SCF energy (recomputed)     =  -74.945020976115529
+
+	The Coupled-Cluster Iteration:
+	---------------------------------------------
+	 Iter   Correlation Energy  T1 Norm    RMS   
+	---------------------------------------------
+	    0    -0.030976767133094
+	    1    -0.038923336304172  0.002  8.271e-02
+	    2    -0.041267865403688  0.003  2.746e-02
+	    3    -0.042420253269017  0.004  2.915e-03
+	    4    -0.042491023842177  0.004  5.710e-04
+	    5    -0.042494558396839  0.004  7.500e-05
+	    6    -0.042493432878919  0.004  1.294e-05
+	    7    -0.042493592995937  0.004  2.706e-06
+	    8    -0.042493540085730  0.004  3.761e-07
+	    9    -0.042493550491242  0.004  8.692e-08
+	   10    -0.042493547275954  0.004  1.149e-08
+	   11    -0.042493547225529  0.004  2.723e-09
+	   12    -0.042493547226667  0.004  2.114e-10
+	   13    -0.042493547224479  0.004  4.314e-11
+	   14    -0.042493547224696  0.004  1.099e-11
+	   15    -0.042493547224726  0.004  2.738e-12
+	   16    -0.042493547224716  0.004  4.906e-13
+	   17    -0.042493547224717  0.004  1.382e-13
+	   18    -0.042493547224717  0.004  3.129e-14
+
+	Computation has converged!
+
+	Largest T1 Amplitudes:
+	          1   0         0.0103711291
+	          3   1        -0.0032718000
+	          0   0         0.0009631985
+
+	Largest T2 Amplitudes:
+	  3   3   1   1        -0.0705976710
+	  1   3   0   1         0.0385556341
+	  3   1   1   0         0.0385556341
+	  3   3   0   0        -0.0381645411
+	  1   1   1   1        -0.0376670867
+	  1   1   0   0        -0.0361590527
+	  0   0   0   0        -0.0320166674
+	  0   3   0   1         0.0304670487
+	  3   0   1   0         0.0304670487
+	  0   1   0   0        -0.0301319257
+	  1   0   0   0        -0.0301319257
+	  1   3   1   0         0.0280964678
+	  3   1   0   1         0.0280964678
+	  2   2   0   0        -0.0256464956
+	  0   3   1   0         0.0195291325
+	  3   0   0   1         0.0195291325
+	  0   0   1   1        -0.0154065049
+	  2   2   1   1        -0.0097616564
+	  0   1   1   1         0.0036155137
+	  1   0   1   1         0.0036155137
+
+	CCSD Energy    =   -74.98751452334027
+
+******************************************************************************
+RHF-CC-ENERGY tstop called on arrakis-2.local
+Fri Jan  3 22:25:54 2014
+
+user time   =       0.01 seconds =       0.00 minutes
+system time =       0.00 seconds =       0.00 minutes
+total time  =          0 seconds =       0.00 minutes

@@ -23,15 +23,33 @@ struct MOInfo {
   double **t1old;   /* previous t1 amplitudes */
   double ****t2;    /* current t2 amplitudes */
   double ****t2old; /* previous t2 amplitudes */
+  double ****ttau;  /* tau-tilde effective doubles */
+  double ****tau;   /* tau effective doubles */
 
+  // CCSD intermediates for amplitude equations
   double **Fae;     /* CC intermediate */
   double **Fmi;     /* CC intermediate */
   double **Fme;     /* CC intermediate */
   double ****Wmnij; /* CC intermediate */
   double ****Wmbej; /* CC intermediate */
   double ****Wmbje; /* CC intermediate */
-  double ****ttau;  /* tau-tilde array */
-  double ****tau;   /* tau array */
+
+  // CCSD HBAR
+  double **Hoo;
+  double **Hvv;
+  double **Hov;
+  double ****Hoooo;
+  double ****Hvvvv;
+  double ****Hovov;
+  double ****Hovvo;
+  double ****Hvovv;
+  double ****Hooov;
+  double ****Hovoo;
+  double ****Hvvvo;
+
+  // Three-body intermediates
+  double **Gvv;
+  double **Goo;
 };
 
 }} // namespace psi::ugacc

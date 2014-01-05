@@ -10,7 +10,7 @@
 
 namespace psi { namespace ugacc {
 
-void diis(int error_file, int amp_file, int iter, double **t1, 
+void diis(int iter, int error_file, int amp_file, double **t1, 
           double **t1old, double ****t2, double ****t2old)
 {
   int nvector=8;  /* Number of error vectors to keep */
@@ -18,8 +18,6 @@ void diis(int error_file, int amp_file, int iter, double **t1,
   int p,q,i,j,a,b;
   int diis_cycle;
   int vector_length;
-  double **t1, **t1old;
-  double ****t2, ****t2old;
   double *error;
   div_t fraction;
   double **B, *C, **vector;

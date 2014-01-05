@@ -2,6 +2,7 @@
 #include <psi4-dec.h>
 #include <libparallel/parallel.h>
 #include <liboptions/liboptions.h>
+#include <libciomr/libciomr.h>
 #include <libmints/mints.h>
 #include <libpsio/psio.hpp>
 #include "MOInfo.h"
@@ -20,7 +21,7 @@ void integrals(void);
 void denom(void);
 void init_T_amps(void);
 double energy(void);
-void amp_save(double **, double **, double ****, double ****);
+void amp_save(double ***, double ***, double *****, double *****);
 void tau_build(int);
 void F_build(void);
 void W_build(void);
@@ -28,14 +29,18 @@ void t1_build(void);
 void t2_build(void);
 double increment_amps(double **, double **, double ****, double ****);
 double t1norm(void);
-void diis(int);
+void diis(int error_file, int amp_file, int iter, double **t1,
+          double **t1old, double ****t2, double ****t2old);
 
 void init_L_amps(void);
 void hbar(void);
 void G_build(int);
+double pseudoenergy(void);
+void l1_build(void);
+void l2_build(void);
 
 void ccdump(void);
-void amp_write(int, double **, double ****);
+void amp_write(int, double **, double ****, std::string);
 void cleanup(void);
 
 extern "C" 
@@ -90,7 +95,7 @@ PsiReturnType ugacc(Options& options)
 
   double rms = 0.0;
   for(int iter=1; iter <= params.maxiter; iter++) {
-    amp_save(moinfo.t1, moinfo.t1old, moinfo.t2, moinfo.t2old);
+    amp_save(&moinfo.t1, &moinfo.t1old, &moinfo.t2, &moinfo.t2old);
     tau_build(iter);
     F_build(); 
     W_build();  
@@ -112,7 +117,7 @@ PsiReturnType ugacc(Options& options)
   if(rms >= params.convergence)
     throw PSIEXCEPTION("Computation has not converged.");
 
-  amp_write(20, moinfo.t1, moinfo.t2); fprintf(outfile, "\n");
+  amp_write(20, moinfo.t1, moinfo.t2, "T"); fprintf(outfile, "\n");
   fprintf(outfile,  "\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
 
   // ****** Lambda equations
@@ -128,14 +133,13 @@ PsiReturnType ugacc(Options& options)
   fflush(outfile);
 
   rms = 0.0;
-  for(iter=1; iter <= params.maxiter; iter++) {
-    amp_save(moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
+  for(int iter=1; iter <= params.maxiter; iter++) {
+    amp_save(&moinfo.l1, &moinfo.l1old, &moinfo.l2, &moinfo.l2old);
     G_build(iter);
-/*
     l1_build();
     l2_build();
-*/
     rms = increment_amps(moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
+
     fprintf(outfile,   "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
     fflush(outfile);
     if(rms < params.convergence) {
@@ -149,7 +153,21 @@ PsiReturnType ugacc(Options& options)
   if(rms >= params.convergence)
     throw PSIEXCEPTION("Computation has not converged.");
 
-  amp_write(20, moinfo.l1, moinfo.l2); fprintf(outfile, "\n");
+  amp_write(20, moinfo.l1, moinfo.l2, "L"); fprintf(outfile, "\n");
+
+  // Print non-UGA version of lambda amps
+  int no = moinfo.no;
+  int nv = moinfo.nv;
+  double **Z1 = block_matrix(no, nv);
+  double ****Z2 = init_4d_array(no, no, nv, nv);
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++) {
+      Z1[i][a] = 0.5 * moinfo.l1[i][a];
+      for(int j=0; j < no; j++) 
+        for(int b=0; b < nv; b++)
+          Z2[i][j][a][b] = (1./3.)*moinfo.l2[i][j][a][b] + (1./6.)*moinfo.l2[i][j][b][a];
+   }
+  amp_write(20, Z1, Z2, "Z"); fprintf(outfile, "\n");
 
   ccdump();
   cleanup();

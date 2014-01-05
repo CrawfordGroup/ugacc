@@ -5,7 +5,8 @@
 
 namespace psi { namespace ugacc {
 
-double increment_t(double **t1, double **t1old, double ****t2, double ****t2old)
+double increment_amps(double **t1, double **t1old, double ****t2, 
+                      double ****t2old)
 {
   int no = moinfo.no;
   int nv = moinfo.nv;

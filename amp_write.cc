@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include <string>
 #include <psi4-dec.h>
 #include "MOInfo.h"
 #include "Params.h"
@@ -11,6 +12,8 @@
 ** Print the largest num_amps amplitudes to outfile.
 */
 namespace psi { namespace ugacc {
+
+#define AMP_CUTOFF 1e-8
 
 struct onestack {
     double value;
@@ -28,17 +31,20 @@ void onestack_insert(struct onestack *stack, double value, int i, int a,
     int level, int stacklen);
 void twostack_insert(struct twostack *stack, double value, int i, int j, 
     int a, int b, int level, int stacklen);
-void amp_write_T1(double **T1, int length, const char *label, FILE *outfile);
-void amp_write_T2(double ****T2, int length, const char *label, FILE *outfile);
+void amp_write_T1(double **T1, int length, std::string label, FILE *outfile);
+void amp_write_T2(double ****T2, int length, std::string label, FILE *outfile);
 
-void amp_write(int num_amps, double **t1, double ****t2)
+void amp_write(int num_amps, double **t1, double ****t2, std::string name)
 {
-  amp_write_T1(t1, num_amps, "\n\tLargest T1 Amplitudes:\n", outfile);
+  std::string label;
 
-  amp_write_T2(t2, num_amps, "\n\tLargest T2 Amplitudes:\n", outfile);
+  label = "\n\tLargest " + name + "1 Amplitudes:\n";
+  amp_write_T1(t1, num_amps, label, outfile);
+  label = "\n\tLargest " + name + "2 Amplitudes:\n";
+  amp_write_T2(t2, num_amps, label, outfile);
 }
 
-void amp_write_T1(double **T1, int length, const char *label, FILE *outfile)
+void amp_write_T1(double **T1, int length, std::string label, FILE *outfile)
 {
   int num2print=0;
   struct onestack *t1stack;
@@ -63,12 +69,12 @@ void amp_write_T1(double **T1, int length, const char *label, FILE *outfile)
   }
 
   for(int m=0; m < ((numt1 < length) ? numt1 : length); m++)
-    if(fabs(t1stack[m].value) > 1e-8) num2print++;
+    if(fabs(t1stack[m].value) > AMP_CUTOFF) num2print++;
 
-  if(num2print) fprintf(outfile, "%s", label);
+  if(num2print) fprintf(outfile, "%s", label.c_str());
 
   for(int m=0; m < ((numt1 < length) ? numt1 : length); m++)
-    if(fabs(t1stack[m].value) > 1e-8)
+    if(fabs(t1stack[m].value) > AMP_CUTOFF)
       fprintf(outfile, "\t        %3d %3d %20.10f\n", t1stack[m].i, t1stack[m].a, t1stack[m].value);
 
   free(t1stack);
@@ -102,7 +108,7 @@ void onestack_insert(struct onestack *stack, double value, int i, int a, int lev
   }
 }
 
-void amp_write_T2(double ****T2, int length, const char *label, FILE *outfile)
+void amp_write_T2(double ****T2, int length, std::string label, FILE *outfile)
 {
   int num2print=0;
   struct twostack *t2stack;
@@ -125,7 +131,7 @@ void amp_write_T2(double ****T2, int length, const char *label, FILE *outfile)
           double value = T2[i][j][a][b];
 
           for(int m=0; m < length; m++) {
-            if((fabs(value) - fabs(t2stack[m].value)) > 1e-12) {
+            if((fabs(value) - fabs(t2stack[m].value)) > 1e-19) {
 	      twostack_insert(t2stack, value, i, j, a, b, m, length);
 	      break;
 	    }
@@ -136,12 +142,12 @@ void amp_write_T2(double ****T2, int length, const char *label, FILE *outfile)
   }
 
   for(int m=0; m < ((numt2 < length) ? numt2 : length); m++)
-    if(fabs(t2stack[m].value) > 1e-8) num2print++;
+    if(fabs(t2stack[m].value) > AMP_CUTOFF) num2print++;
 
-  if(num2print) fprintf(outfile, "%s", label);
+  if(num2print) fprintf(outfile, "%s", label.c_str());
 
   for(int m=0; m < ((numt2 < length) ? numt2 : length); m++)
-    if(fabs(t2stack[m].value) > 1e-8)
+    if(fabs(t2stack[m].value) > AMP_CUTOFF)
       fprintf(outfile, "\t%3d %3d %3d %3d %20.10f\n", t2stack[m].i, t2stack[m].j, 
 	      t2stack[m].a, t2stack[m].b, t2stack[m].value);
 

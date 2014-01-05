@@ -17,6 +17,8 @@ struct MOInfo {
   double **fock;    /* f(p,q) */
   double ****ints;  /* <pq|rs> */
   double ****L;     /* 2<pq|rs> - <pq|sr> */
+
+  // T-amplitude quantities
   double **D1;      /* one-electron denominators */
   double ****D2;    /* two-electron denominators */
   double **t1;      /* current t1 amplitudes */
@@ -25,6 +27,12 @@ struct MOInfo {
   double ****t2old; /* previous t2 amplitudes */
   double ****ttau;  /* tau-tilde effective doubles */
   double ****tau;   /* tau effective doubles */
+
+  // L-amplitude quantities
+  double **l1;      /* current l1 amplitudes */
+  double **l1old;   /* previous l1 amplitudes */
+  double ****l2;    /* current l2 amplitudes */
+  double ****l2old; /* previous l2 amplitudes */
 
   // CCSD intermediates for amplitude equations
   double **Fae;     /* CC intermediate */

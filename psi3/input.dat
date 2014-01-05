@@ -1,7 +1,7 @@
 psi: (
  wfn = ccsd
  reference = rhf
- basis = "STO-3G"
+ basis = "cc-pVDZ"
  convergence = 13
  freeze_core = true
  units = bohr

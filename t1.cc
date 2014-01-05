@@ -18,11 +18,10 @@ void t1_build(void)
   double **Fmi = moinfo.Fmi;
   double **Fme = moinfo.Fme;
   double ****t2 = moinfo.t2old;
-  double value;
 
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      value = fock[a+no][i];
+      double value = fock[a+no][i];
       for(int e=0; e < nv; e++)
         value += t1[i][e]*Fae[a][e];
       for(int m=0; m < no; m++)

@@ -1,3 +1,5 @@
+#include <libciomr/libciomr.h>
+#include <psi4-dec.h>
 #include "MOInfo.h"
 #include "Params.h"
 #define EXTERN

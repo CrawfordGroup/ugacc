@@ -79,7 +79,7 @@ void integrals(void)
   for(int i=0; i < no; i++) {
     escf += 2 * oei[INDEX(i,i)];
     for(int j=0; j < no; j++)
-      escf += 2 * ints[i][j][i][j] - ints[i][j][j][i];
+      escf += L[i][j][i][j];
   }
   fprintf(outfile, "\tSCF energy (recomputed)     = %20.15f\n", escf+moinfo.enuc+moinfo.efzc);
 

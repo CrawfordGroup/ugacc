@@ -11,3 +11,14 @@
 *.lai
 *.la
 *.a
+
+# Dependency files
+*.d
+
+# Compiled Python files
+*.pyc
+
+# Temporary PSI files
+output.dat
+psi.timer.dat
+psi.32

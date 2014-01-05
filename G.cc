@@ -1,3 +1,4 @@
+#include <libciomr/libciomr.h>
 #include "MOInfo.h"
 #define EXTERN
 #include "globals.h"
@@ -12,8 +13,8 @@ void G_build(int iter)
   double ****l2 = moinfo.l2old;
 
   if(iter == 1) {
-    Gvv = moinfo.Gvv;
-    Goo = moinfo.Goo;
+    moinfo.Gvv = block_matrix(nv, nv);
+    moinfo.Goo = block_matrix(no, no);
   }
 
   for(int m=0; m < no; m++)
@@ -23,7 +24,7 @@ void G_build(int iter)
         for(int b=0; b < nv; b++)
           for(int j=0; j < no; j++)
             value += t2[m][j][a][b] * l2[i][j][a][b];
-      Goo[m][i] = value;
+      moinfo.Goo[m][i] = value;
     }
 
   for(int a=0; a < nv; a++)
@@ -33,7 +34,7 @@ void G_build(int iter)
         for(int j=0; j < no; j++)
           for(int b=0; b < nv; b++)
             value -= t2[i][j][e][b] * l2[i][j][a][b];
-      Gvv[a][e] = value;
+      moinfo.Gvv[a][e] = value;
     }
 
   return;

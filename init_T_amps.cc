@@ -32,5 +32,7 @@ void init_T_amps(void)
 
   moinfo.t1 = t1; moinfo.t1old = t1old;
   moinfo.t2 = t2; moinfo.t2old = t2old;
+}
+
 }} // namespace psi::ugacc
 

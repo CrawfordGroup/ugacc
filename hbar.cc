@@ -75,11 +75,11 @@ void hbar(void)
     for(int n=0; n < no; n++)
       for(int i=0; i < no; i++)
 	for(int j=0; j < no; j++) {
-	  double value = 0.5*ints[m][n][i][j];
+	  double value = ints[m][n][i][j];
 	  for(int e=0; e < nv; e++) {
-	    value += t1[j][e]*ints[m][n][i][e+no];
+	    value += 2.0*t1[j][e]*ints[m][n][i][e+no];
 	    for(int f=0; f < nv; f++)
-	      value += 0.5*tau[i][j][e][f]*ints[m][n][e+no][f+no];
+	      value += tau[i][j][e][f]*ints[m][n][e+no][f+no];
 	  }
 	  moinfo.Hoooo[m][n][i][j] = value;
 	}
@@ -88,11 +88,11 @@ void hbar(void)
     for(int b=0; b < nv; b++)
       for(int e=0; e < nv; e++)
         for(int f=0; f < nv; f++) {
-          double value = 0.5*ints[a+no][b+no][e+no][f+no];
+          double value = ints[a+no][b+no][e+no][f+no];
           for(int m=0; m < no; m++) {
-            value -= t1[m][b]*ints[a+no][m][e+no][f+no];
+            value -= 2.0*t1[m][b]*ints[a+no][m][e+no][f+no];
             for(int n=0; n < no; n++)
-              value += 0.5*tau[m][n][a][b]*ints[m][n][e+no][f+no];
+              value += tau[m][n][a][b]*ints[m][n][e+no][f+no];
           }
           moinfo.Hvvvv[a][b][e][f] = value;
         }

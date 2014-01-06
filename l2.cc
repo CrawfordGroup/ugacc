@@ -44,11 +44,11 @@ void l2_build(void)
 
           for(int m=0; m < no; m++)
             for(int n=0; n < no; n++)
-              value += l2[m][n][a][b] * Hoooo[i][j][m][n];
+              value += 0.5 * l2[m][n][a][b] * Hoooo[i][j][m][n];
 
           for(int e=0; e < nv; e++)
             for(int f=0; f < nv; f++)
-              value += l2[i][j][e][f] * Hvvvv[e][f][a][b];
+              value += 0.5 * l2[i][j][e][f] * Hvvvv[e][f][a][b];
 
           for(int e=0; e < nv; e++)
               value += l1[i][e]*(2*Hvovv[e][j][a][b] - Hvovv[e][j][b][a]);

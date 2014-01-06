@@ -36,7 +36,7 @@ void l1_build(void)
 
       for(int m=0; m < no; m++)
         for(int e=0; e < nv; e++)
-          value += l1[m][e] * (2 * Hovvo[i][e][a][m] - Hovov[i][e][m][a]);
+          value += l1[m][e] * (2*Hovvo[i][e][a][m] - Hovov[i][e][m][a]);
 
       for(int m=0; m < no; m++)
         for(int e=0; e < nv; e++)

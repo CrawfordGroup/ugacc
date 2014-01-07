@@ -60,4 +60,4 @@ void l1_build(void)
     }
 }
 
-}} // namespace devel::rhfcclambda
+}} // namespace psi::ugacc

@@ -1,4 +1,3 @@
-
 # PYTHONPATH must include directory above plugin directory.
 #     Define either externally or here, then import plugin.
 sys.path.insert(0, './..')
@@ -20,11 +19,5 @@ set {
   r_convergence 1e-13
 }
 
-set ugacc {
-  wfn ccsd
-  convergence 1e-13
-  diis true
-}
-
-energy('ugacc')
+gradient('ugacc',wfn='ccsd(t)')
 

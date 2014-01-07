@@ -39,4 +39,4 @@ void init_L_amps(void)
   return;
 }
 
-}} // namespace devel::rhfcclambda
+}} // namespace psi::ugacc

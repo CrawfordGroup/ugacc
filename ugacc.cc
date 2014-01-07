@@ -31,6 +31,7 @@ double increment_amps(double **, double **, double ****, double ****);
 double t1norm(void);
 void diis(int error_file, int amp_file, int iter, double **t1,
           double **t1old, double ****t2, double ****t2old);
+double triples(void);
 
 void init_L_amps(void);
 void hbar(void);
@@ -47,13 +48,13 @@ extern "C"
 int read_options(std::string name, Options& options)
 {
   if(name == "UGACC" || options.read_globals()) {
-    /*- The amount of information printed to the output file -*/
     options.add_int("PRINT", 1);
     options.add_str("REFERENCE", "RHF");
     options.add_str("WFN", "CCSD");
+    options.add_str("DERTYPE", "NONE");
     options.add_int("MAXITER", 100);
     options.add_bool("DIIS", true);
-    options.add_double("CONVERGENCE", 1e-7);
+    options.add_double("R_CONVERGENCE", 1e-7);
   }
 
   return true;
@@ -65,12 +66,15 @@ PsiReturnType ugacc(Options& options)
   title();
   params.ref = options.get_str("REFERENCE");
   params.wfn = options.get_str("WFN");
-  params.convergence = options.get_double("CONVERGENCE");
+  if(options.get_str("DERTYPE") == "NONE") params.dertype = 0;
+  else if(options.get_str("DERTYPE") == "FIRST") params.dertype = 1;
+  params.convergence = options.get_double("R_CONVERGENCE");
   params.do_diis = options.get_bool("DIIS");
   params.maxiter = options.get_int("MAXITER");
 
   fprintf(outfile, "\tWave function  = %s\n", params.wfn.c_str());
   fprintf(outfile, "\tReference      = %s\n", params.ref.c_str());
+  fprintf(outfile, "\tComputation    = %s\n", params.dertype ? "Gradient" : "Energy");
   fprintf(outfile, "\tMaxiter        = %d\n", params.maxiter);
   fprintf(outfile, "\tConvergence    = %3.1e\n", params.convergence);
   fprintf(outfile, "\tDIIS           = %s\n", params.do_diis ? "Yes" : "No");
@@ -84,6 +88,9 @@ PsiReturnType ugacc(Options& options)
   get_moinfo(wfn, chkpt);
   integrals();
   denom();
+
+  // ****** T-amplitude equations
+
   init_T_amps();
 
   fprintf(outfile, "\n\tThe Coupled-Cluster Iteration:\n");
@@ -117,10 +124,15 @@ PsiReturnType ugacc(Options& options)
   if(rms >= params.convergence)
     throw PSIEXCEPTION("Computation has not converged.");
 
-  amp_write(20, moinfo.t1, moinfo.t2, "T"); fprintf(outfile, "\n");
-  fprintf(outfile,  "\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
+  fprintf(outfile,   "\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
+  if(params.wfn == "CCSD_T") {
+    fprintf(outfile, "\t(T) Correction = %20.14f\n",moinfo.e_t = triples());
+    fprintf(outfile, "\tCCSD(T) Energy = %20.14f\n",moinfo.escf+moinfo.eccsd+moinfo.e_t);
+  }
 
-  // ****** Lambda equations
+  amp_write(20, moinfo.t1, moinfo.t2, "T"); fprintf(outfile, "\n");
+
+  // ****** Lambda-amplitude equations
 
   hbar();
   init_L_amps();
@@ -155,7 +167,7 @@ PsiReturnType ugacc(Options& options)
 
   amp_write(20, moinfo.l1, moinfo.l2, "L"); fprintf(outfile, "\n");
 
-  // Print non-UGA version of lambda amps
+  // Also print non-UGA version of lambda amps for comparison to old code
   int no = moinfo.no;
   int nv = moinfo.nv;
   double **Z1 = block_matrix(no, nv);
@@ -168,6 +180,8 @@ PsiReturnType ugacc(Options& options)
           Z2[i][j][a][b] = (1./3.)*moinfo.l2[i][j][a][b] + (1./6.)*moinfo.l2[i][j][b][a];
    }
   amp_write(20, Z1, Z2, "Z"); fprintf(outfile, "\n");
+  free_block(Z1);
+  free_4d_array(Z2, no, no, nv);
 
   ccdump();
   cleanup();

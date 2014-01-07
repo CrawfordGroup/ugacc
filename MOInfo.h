@@ -14,6 +14,7 @@ struct MOInfo {
   double escf;      /* SCF energy */
   double efzc;      /* frozen core energy */
   double eccsd;     /* CCSD energy */
+  double e_t;       /* (T) energy */
   double **fock;    /* f(p,q) */
   double ****ints;  /* <pq|rs> */
   double ****L;     /* 2<pq|rs> - <pq|sr> */

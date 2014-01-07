@@ -80,4 +80,4 @@ void l2_build(void)
    free_4d_array(Z, no, no, nv);
 }
 
-}} // namespace devel::rhfcclambda
+}} // namespace psi::ugacc

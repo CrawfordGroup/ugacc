@@ -159,5 +159,5 @@ void diis(int iter, int error_file, int amp_file, double **t1,
 
   return;
 }
-}} // namespace devel::rhfccenergy
+}} // namespace psi::ugacc
 

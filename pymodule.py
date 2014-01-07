@@ -22,16 +22,23 @@ def run_ugacc(name, **kwargs):
     kwargs = p4util.kwargs_lower(kwargs)
 
     # Your plugin's psi4 run sequence goes here
-#    psi4.set_global_option('BASIS', 'sto-3g')
-    psi4.set_local_option('UGACC', 'PRINT', 1)
+    if ('wfn' in kwargs):
+        if (kwargs['wfn'] == 'ccsd'):
+            psi4.set_global_option('WFN', 'CCSD')
+        elif (kwargs['wfn'] == 'ccsd(t)'):
+            psi4.set_global_option('WFN', 'CCSD_T')
     scf_helper(name, **kwargs)
-    psi4.set_local_option('TRANSQT2', 'WFN', 'CCSD')
     psi4.transqt2()
     returnvalue = psi4.plugin('ugacc.so')
     psi4.set_variable('CURRENT ENERGY', returnvalue)
 
+def run_ugacc_gradient(name, **kwargs):
+    psi4.set_global_option('DERTYPE', 'FIRST')
+    run_ugacc(name, **kwargs)
+
 # Integration with driver routines
 procedures['energy']['ugacc'] = run_ugacc
+procedures['gradient']['ugacc'] = run_ugacc_gradient
 
 
 def exampleFN():

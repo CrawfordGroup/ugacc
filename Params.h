@@ -8,6 +8,7 @@ namespace psi { namespace ugacc {
 struct Params {
     std::string ref;
     std::string wfn;
+    int dertype;
     int maxiter;
     double convergence;
     int do_diis;

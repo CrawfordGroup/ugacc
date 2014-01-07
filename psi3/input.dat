@@ -1,5 +1,5 @@
 psi: (
- wfn = ccsd
+ wfn = ccsd_t
  reference = rhf
  basis = "cc-pVDZ"
  convergence = 13

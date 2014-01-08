@@ -27,6 +27,7 @@ void l1_build(void)
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
       double value = 2 * Hov[i][a];
+      if(params.wfn == "CCSD_T") value += moinfo.s1[i][a];
 
       for(int e=0; e < nv; e++)
         value += l1[i][e] * Hvv[e][a];

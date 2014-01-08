@@ -59,6 +59,10 @@ struct MOInfo {
   // Three-body intermediates
   double **Gvv;
   double **Goo;
+
+  // Additional contributions to Lambda equations from (T) correction
+  double **s1;
+  double ****s2;
 };
 
 }} // namespace psi::ugacc

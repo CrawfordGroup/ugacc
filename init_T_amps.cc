@@ -1,5 +1,6 @@
 #include <libciomr/libciomr.h>
 #include "MOInfo.h"
+#include "Params.h"
 #define EXTERN
 #include "globals.h"
 
@@ -32,6 +33,11 @@ void init_T_amps(void)
 
   moinfo.t1 = t1; moinfo.t1old = t1old;
   moinfo.t2 = t2; moinfo.t2old = t2old;
+
+  if(params.wfn == "CCSD_T") {
+    moinfo.s1 = block_matrix(no, nv);
+    moinfo.s2 = init_4d_array(no,no,nv,nv);
+  }
 }
 
 }} // namespace psi::ugacc

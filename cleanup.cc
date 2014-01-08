@@ -1,5 +1,6 @@
 #include <libciomr/libciomr.h>
 #include "MOInfo.h"
+#include "Params.h"
 #define EXTERN
 #include "globals.h"
 
@@ -47,6 +48,11 @@ void cleanup(void)
   free_block(moinfo.l1old);
   free_4d_array(moinfo.l2, no, no, nv);
   free_4d_array(moinfo.l2old, no, no, nv);
+
+  if(params.wfn == "CCSD_T") {
+    free_block(moinfo.s1);
+    free_4d_array(moinfo.s2, no, no, nv);
+  }
 }
 
 }} // namespace psi::ugacc

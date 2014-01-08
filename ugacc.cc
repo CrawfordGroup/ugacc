@@ -112,11 +112,7 @@ PsiReturnType ugacc(Options& options)
 
     fprintf(outfile,   "\t  %3d  %20.15f  %5.3f  %5.3e\n",iter, moinfo.eccsd = energy(), t1norm(), rms);
     fflush(outfile);
-    if(rms < params.convergence) {
-      fprintf(outfile, "\n\tComputation has converged!\n");
-      fflush(outfile);
-      break;
-    }
+    if(rms < params.convergence) break;
     if(params.do_diis) diis(iter, 90, 91, moinfo.t1, moinfo.t1old,
                             moinfo.t2, moinfo.t2old);
   }
@@ -154,11 +150,7 @@ PsiReturnType ugacc(Options& options)
 
     fprintf(outfile,   "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
     fflush(outfile);
-    if(rms < params.convergence) {
-      fprintf(outfile, "\n\tComputation has converged!\n");
-      fflush(outfile);
-      break;
-    }
+    if(rms < params.convergence) break;
     if(params.do_diis) diis(iter, 92, 93, moinfo.l1, moinfo.l1old,
                             moinfo.l2, moinfo.l2old);
   }

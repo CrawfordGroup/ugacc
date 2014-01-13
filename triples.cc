@@ -200,34 +200,33 @@ void triples_gradient_viking(double ******t3)
           double value = 0.0;         
 
           for(int k=0; k < no; k++)
-            for(int c=0; c < nv; c++)
-              value += (t3[i][j][k][a][b][c] - t3[i][k][j][a][b][c]) * fock[k][c+no];
+            for(int c=0; c < nv; c++) {
+              value += (t3[i][j][k][a][b][c] - t3[k][j][i][a][b][c]) * fock[k][c+no];
+              value += (t3[j][i][k][b][a][c] - t3[k][i][j][b][a][c]) * fock[k][c+no];
+            }
 
           for(int k=0; k < no; k++)
             for(int c=0; c < nv; c++)
-              for(int l=0; l < no; l++)
-                value -= (2.0 * t3[i][l][k][a][b][c] - t3[k][l][i][a][b][c] - t3[i][k][l][a][b][c]) * ints[l][k][j][c+no];
+              for(int l=0; l < no; l++) {
+                value -= (2.0 * t3[j][k][l][b][a][c] - t3[j][l][k][b][a][c] - t3[l][k][j][b][a][c]) * ints[k][l][i][c+no];
+                value -= (2.0 * t3[i][k][l][a][b][c] - t3[i][l][k][a][b][c] - t3[l][k][i][a][b][c]) * ints[k][l][j][c+no];
+              }
 
           for(int k=0; k < no; k++)
             for(int c=0; c < nv; c++)
-              for(int d=0; d < nv; d++)
-                value += (2.0 * t3[i][k][j][a][c][d] - t3[k][i][j][a][c][d] - t3[i][j][k][a][c][d]) * ints[b+no][k][d+no][c+no];
+              for(int d=0; d < nv; d++) {
+                value += (2.0 * t3[j][i][k][b][c][d] - t3[j][k][i][b][c][d] - t3[k][i][j][b][c][d]) * ints[a+no][k][c+no][d+no];
+                value += (2.0 * t3[i][j][k][a][c][d] - t3[i][k][j][a][c][d] - t3[k][j][i][a][c][d]) * ints[b+no][k][c+no][d+no];
+              }
 
           Y2[i][j][a][b] = value;
         }
 
-  double ****X2 = init_4d_array(no, no, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++)
-          X2[i][j][a][b] = 2.0 * (Y2[i][j][a][b] + Y2[i][j][b][a]);
-
-  for(int i=0; i < no; i++)
-    for(int j=0; j < no; j++)
-      for(int a=0; a < nv; a++)
-        for(int b=0; b < nv; b++)
-          s2[i][j][a][b] += 2.0 * X2[i][j][a][b] - X2[i][j][b][a];
+          s2[i][j][a][b] += 4.0 * Y2[i][j][a][b] - 2.0 * Y2[i][j][b][a];
 
   // Special left-projection T amplitudes
   double **t1s = block_matrix(no, nv);
@@ -243,7 +242,7 @@ void triples_gradient_viking(double ******t3)
           t2s[i][j][a][b] = 4.0 * t2[i][j][a][b] - 2.0 * t2[i][j][b][a];
 
   // Lambda3 amplitudes
-  double ******l3_tmp = init_6d_array(no, no, no, nv, nv, nv);
+  double ******l3 = init_6d_array(no, no, no, nv, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int k=0; k < no; k++) {
@@ -253,28 +252,59 @@ void triples_gradient_viking(double ******t3)
             for(int c=0; c < nv; c++) {
               double value = 0.0;
   
-              value += fock[i][a+no] * t2s[j][k][b][c];
-              value -= fock[j][a+no] * t2s[i][k][b][c];
+              value += fock[i][a+no] * t2s[j][k][b][c] - fock[j][a+no] * t2s[i][k][b][c];
+              value += fock[i][a+no] * t2s[k][j][c][b] - fock[k][a+no] * t2s[i][j][c][b];
+              value += fock[j][b+no] * t2s[i][k][a][c] - fock[i][b+no] * t2s[j][k][a][c];
+              value += fock[j][b+no] * t2s[k][i][c][a] - fock[k][b+no] * t2s[j][i][c][a];
+              value += fock[k][c+no] * t2s[i][j][a][b] - fock[i][c+no] * t2s[k][j][a][b];
+              value += fock[k][c+no] * t2s[j][i][b][a] - fock[j][c+no] * t2s[k][i][b][a];
 
-              value += L[i][j][a+no][b+no] * t1s[k][c];
-              value -= L[i][j][a+no][c+no] * t1s[k][b];
+              value += L[i][j][a+no][b+no] * t1s[k][c] - L[i][j][a+no][c+no] * t1s[k][b];
+              value += L[i][k][a+no][c+no] * t1s[j][b] - L[i][k][a+no][b+no] * t1s[j][c];
+              value += L[j][i][b+no][a+no] * t1s[k][c] - L[j][i][b+no][c+no] * t1s[k][a];
+              value += L[j][k][b+no][c+no] * t1s[i][a] - L[j][k][b+no][a+no] * t1s[i][c];
+              value += L[k][i][c+no][a+no] * t1s[j][b] - L[k][i][c+no][b+no] * t1s[j][a];
+              value += L[k][j][c+no][b+no] * t1s[i][a] - L[k][j][c+no][a+no] * t1s[i][b];
 
               for(int f=0; f < nv; f++) {
                 value += L[f+no][j][a+no][b+no] * t2s[i][k][f][c];
+                value += L[f+no][k][a+no][c+no] * t2s[i][j][f][b];
+                value += L[f+no][i][b+no][a+no] * t2s[j][k][f][c];
+                value += L[f+no][k][b+no][c+no] * t2s[j][i][f][a];
+                value += L[f+no][i][c+no][a+no] * t2s[k][j][f][b];
+                value += L[f+no][j][c+no][b+no] * t2s[k][i][f][a];
+
                 value -= ints[k][f+no][a+no][b+no] * t2s[i][j][c][f];
+                value -= ints[j][f+no][a+no][c+no] * t2s[i][k][b][f];
+                value -= ints[k][f+no][b+no][a+no] * t2s[j][i][c][f];
+                value -= ints[i][f+no][b+no][c+no] * t2s[j][k][a][f];
+                value -= ints[j][f+no][c+no][a+no] * t2s[k][i][b][f];
+                value -= ints[i][f+no][c+no][b+no] * t2s[k][j][a][f];
               }
               for(int n=0; n < no; n++) {
                 value -= L[i][j][a+no][n] * t2s[n][k][b][c];
+                value -= L[i][k][a+no][n] * t2s[n][j][c][b];
+                value -= L[j][i][b+no][n] * t2s[n][k][a][c];
+                value -= L[j][k][b+no][n] * t2s[n][i][c][a];
+                value -= L[k][i][c+no][n] * t2s[n][j][a][b];
+                value -= L[k][j][c+no][n] * t2s[n][i][b][a];
+
                 value += ints[k][j][a+no][n] * t2s[n][i][b][c];
+                value += ints[j][k][a+no][n] * t2s[n][i][c][b];
+                value += ints[k][i][b+no][n] * t2s[n][j][a][c];
+                value += ints[i][k][b+no][n] * t2s[n][j][c][a];
+                value += ints[j][i][c+no][n] * t2s[n][k][a][b];
+                value += ints[i][j][c+no][n] * t2s[n][k][b][a];
               }
 
               double denom = fock[i][i] + fock[j][j] + fock[k][k];
               denom -= fock[a+no][a+no] + fock[b+no][b+no] + fock[c+no][c+no];
 
-              l3_tmp[i][j][k][a][b][c] = value/denom;
+              l3[i][j][k][a][b][c] = value/denom;
             }
       }
 
+/*
   double ******l3 = init_6d_array(no, no, no, nv, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
@@ -289,6 +319,7 @@ void triples_gradient_viking(double ******t3)
                                    + l3_tmp[k][i][j][c][a][b]
                                    + l3_tmp[k][j][i][c][b][a];
   free_6d_array(l3_tmp, no, no, no, nv, nv);
+*/
 
   // Lambda3 --> Lambda2
   for(int i=0; i < no; i++)
@@ -299,42 +330,42 @@ void triples_gradient_viking(double ******t3)
 
           for(int k=0; k < no; k++)
             for(int c=0; c < nv; c++)
-              for(int l=0; l < no; l++) 
+              for(int l=0; l < no; l++) {
                 value -= l3[i][k][l][a][c][b] * ints[c+no][j][k][l];
+                value -= l3[j][k][l][b][c][a] * ints[c+no][i][k][l];
+              }
 
           for(int k=0; k < no; k++)
             for(int c=0; c < nv; c++)
-              for(int d=0; d < nv; d++) 
+              for(int d=0; d < nv; d++) {
                 value += l3[i][k][j][a][c][d] * ints[c+no][d+no][k][b+no];
+                value += l3[j][k][i][b][c][d] * ints[c+no][d+no][k][a+no];
+              }
 
-          Y2[i][j][a][b] = value;
-        }
-
-  for(int i=0; i < no; i++)
-    for(int j=0; j < no; j++)
-      for(int a=0; a < nv; a++)
-        for(int b=0; b < nv; b++) {
-//          s2[i][j][a][b] += Y2[i][j][a][b] + Y2[i][j][b][a];
+          s2[i][j][a][b] += value;
         }
 
   free_block(t1s);
   free_4d_array(t2s, no, no, nv);
-  free_4d_array(X2, no, no, nv);
   free_4d_array(Y2, no, no, nv);
   free_6d_array(l3, no, no, no, nv, nv);
 
   // Print non-UGA version of these amps for comparison to spin-orbital code
   double **Z1 = block_matrix(no, nv);
   double ****Z2 = init_4d_array(no, no, nv, nv);
+  double norm = 0.0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
       Z1[i][a] = 0.5 * moinfo.s1[i][a];
       for(int j=0; j < no; j++)
-        for(int b=0; b < nv; b++)
+        for(int b=0; b < nv; b++) {
           Z2[i][j][a][b] = (1./3.)*moinfo.s2[i][j][a][b] + 
                            (1./6.)*moinfo.s2[i][j][b][a];
+          norm += Z2[i][j][a][b] * Z2[i][j][a][b];
+        }
    }
   amp_write(20, Z1, Z2, "SZ"); fprintf(outfile, "\n");
+  fprintf(outfile, "SZ2 Dot Self = %20.14f\n", norm);
   free_block(Z1);
   free_4d_array(Z2, no, no, nv);
 

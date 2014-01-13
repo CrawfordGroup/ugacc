@@ -33,7 +33,7 @@ void l2_build(void)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++) {
           double value = L[i][j][a+no][b+no];
-//          if(params.wfn == "CCSD_T") value += moinfo.s2[i][j][a][b];
+          if(params.wfn == "CCSD_T") value += moinfo.s2[i][j][a][b];
 
           value += 2.0*l1[i][a]*Hov[j][b] - l1[j][a]*Hov[i][b];
 

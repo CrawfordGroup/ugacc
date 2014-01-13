@@ -174,11 +174,15 @@ void triples_gradient_viking(double ******t3)
 {
   int no = moinfo.no;
   int nv = moinfo.nv;
+  double **fock = moinfo.fock;
   double ****ints = moinfo.ints;
   double ****L = moinfo.L;
+  double **t1 = moinfo.t1;
+  double ****t2 = moinfo.t2;
   double **s1 = moinfo.s1;
   double ****s2 = moinfo.s2;
 
+  // T3 --> Lambda1
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++)
       for(int k=0; k < no; k++)
@@ -187,6 +191,7 @@ void triples_gradient_viking(double ******t3)
             for(int d=0; d < nv; d++)
               s1[i][a] += 2.0 * (t3[i][k][l][a][c][d] - t3[k][i][l][a][c][d]) * L[k][l][c+no][d+no];
 
+  // T3 --> Lambda2
   double ****Y2 = init_4d_array(no, no, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
@@ -224,7 +229,21 @@ void triples_gradient_viking(double ******t3)
         for(int b=0; b < nv; b++)
           s2[i][j][a][b] += 2.0 * X2[i][j][a][b] - X2[i][j][b][a];
 
-  double ******l3 = init_6d_array(no, no, no, nv, nv, nv);
+  // Special left-projection T amplitudes
+  double **t1s = block_matrix(no, nv);
+  double ****t2s = init_4d_array(no, no, nv, nv);
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++)
+      t1s[i][a] = 2.0 * t1[i][a];
+
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++)
+          t2s[i][j][a][b] = 4.0 * t2[i][j][a][b] - 2.0 * t2[i][j][b][a];
+
+  // Lambda3 amplitudes
+  double ******l3_tmp = init_6d_array(no, no, no, nv, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int k=0; k < no; k++) {
@@ -233,32 +252,45 @@ void triples_gradient_viking(double ******t3)
           for(int b=0; b < nv; b++)
             for(int c=0; c < nv; c++) {
               double value = 0.0;
-              for(int e=0; e < nv; e++) {
-                value +=
-                   + ints[i][e+no][a+no][b+no] * t2[k][j][c][e]
-                   + ints[i][e+no][a+no][c+no] * t2[j][k][b][e]
-                   + ints[k][e+no][c+no][a+no] * t2[j][i][b][e]
-                   + ints[k][e+no][c+no][b+no] * t2[i][j][a][e]
-                   + ints[j][e+no][b+no][c+no] * t2[i][k][a][e]
-                   + ints[j][e+no][b+no][a+no] * t2[k][i][c][e];
+  
+              value += fock[i][a+no] * t2s[j][k][b][c];
+              value -= fock[j][a+no] * t2s[i][k][b][c];
+
+              value += L[i][j][a+no][b+no] * t1s[k][c];
+              value -= L[i][j][a+no][c+no] * t1s[k][b];
+
+              for(int f=0; f < nv; f++) {
+                value += L[f+no][j][a+no][b+no] * t2s[i][k][f][c];
+                value -= ints[k][f+no][a+no][b+no] * t2s[i][j][c][f];
               }
-              for(int m=0; m < no; m++) {
-                value -=
-                   + ints[j][k][m][c+no] * t2[i][m][a][b]
-                   + ints[k][j][m][b+no] * t2[i][m][a][c]
-                   + ints[i][j][m][b+no] * t2[k][m][c][a]
-                   + ints[j][i][m][a+no] * t2[k][m][c][b]
-                   + ints[k][i][m][a+no] * t2[j][m][b][c]
-                   + ints[i][k][m][c+no] * t2[j][m][b][a];
+              for(int n=0; n < no; n++) {
+                value -= L[i][j][a+no][n] * t2s[n][k][b][c];
+                value += ints[k][j][a+no][n] * t2s[n][i][b][c];
               }
 
               double denom = fock[i][i] + fock[j][j] + fock[k][k];
               denom -= fock[a+no][a+no] + fock[b+no][b+no] + fock[c+no][c+no];
 
-              l3[i][j][k][a][b][c] = value/denom;
+              l3_tmp[i][j][k][a][b][c] = value/denom;
             }
       }
 
+  double ******l3 = init_6d_array(no, no, no, nv, nv, nv);
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int k=0; k < no; k++)
+        for(int a=0; a < nv; a++)
+          for(int b=0; b < nv; b++)
+            for(int c=0; c < nv; c++)
+              l3[i][j][k][a][b][c] = l3_tmp[i][j][k][a][b][c]
+                                   + l3_tmp[i][k][j][a][c][b]
+                                   + l3_tmp[j][i][k][b][a][c]
+                                   + l3_tmp[j][k][i][b][c][a]
+                                   + l3_tmp[k][i][j][c][a][b]
+                                   + l3_tmp[k][j][i][c][b][a];
+  free_6d_array(l3_tmp, no, no, no, nv, nv);
+
+  // Lambda3 --> Lambda2
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
@@ -278,6 +310,15 @@ void triples_gradient_viking(double ******t3)
           Y2[i][j][a][b] = value;
         }
 
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++) {
+//          s2[i][j][a][b] += Y2[i][j][a][b] + Y2[i][j][b][a];
+        }
+
+  free_block(t1s);
+  free_4d_array(t2s, no, no, nv);
   free_4d_array(X2, no, no, nv);
   free_4d_array(Y2, no, no, nv);
   free_6d_array(l3, no, no, no, nv, nv);

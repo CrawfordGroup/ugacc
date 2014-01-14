@@ -3,7 +3,7 @@ psi: (
  reference = rhf
  basis = "cc-pVDZ"
  convergence = 13
- freeze_core = true
+ freeze_core = false
  units = bohr
 geometry = (
     O         0.000000000000     0.000000000000    -0.116529192243

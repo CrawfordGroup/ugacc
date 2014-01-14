@@ -39,6 +39,7 @@ void G_build(int);
 double pseudoenergy(void);
 void l1_build(void);
 void l2_build(void);
+void make_Z_amps(double **l1, double ****l2);
 
 void ccdump(void);
 void amp_write(int, double **, double ****, std::string);
@@ -159,21 +160,8 @@ PsiReturnType ugacc(Options& options)
 
   amp_write(20, moinfo.l1, moinfo.l2, "L"); fprintf(outfile, "\n");
 
-  // Also print non-UGA version of lambda amps for comparison to old code
-  int no = moinfo.no;
-  int nv = moinfo.nv;
-  double **Z1 = block_matrix(no, nv);
-  double ****Z2 = init_4d_array(no, no, nv, nv);
-  for(int i=0; i < no; i++)
-    for(int a=0; a < nv; a++) {
-      Z1[i][a] = 0.5 * moinfo.l1[i][a];
-      for(int j=0; j < no; j++) 
-        for(int b=0; b < nv; b++)
-          Z2[i][j][a][b] = (1./3.)*moinfo.l2[i][j][a][b] + (1./6.)*moinfo.l2[i][j][b][a];
-   }
-  amp_write(20, Z1, Z2, "Z"); fprintf(outfile, "\n");
-  free_block(Z1);
-  free_4d_array(Z2, no, no, nv);
+  // Also print non-UGA version of lambda amps for comparison to PSI4 UHF-CCSD(T) code
+  make_Z_amps(moinfo.l1, moinfo.l2);
 
   ccdump();
   cleanup();
@@ -190,6 +178,24 @@ void title(void)
   fprintf(outfile, "\t\t\t*                        *\n");
   fprintf(outfile, "\t\t\t**************************\n");
   fprintf(outfile, "\n");
+}
+
+void make_Z_amps(double **l1, double ****l2)
+{
+  int no = moinfo.no;
+  int nv = moinfo.nv;
+  double **Z1 = block_matrix(no, nv);
+  double ****Z2 = init_4d_array(no, no, nv, nv);
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++) {
+      Z1[i][a] = 0.5 * l1[i][a];
+      for(int j=0; j < no; j++)
+        for(int b=0; b < nv; b++)
+          Z2[i][j][a][b] = (1./3.)*l2[i][j][a][b] + (1./6.)*l2[i][j][b][a];
+   }
+  amp_write(20, Z1, Z2, "Z"); fprintf(outfile, "\n");
+  free_block(Z1);
+  free_4d_array(Z2, no, no, nv);
 }
 
 }} // End namespaces

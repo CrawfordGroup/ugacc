@@ -6,7 +6,7 @@ molecule {
 no_reorient
 no_com
 units bohr
-symmetry c1
+#symmetry c1
 }
 
 set {

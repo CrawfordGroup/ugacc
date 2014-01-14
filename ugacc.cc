@@ -22,7 +22,7 @@ void denom(void);
 void init_T_amps(void);
 double energy(void);
 void amp_save(double ***, double ***, double *****, double *****);
-void tau_build(int);
+void tau_build(int, double **, double ****);
 void F_build(void);
 void W_build(void);
 void t1_build(void);
@@ -40,6 +40,9 @@ double pseudoenergy(void);
 void l1_build(void);
 void l2_build(void);
 void make_Z_amps(double **l1, double ****l2);
+
+void density(void);
+void dipole(boost::shared_ptr<Chkpt> chkpt);
 
 void ccdump(void);
 void amp_write(int, double **, double ****, std::string);
@@ -104,7 +107,7 @@ PsiReturnType ugacc(Options& options)
   double rms = 0.0;
   for(int iter=1; iter <= params.maxiter; iter++) {
     amp_save(&moinfo.t1, &moinfo.t1old, &moinfo.t2, &moinfo.t2old);
-    tau_build(iter);
+    tau_build(iter, moinfo.t1old, moinfo.t2old);
     F_build(); 
     W_build();  
     t1_build();
@@ -127,6 +130,7 @@ PsiReturnType ugacc(Options& options)
     fprintf(outfile, "\tCCSD(T) Energy = %20.14f\n",moinfo.escf+moinfo.eccsd+moinfo.e_t);
   }
 
+  tau_build(2, moinfo.t1, moinfo.t2);
   amp_write(20, moinfo.t1, moinfo.t2, "T"); fprintf(outfile, "\n");
 
   // ****** Lambda-amplitude equations
@@ -162,6 +166,10 @@ PsiReturnType ugacc(Options& options)
 
   // Also print non-UGA version of lambda amps for comparison to PSI4 UHF-CCSD(T) code
   make_Z_amps(moinfo.l1, moinfo.l2);
+
+  density();
+
+  if(chkpt->rd_nirreps() == 1 && moinfo.nact == moinfo.nmo) dipole(chkpt);
 
   ccdump();
   cleanup();

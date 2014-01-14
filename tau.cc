@@ -4,12 +4,10 @@
 
 namespace psi { namespace ugacc {
 
-void tau_build(int iter)
+void tau_build(int iter, double **t1, double ****t2)
 {
   int no = moinfo.no; 
   int nv = moinfo.nv;
-  double **t1 = moinfo.t1old;
-  double ****t2 = moinfo.t2old;
 
   if(iter == 1) { // Only allocate on the first iteration
     moinfo.ttau = init_4d_array(no,no,nv,nv);

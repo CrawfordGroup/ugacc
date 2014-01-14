@@ -13,6 +13,7 @@ namespace psi { namespace ugacc {
 void get_moinfo(boost::shared_ptr<Wavefunction> wfn, boost::shared_ptr<Chkpt> chkpt)
 {
   moinfo.nmo = chkpt->rd_nmo();
+  moinfo.nso = chkpt->rd_nso();
   int nirreps = chkpt->rd_nirreps();
   int iopen = chkpt->rd_iopen();
   char **labels = chkpt->rd_irr_labs();

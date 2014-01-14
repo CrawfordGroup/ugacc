@@ -6,15 +6,15 @@ molecule {
 no_reorient
 no_com
 units bohr
-#symmetry c1
+symmetry c1
 }
 
 set {
   reference uhf
-  basis cc-pVDZ
+  basis sto-3g
   freeze_core false
   r_convergence 1e-13
 }
 
-gradient('ccsd(t)')
+gradient('ccsd')
 

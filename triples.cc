@@ -59,6 +59,7 @@ double triples(void)
               t3[i][j][k][a][b][c] = value/denom;
             }
       }
+  moinfo.t3 = t3;
 
   double **X1 = block_matrix(no, nv);
   for(int i=0; i < no; i++)
@@ -109,7 +110,6 @@ double triples(void)
 
   free_block(X1);
   free_4d_array(X2, no, no, nv);
-  free_6d_array(t3, no, no, no, nv, nv);
 
   return ET_UGA;
 }
@@ -248,6 +248,7 @@ void triples_gradient_viking(double ******t3)
               l3[i][j][k][a][b][c] = value/denom;
             }
       }
+  moinfo.l3 = l3;
 
   // Lambda3 --> Lambda2
   for(int i=0; i < no; i++)
@@ -277,7 +278,6 @@ void triples_gradient_viking(double ******t3)
   free_4d_array(t2s, no, no, nv);
   free_4d_array(X2, no, no, nv);
   free_4d_array(Y2, no, no, nv);
-  free_6d_array(l3, no, no, no, nv, nv);
 
   make_Z_amps(moinfo.s1, moinfo.s2);
 

@@ -5,6 +5,7 @@ namespace psi { namespace ugacc {
 
 struct MOInfo {
   int nmo;          /* # molecular orbitals */
+  int nso;          /* # symmetry orbitals */
   int nact;         /* # active orbitals */
   int no;           /* # occupied orbitals */
   int nv;           /* # unoccupied orbitals */
@@ -63,6 +64,16 @@ struct MOInfo {
   // Additional contributions to Lambda equations from (T) correction
   double **s1;
   double ****s2;
+
+  // One-electron density components
+  double **Doo;
+  double **Dvv;
+  double **Dov;
+  double **Dvo;
+
+  // Triples
+  double ******t3;
+  double ******l3;
 };
 
 }} // namespace psi::ugacc

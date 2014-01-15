@@ -52,6 +52,8 @@ void cleanup(void)
   if(params.wfn == "CCSD_T") {
     free_block(moinfo.s1);
     free_4d_array(moinfo.s2, no, no, nv);
+    free_6d_array(moinfo.t3, no, no, no, nv, nv);
+    if(params.dertype) free_6d_array(moinfo.l3, no, no, no, nv, nv);
   }
 }
 

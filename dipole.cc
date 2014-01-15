@@ -25,7 +25,8 @@ void dipole(boost::shared_ptr<Chkpt> chkpt)
   double **D = block_matrix(nmo, nmo);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
-      D[i][j] = moinfo.Doo[i][j] + 2.0 * (i==j); // includes SCF contribution
+      D[i][j] = moinfo.Doo[i][j];
+//      D[i][j] = moinfo.Doo[i][j] + 2.0 * (i==j); // includes SCF contribution
 
   for(int a=0; a < nv; a++)
     for(int b=0; b < nv; b++)

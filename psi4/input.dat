@@ -16,5 +16,5 @@ set {
   r_convergence 1e-13
 }
 
-gradient('ccsd')
+gradient('ccsd(t)')
 

@@ -17,7 +17,8 @@ symmetry c1
 set {
   basis sto-3g
   freeze_core false
-  r_convergence 1e-13
+  r_convergence 1e-15
+  diis false
 }
 
 gradient('ugacc', wfn='ccsd(t)')

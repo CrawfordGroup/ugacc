@@ -38,10 +38,10 @@ void l2_build(void)
           value += 2.0*l1[i][a]*Hov[j][b] - l1[j][a]*Hov[i][b];
 
           for(int e=0; e < nv; e++)
-            value += l2[i][j][e][b]*Hvv[e][a]; 
+            value += l2[i][j][e][b]*Hvv[e][a] * (1 - (e==a)); 
 
           for(int m=0; m < no; m++)
-            value -= l2[m][j][a][b]*Hoo[i][m];
+            value -= l2[m][j][a][b]*Hoo[i][m] * (1 - (i==m));
 
           for(int m=0; m < no; m++)
             for(int n=0; n < no; n++)

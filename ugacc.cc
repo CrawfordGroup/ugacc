@@ -28,6 +28,7 @@ void W_build(void);
 void t1_build(void);
 void t2_build(void);
 double increment_amps(double **, double **, double ****, double ****);
+double increment_amps2(double **, double **, double ****, double ****);
 double t1norm(void);
 void diis(int error_file, int amp_file, int iter, double **t1,
           double **t1old, double ****t2, double ****t2old);
@@ -153,7 +154,7 @@ PsiReturnType ugacc(Options& options)
     G_build(iter);
     l1_build();
     l2_build();
-    rms = increment_amps(moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
+    rms = increment_amps2(moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
 
     fprintf(outfile,   "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
     fflush(outfile);

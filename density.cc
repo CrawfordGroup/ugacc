@@ -45,7 +45,7 @@ void density(void)
                 for(int f=0; f < nv; f++)
                   Doo[i][j] -= 0.5 * t3[i][l][m][d][e][f] * l3[j][l][m][d][e][f];
       }
-//      Doo[i][j] /= 2.0;
+      Doo[i][j] /= 2.0;
     }
 
   for(int a=0; a < nv; a++)
@@ -65,13 +65,13 @@ void density(void)
                 for(int e=0; e < nv; e++)
                   Dvv[a][b] += 0.5 * t3[l][m][n][b][d][e] * l3[l][m][n][a][d][e];
       }
-  //    Dvv[a][b] /= 2.0;
+      Dvv[a][b] /= 2.0;
     }
 
   for(int a=0; a < nv; a++)
     for(int i=0; i < no; i++) {
       Dvo[a][i] = l1[i][a];
-//      Dvo[a][i] /= 2.0;
+      Dvo[a][i] /= 2.0;
     }
 
   for(int i=0; i < no; i++)
@@ -94,7 +94,7 @@ void density(void)
                 Dov[i][a] += (t3[m][n][i][e][f][a] - t3[m][i][n][e][f][a]) * (4.0 * t2[m][n][e][f] - 2.0 * t2[m][n][f][e]);
       }
 */
-//      Dov[i][a] /= 2.0;
+      Dov[i][a] /= 2.0;
     }
 
   moinfo.Doo = Doo;

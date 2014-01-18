@@ -10,13 +10,12 @@ symmetry c1
 }
 
 set {
-  reference rhf
+  reference uhf
   basis sto-3g
   freeze_core false
   r_convergence 1e-15
-  diis false
 }
 
-gradient('ccsd(t)')
+gradient('ccsd')
 
 

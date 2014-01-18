@@ -71,9 +71,18 @@ struct MOInfo {
   double **Dov;
   double **Dvo;
 
+  // Two-electron density components
+  double ****Goooo;
+  double ****Gvvvv;
+  double ****Goovv;
+  double ****Govov;
+  double ****Gooov;
+  double ****Gvvvo;
+
   // Triples
   double ******t3;
   double ******l3;
+
 };
 
 }} // namespace psi::ugacc

@@ -28,7 +28,6 @@ void W_build(void);
 void t1_build(void);
 void t2_build(void);
 double increment_amps(double **, double **, double ****, double ****);
-double increment_amps2(double **, double **, double ****, double ****);
 double t1norm(void);
 void diis(int error_file, int amp_file, int iter, double **t1,
           double **t1old, double ****t2, double ****t2old);
@@ -42,7 +41,8 @@ void l1_build(void);
 void l2_build(void);
 void make_Z_amps(double **l1, double ****l2);
 
-void density(void);
+void onepdm(void);
+void twopdm(void);
 void dipole(boost::shared_ptr<Chkpt> chkpt);
 
 void ccdump(void);
@@ -154,7 +154,7 @@ PsiReturnType ugacc(Options& options)
     G_build(iter);
     l1_build();
     l2_build();
-    rms = increment_amps2(moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
+    rms = increment_amps(moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
 
     fprintf(outfile,   "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
     fflush(outfile);
@@ -170,7 +170,8 @@ PsiReturnType ugacc(Options& options)
   // Also print non-UGA version of lambda amps for comparison to PSI4 UHF-CCSD(T) code
   make_Z_amps(moinfo.l1, moinfo.l2);
 
-  density();
+  onepdm();
+  twopdm();
 
   if(chkpt->rd_nirreps() == 1 && moinfo.nact == moinfo.nmo) dipole(chkpt);
 

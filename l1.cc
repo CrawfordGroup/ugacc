@@ -30,10 +30,10 @@ void l1_build(void)
       if(params.wfn == "CCSD_T") value += moinfo.s1[i][a];
 
       for(int e=0; e < nv; e++)
-        value += l1[i][e] * Hvv[e][a] * (1 - (e==a));
+        value += l1[i][e] * Hvv[e][a];
 
       for(int m=0; m < no; m++)
-        value -= l1[m][a] * Hoo[i][m] * (1 - (i==m));
+        value -= l1[m][a] * Hoo[i][m];
 
       for(int m=0; m < no; m++)
         for(int e=0; e < nv; e++)

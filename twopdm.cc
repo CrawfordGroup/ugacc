@@ -20,7 +20,6 @@ void twopdm(void)
   double **l1 = moinfo.l1;
   double ****l2 = moinfo.l2;
   double ****ints = moinfo.ints;
-  double energy;
 
   double ****Goooo = init_4d_array(no, no, no, no);
   for(int i=0; i < no; i++)
@@ -34,13 +33,13 @@ void twopdm(void)
         }
   moinfo.Goooo = Goooo;
 
-  energy = 0.0;
+  double Eoooo = 0.0;
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int k=0; k < no; k++)
         for(int l=0; l < no; l++)
-          energy += 0.5 * ints[i][j][k][l] * Goooo[i][j][k][l];
-  fprintf(outfile, "OOOO Energy = %20.14f\n", energy);
+          Eoooo += 0.5 * ints[i][j][k][l] * Goooo[i][j][k][l];
+  fprintf(outfile, "OOOO Energy = %20.14f\n", Eoooo);
 
   double ****Gvvvv = init_4d_array(nv, nv, nv, nv);
   for(int a=0; a < nv; a++)
@@ -54,13 +53,13 @@ void twopdm(void)
         }
   moinfo.Gvvvv = Gvvvv;
 
-  energy = 0.0;
+  double Evvvv = 0.0;
   for(int a=0; a < nv; a++)
     for(int b=0; b < nv; b++)
       for(int c=0; c < nv; c++)
         for(int d=0; d < nv; d++)
-          energy += 0.5 * ints[a+no][b+no][c+no][d+no] * Gvvvv[a][b][c][d];
-  fprintf(outfile, "VVVV Energy = %20.14f\n", energy);
+          Evvvv += 0.5 * ints[a+no][b+no][c+no][d+no] * Gvvvv[a][b][c][d];
+  fprintf(outfile, "VVVV Energy = %20.14f\n", Evvvv);
 
   double ****Gooov = init_4d_array(no, no, no, nv);
   for(int i=0; i < no; i++)
@@ -86,13 +85,13 @@ void twopdm(void)
         }
   moinfo.Gooov = Gooov;
 
-  energy = 0.0;
+  double Eooov = 0.0;
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int k=0; k < no; k++)
         for(int a=0; a < nv; a++)
-          energy += ints[i][j][k][a+no] * Gooov[i][j][k][a];
-  fprintf(outfile, "OOOV Energy = %20.14f\n", energy);
+          Eooov += ints[i][j][k][a+no] * Gooov[i][j][k][a];
+  fprintf(outfile, "OOOV Energy = %20.14f\n", Eooov);
 
   double ****Gvvvo = init_4d_array(nv, nv, nv, no);
   for(int a=0; a < nv; a++)
@@ -118,13 +117,13 @@ void twopdm(void)
         }
   moinfo.Gvvvo = Gvvvo;
 
-  energy = 0.0;
+  double Evvvo = 0.0;
   for(int a=0; a < nv; a++)
     for(int b=0; b < nv; b++)
       for(int c=0; c < nv; c++)
         for(int i=0; i < no; i++)
-          energy += ints[a+no][b+no][c+no][i] * Gvvvo[a][b][c][i];
-  fprintf(outfile, "VVVO Energy = %20.14f\n", energy);
+          Evvvo += ints[a+no][b+no][c+no][i] * Gvvvo[a][b][c][i];
+  fprintf(outfile, "VVVO Energy = %20.14f\n", Evvvo);
 
   double ****Govov = init_4d_array(no, nv, no, nv);
   for(int i=0; i < no; i++)
@@ -134,24 +133,26 @@ void twopdm(void)
           Govov[i][a][j][b] -= t1[i][a] * l1[j][b];
           for(int m=0; m < no; m++) 
             for(int e=0; e < nv; e++)
-              Govov[i][a][j][b] -= (tau[m][i][a][e] * l2[j][m][e][b] + t2[i][m][a][e] * l2[m][j][e][b]);
+              Govov[i][a][j][b] -= (tau[m][i][b][e] * l2[j][m][e][a] + t2[i][m][b][e] * l2[m][j][e][a]);
         }
   moinfo.Govov = Govov;
 
-  energy = 0.0;
+  double Eovov = 0.0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++)
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++)
-          energy += ints[i][a+no][j][b+no] * Govov[i][a][j][b];
-  fprintf(outfile, "OVOV Energy = %20.14f\n", energy);
+          Eovov += ints[i][a+no][j][b+no] * Govov[i][a][j][b];
+  fprintf(outfile, "OVOV Energy = %20.14f\n", Eovov);
 
   double ****Goovv = init_4d_array(no, no, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++) {
-          Goovv[i][j][a][b] = 4.0 * tau[i][j][a][b] - 2.0 * tau[i][j][b][a] + 4.0 * t1[i][a] * l1[j][b];
+          Goovv[i][j][a][b] = 4.0 * t1[i][a] * l1[j][b];
+          Goovv[i][j][a][b] += 4.0 * tau[i][j][a][b] - 2.0 * tau[i][j][b][a];
+          Goovv[i][j][a][b] += l2[i][j][a][b];
           for(int m=0; m < no; m++)
             for(int e=0; e < nv; e++)
               Goovv[i][j][a][b] += 2.0 * l1[m][e] * 
@@ -183,17 +184,17 @@ void twopdm(void)
               for(int e=0; e < nv; e++)
                 for(int f=0; f < nv; f++)
                   Goovv[i][j][a][b] += l2[m][n][e][f] * t1[m][a] * t1[n][b] * t1[i][e] * t1[j][f];
-    
         }
   moinfo.Govov = Govov;
 
-  energy = 0.0;
+  double Eoovv = 0.0;
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++)
-          energy += 0.5 * ints[i][j][a+no][b+no] * Goovv[i][j][a][b];
-  fprintf(outfile, "OOVV Energy = %20.14f\n", energy);
+          Eoovv += 0.5 * ints[i][j][a+no][b+no] * Goovv[i][j][a][b];
+  fprintf(outfile, "OOVV Energy = %20.14f\n", Eoovv);
+  fprintf(outfile, "OVOV + OOVV = %20.14f\n", Eovov+Eoovv);
 
   return;
 }

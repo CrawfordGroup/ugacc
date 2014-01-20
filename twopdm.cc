@@ -16,9 +16,11 @@ double twopdm(void)
   int nv = moinfo.nv;
   double **t1 = moinfo.t1;
   double ****t2 = moinfo.t2;
+  double ******t3 = moinfo.t3;
   double ****tau = moinfo.tau;
   double **l1 = moinfo.l1;
   double ****l2 = moinfo.l2;
+  double ******l3 = moinfo.l3;
   double ****ints = moinfo.ints;
 
   double ****Goooo = init_4d_array(no, no, no, no);
@@ -39,7 +41,7 @@ double twopdm(void)
       for(int k=0; k < no; k++)
         for(int l=0; l < no; l++)
           Eoooo += 0.5 * ints[i][j][k][l] * Goooo[i][j][k][l];
-  fprintf(outfile, "OOOO Energy = %20.14f\n", Eoooo);
+  fprintf(outfile, "\tOOOO Energy = %20.14f\n", Eoooo);
 
   double ****Gvvvv = init_4d_array(nv, nv, nv, nv);
   for(int a=0; a < nv; a++)
@@ -59,7 +61,7 @@ double twopdm(void)
       for(int c=0; c < nv; c++)
         for(int d=0; d < nv; d++)
           Evvvv += 0.5 * ints[a+no][b+no][c+no][d+no] * Gvvvv[a][b][c][d];
-  fprintf(outfile, "VVVV Energy = %20.14f\n", Evvvv);
+  fprintf(outfile, "\tVVVV Energy = %20.14f\n", Evvvv);
 
   double ****Gooov = init_4d_array(no, no, no, nv);
   for(int i=0; i < no; i++)
@@ -82,6 +84,20 @@ double twopdm(void)
             for(int e=0; e < nv; e++)
               for(int f=0; f < nv; f++)
                 Gooov[i][j][k][a] += l2[k][m][e][f] * t1[m][a] * t1[i][e] * t1[j][f];
+
+          if(params.wfn == "CCSD_T") {
+            for(int m=0; m < no; m++)
+              for(int e=0; e < nv; e++)
+                for(int f=0; f < nv; f++)
+                  Gooov[i][j][k][a] -= (4.0 * t2[k][m][e][f] - 2.0 * t2[k][m][f][e]) *
+                        (2.0 * t3[j][i][m][a][e][f] - t3[i][j][m][a][e][f] - t3[m][i][j][a][e][f]);
+
+            for(int m=0; m < no; m++)
+              for(int e=0; e < nv; e++)
+                for(int f=0; f < nv; f++)
+                  Gooov[i][j][k][a] -= t2[k][m][e][f] * l3[m][j][i][f][a][e];
+
+          }
         }
   moinfo.Gooov = Gooov;
 
@@ -91,7 +107,7 @@ double twopdm(void)
       for(int k=0; k < no; k++)
         for(int a=0; a < nv; a++)
           Eooov += ints[i][j][k][a+no] * Gooov[i][j][k][a];
-  fprintf(outfile, "OOOV Energy = %20.14f\n", Eooov);
+  fprintf(outfile, "\tOOOV Energy = %20.14f\n", Eooov);
 
   double ****Gvvvo = init_4d_array(nv, nv, nv, no);
   for(int a=0; a < nv; a++)
@@ -114,6 +130,18 @@ double twopdm(void)
             for(int n=0; n < no; n++)
               for(int e=0; e < nv; e++)
                 Gvvvo[a][b][c][i] -= l2[n][m][c][e] * t1[m][b] * t1[n][a] * t1[i][e];
+          if(params.wfn == "CCSD_T") {
+            for(int m=0; m < no; m++)
+              for(int n=0; n < no; n++)
+                for(int e=0; e < nv; e++)
+                  Gvvvo[a][b][c][i] += (4.0 * t2[m][n][e][c] - 2.0 * t2[m][n][c][e]) *
+                        (2.0 * t3[n][i][m][a][b][e] - t3[n][i][m][b][a][e] - t3[n][i][m][a][e][b]);
+
+            for(int m=0; m < no; m++)
+              for(int n=0; n < no; n++)
+                for(int e=0; e < nv; e++)
+                  Gvvvo[a][b][c][i] += t2[m][n][e][c] * l3[n][i][m][a][b][e];
+          }
         }
   moinfo.Gvvvo = Gvvvo;
 
@@ -123,7 +151,7 @@ double twopdm(void)
       for(int c=0; c < nv; c++)
         for(int i=0; i < no; i++)
           Evvvo += ints[a+no][b+no][c+no][i] * Gvvvo[a][b][c][i];
-  fprintf(outfile, "VVVO Energy = %20.14f\n", Evvvo);
+  fprintf(outfile, "\tVVVO Energy = %20.14f\n", Evvvo);
 
   double ****Govov = init_4d_array(no, nv, no, nv);
   for(int i=0; i < no; i++)
@@ -143,7 +171,7 @@ double twopdm(void)
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++)
           Eovov += ints[i][a+no][j][b+no] * Govov[i][a][j][b];
-  fprintf(outfile, "OVOV Energy = %20.14f\n", Eovov);
+  fprintf(outfile, "\tOVOV Energy = %20.14f\n", Eovov);
 
   double ****Goovv = init_4d_array(no, no, nv, nv);
   for(int i=0; i < no; i++)
@@ -189,6 +217,14 @@ double twopdm(void)
               for(int e=0; e < nv; e++)
                 for(int f=0; f < nv; f++)
                   Goovv[i][j][a][b] += l2[m][n][e][f] * t1[m][a] * t1[n][b] * t1[i][e] * t1[j][f];
+
+          if(params.wfn == "CCSD_T") {
+            for(int m=0; m < no; m++)
+              for(int e=0; e < nv; e++)
+                Goovv[i][j][a][b] += 4.0 * t1[m][e] *
+                       ( 2.0 * (t3[i][j][m][a][b][e] - t3[i][j][m][a][e][b]) - (t3[i][j][m][b][a][e] - t3[i][j][m][b][e][a]) );
+          }
+
         }
   moinfo.Govov = Govov;
 
@@ -198,7 +234,8 @@ double twopdm(void)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++)
           Eoovv += 0.5 * ints[i][j][a+no][b+no] * Goovv[i][j][a][b];
-  fprintf(outfile, "OOVV Energy = %20.14f\n", Eoovv);
+  fprintf(outfile, "\tOOVV Energy = %20.14f\n", Eoovv);
+//  fprintf(outfile, "\tOOVV + OVOV = %20.14f\n", Eoovv+Eovov);
 
   return Eoooo+Evvvv+Eooov+Evvvo+Eovov+Eoovv;
 }

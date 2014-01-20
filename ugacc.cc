@@ -102,8 +102,7 @@ PsiReturnType ugacc(Options& options)
   fprintf(outfile,   "\t---------------------------------------------\n");
   fprintf(outfile,   "\t Iter   Correlation Energy  T1 Norm    RMS   \n");
   fprintf(outfile,   "\t---------------------------------------------\n");
-  fprintf(outfile,   "\t  %3d  %20.15f\n", 0,moinfo.eccsd = energy());
-  fflush(outfile);
+  fprintf(outfile,   "\t  %3d  %20.15f\n", 0,moinfo.eccsd = energy()); fflush(outfile);
 
   double rms = 0.0;
   for(int iter=1; iter <= params.maxiter; iter++) {
@@ -172,12 +171,18 @@ PsiReturnType ugacc(Options& options)
 
   double Eone = onepdm();
   double Etwo = twopdm();
-  fprintf(outfile, "One-electron energy        = %20.14f\n", Eone);
-  fprintf(outfile, "Two-electron energy        = %20.14f\n", Etwo);
-  if(params.wfn == "CCSD")
-    fprintf(outfile, "CCSD correlation energy    = %20.14f\n", Eone+Etwo);
-  else if(params.wfn == "CCSD_T")
-    fprintf(outfile, "CCSD(T) correlation energy = %20.14f\n", Eone+Etwo);
+  fprintf(outfile, "\tOne-electron energy        = %20.14f\n", Eone);
+  fprintf(outfile, "\tTwo-electron energy        = %20.14f\n", Etwo);
+  if(params.wfn == "CCSD") {
+    fprintf(outfile, "\tCCSD correlation energy    = %20.14f (from density)\n", Eone+Etwo);
+    fprintf(outfile, "\tCCSD correlation energy    = %20.14f (from moinfo)\n", moinfo.eccsd);
+    fprintf(outfile, "\tCCSD total energy          = %20.14f (from density)\n", Eone+Etwo+moinfo.escf);
+  }
+  else if(params.wfn == "CCSD_T") {
+    fprintf(outfile, "\tCCSD(T) correlation energy = %20.14f (from density)\n", Eone+Etwo);
+    fprintf(outfile, "\tCCSD(T) correlation energy = %20.14f (from moinfo)\n", moinfo.eccsd+moinfo.e_t);
+    fprintf(outfile, "\tCCSD(T) total energy       = %20.14f (from density)\n", Eone+Etwo+moinfo.escf);
+  }
 
   if(chkpt->rd_nirreps() == 1 && moinfo.nact == moinfo.nmo) dipole(chkpt);
 

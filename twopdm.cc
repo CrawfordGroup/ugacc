@@ -10,7 +10,7 @@
 
 namespace psi { namespace ugacc {
 
-void twopdm(void)
+double twopdm(void)
 {
   int no = moinfo.no;
   int nv = moinfo.nv;
@@ -162,7 +162,8 @@ void twopdm(void)
                               - t1[m][a] * (2.0 * t2[i][j][e][b] - t2[i][j][b][e]));
           for(int m=0; m < no; m++)
             for(int e=0; e < nv; e++)
-              Goovv[i][j][a][b] += 4.0 * t2[i][m][b][e] * l2[m][j][e][a] - 2.0 * tau[m][j][b][e] * l2[i][m][a][e];
+              Goovv[i][j][a][b] += 4.0 * t2[i][m][a][e] * l2[m][j][e][b] - 2.0 * tau[m][j][b][e] * l2[i][m][a][e];
+
           for(int m=0; m < no; m++)
             for(int n=0; n < no; n++)
               for(int e=0; e < nv; e++)
@@ -173,12 +174,16 @@ void twopdm(void)
                               - tau[m][j][b][e] * t2[i][n][a][f] + t2[i][m][a][e] * t2[j][n][b][f])
                            - (- tau[i][j][b][e] * t2[m][n][a][f] - tau[i][m][b][a] * t2[j][n][e][f] 
                               - tau[m][j][a][e] * t2[i][n][b][f] + t2[i][m][b][e] * t2[j][n][a][f]));
+
           for(int m=0; m < no; m++)
             for(int n=0; n < no; n++)
               for(int e=0; e < nv; e++)
                 for(int f=0; f < nv; f++)
-                  Goovv[i][j][a][b] += 2.0 * l2[m][n][e][f] *
-                       (t1[m][a]*t1[n][b]*t2[i][j][e][f] + t1[m][a]*t1[i][e]*t2[n][j][b][f] + t1[n][a]*t1[j][e]*t2[i][m][f][b]);
+                  Goovv[i][j][a][b] += l2[m][n][e][f] *
+                         (t1[m][a] * t1[n][b] * t2[i][j][e][f] + t1[i][e] * t1[j][f] * t2[m][n][a][b]
+                        + t1[m][a] * t1[i][e] * t2[n][j][b][f] + t1[n][b] * t1[j][f] * t2[m][i][a][e]
+                        + t1[n][a] * t1[j][e] * t2[i][m][f][b] + t1[i][f] * t1[m][b] * t2[n][j][a][e]);
+
           for(int m=0; m < no; m++)
             for(int n=0; n < no; n++)
               for(int e=0; e < nv; e++)
@@ -194,9 +199,8 @@ void twopdm(void)
         for(int b=0; b < nv; b++)
           Eoovv += 0.5 * ints[i][j][a+no][b+no] * Goovv[i][j][a][b];
   fprintf(outfile, "OOVV Energy = %20.14f\n", Eoovv);
-  fprintf(outfile, "OVOV + OOVV = %20.14f\n", Eovov+Eoovv);
 
-  return;
+  return Eoooo+Evvvv+Eooov+Evvvo+Eovov+Eoovv;
 }
 
 }} // namespace psi::ugacc

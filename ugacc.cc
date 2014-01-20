@@ -41,8 +41,8 @@ void l1_build(void);
 void l2_build(void);
 void make_Z_amps(double **l1, double ****l2);
 
-void onepdm(void);
-void twopdm(void);
+double onepdm(void);
+double twopdm(void);
 void dipole(boost::shared_ptr<Chkpt> chkpt);
 
 void ccdump(void);
@@ -170,8 +170,14 @@ PsiReturnType ugacc(Options& options)
   // Also print non-UGA version of lambda amps for comparison to PSI4 UHF-CCSD(T) code
   make_Z_amps(moinfo.l1, moinfo.l2);
 
-  onepdm();
-  twopdm();
+  double Eone = onepdm();
+  double Etwo = twopdm();
+  fprintf(outfile, "One-electron energy        = %20.14f\n", Eone);
+  fprintf(outfile, "Two-electron energy        = %20.14f\n", Etwo);
+  if(params.wfn == "CCSD")
+    fprintf(outfile, "CCSD correlation energy    = %20.14f\n", Eone+Etwo);
+  else if(params.wfn == "CCSD_T")
+    fprintf(outfile, "CCSD(T) correlation energy = %20.14f\n", Eone+Etwo);
 
   if(chkpt->rd_nirreps() == 1 && moinfo.nact == moinfo.nmo) dipole(chkpt);
 

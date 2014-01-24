@@ -50,6 +50,7 @@ void dipole(boost::shared_ptr<Chkpt> chkpt)
   MintsHelper mints(Process::environment.options, 0);
   vector<SharedMatrix> dipole = mints.so_dipole();
 
+  fprintf(outfile, "\n");
   for(int i=0; i < 3; i++) {
     double **TMP1 = dipole[i]->to_block_matrix();
     double mu = 0.0;
@@ -59,6 +60,7 @@ void dipole(boost::shared_ptr<Chkpt> chkpt)
     fprintf(outfile, "\tUnrelaxed Mu[%d] = %20.14f (AO density)\n", i, mu);
   }
 
+  fprintf(outfile, "\n");
   // Try the MO basis
   double **TMP2 = block_matrix(nso,nso);
   for(int i=0; i < 3; i++) {

@@ -10,7 +10,7 @@
 
 namespace psi { namespace ugacc {
 
-void onepdm(void)
+double onepdm(void)
 {
   int no = moinfo.no;
   int nv = moinfo.nv;
@@ -39,8 +39,7 @@ void onepdm(void)
             Doo[i][j] -= t2[i][m][e][f] * l2[j][m][e][f];
       if(params.wfn == "CCSD_T") {
         for(int l=0; l < no; l++)
-          for(int m=0; m < no; m++)
-            for(int d=0; d < nv; d++)
+          for(int m=0; m < no; m++) for(int d=0; d < nv; d++)
               for(int e=0; e < nv; e++)
                 for(int f=0; f < nv; f++)
                   Doo[i][j] -= 0.5 * t3[i][l][m][d][e][f] * l3[j][l][m][d][e][f];
@@ -98,27 +97,15 @@ void onepdm(void)
   moinfo.Dov = Dov;
   moinfo.Dvo = Dvo;
 
-/*
-  fprintf(outfile, "\tDij Matrix:\n");
-  mat_print(Doo, no, no, outfile);
-  fprintf(outfile, "\tDab Matrix:\n");
-  mat_print(Dvv, nv, nv, outfile);
-  fprintf(outfile, "\tDai Matrix:\n");
-  mat_print(Dvo, nv, no, outfile);
-  fprintf(outfile, "\tDia Matrix:\n");
-  mat_print(Dov, no, nv, outfile);
-*/
-
-/*
   double energy = 0.0;
   for(int i=0; i < no; i++)
-    energy += fock[i][i] * Doo[i][i];
+    for(int j=0; j < no; j++)
+      energy += fock[i][j] * Doo[i][j];
   for(int a=0; a < nv; a++)
-    energy += fock[a+no][a+no] * Dvv[a][a];
-  fprintf(outfile, "\tOne-electron energy = %20.14f\n", energy);
-*/
+    for(int b=0; b < nv; b++)
+    energy += fock[a+no][b+no] * Dvv[a][b];
 
-  return;
+  return energy;
 }
 
 }} // namespace psi::ugacc

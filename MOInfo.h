@@ -29,6 +29,8 @@ struct MOInfo {
   double ****t2old; /* previous t2 amplitudes */
   double ****ttau;  /* tau-tilde effective doubles */
   double ****tau;   /* tau effective doubles */
+  double **t1s;     /* t1*(i,a) = 2 t1(i,a) */
+  double ****t2s;   /* t2*(i,j,a,b) = 2 t2(i,j,a,b) - t2(i,j,b,a) */
 
   // L-amplitude quantities
   double **l1;      /* current l1 amplitudes */

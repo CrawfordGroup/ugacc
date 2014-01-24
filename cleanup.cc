@@ -24,6 +24,8 @@ void cleanup(void)
   free_4d_array(moinfo.t2old, no, no, nv);
   free_4d_array(moinfo.tau, no, no, nv);
   free_4d_array(moinfo.ttau, no, no, nv);
+  free_block(moinfo.t1s);
+  free_4d_array(moinfo.t2s, no, no, nv);
 
   free_block(moinfo.Fme);
   free_block(moinfo.Fmi);

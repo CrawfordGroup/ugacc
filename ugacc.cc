@@ -23,6 +23,7 @@ void init_T_amps(void);
 double energy(void);
 void amp_save(double ***, double ***, double *****, double *****);
 void tau_build(int, double **, double ****);
+void tstar_build(double **, double ****);
 void F_build(void);
 void W_build(void);
 void t1_build(void);
@@ -32,6 +33,7 @@ double t1norm(void);
 void diis(int error_file, int amp_file, int iter, double **t1,
           double **t1old, double ****t2, double ****t2old);
 double triples(void);
+double triples_ooc(void);
 
 void init_L_amps(void);
 void hbar(void);
@@ -128,10 +130,12 @@ PsiReturnType ugacc(Options& options)
   fprintf(outfile,   "\n\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
   if(params.wfn == "CCSD_T") {
     fprintf(outfile, "\t(T) Correction = %20.14f\n",moinfo.e_t = triples());
+    fprintf(outfile, "\t(T) Correction = %20.14f\n (occ)", triples_ooc());
     fprintf(outfile, "\tCCSD(T) Energy = %20.14f\n",moinfo.escf+moinfo.eccsd+moinfo.e_t);
   }
 
   tau_build(2, moinfo.t1, moinfo.t2);
+  tstar_build(moinfo.t1old, moinfo.t2old);
   amp_write(20, moinfo.t1, moinfo.t2, "T"); fprintf(outfile, "\n");
 
   if(!params.dertype) return Success;

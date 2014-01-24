@@ -1,3 +1,4 @@
+#include <libciomr/libciomr.h>
 #include "MOInfo.h"
 #define EXTERN
 #include "globals.h"

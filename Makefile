@@ -7,7 +7,7 @@
 # Location of your PSI4 source
 top_srcdir = /Users/crawdad/src/psi4
 # Location of your PSI4 install, by default as listed
-top_objdir = /Users/crawdad/src/psi4/objdir_master
+top_objdir = /Users/crawdad/src/psi4/objdir
 
 # Start by figuring out whether we're on Linux or Mac (sorry, Mr. Gates)
 UNAME := $(shell uname)
@@ -18,7 +18,7 @@ include $(top_objdir)/src/bin/MakeVars
 # Location of your PSI4 source
 top_srcdir = /Users/crawdad/src/psi4
 # Location of your PSI4 install, by default as listed
-top_objdir = /Users/crawdad/src/psi4/objdir_master
+top_objdir = /Users/crawdad/src/psi4/objdir
 
 PSITARGET = $(shell basename `pwd`).so
 PSILIBS = -L$(top_objdir)/lib -lPSI_plugin

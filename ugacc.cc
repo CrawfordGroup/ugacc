@@ -123,18 +123,19 @@ PsiReturnType ugacc(Options& options)
                             moinfo.t2, moinfo.t2old);
   }
 
+  tau_build(2, moinfo.t1, moinfo.t2);
+  tstar_build(moinfo.t1old, moinfo.t2old);
+
   if(rms >= params.convergence)
     throw PSIEXCEPTION("Computation has not converged.");
 
   fprintf(outfile,   "\n\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
   if(params.wfn == "CCSD_T") {
     fprintf(outfile, "\t(T) Correction = %20.14f\n",moinfo.e_t = triples());
-    fprintf(outfile, "\t(T) Correction = %20.14f\n (occ)", triples_ooc());
+    fprintf(outfile, "\t(T) Correction = %20.14f (occ)\n", triples_ooc());
     fprintf(outfile, "\tCCSD(T) Energy = %20.14f\n",moinfo.escf+moinfo.eccsd+moinfo.e_t);
   }
 
-  tau_build(2, moinfo.t1, moinfo.t2);
-  tstar_build(moinfo.t1old, moinfo.t2old);
   amp_write(20, moinfo.t1, moinfo.t2, "T"); fprintf(outfile, "\n");
 
   if(!params.dertype) return Success;

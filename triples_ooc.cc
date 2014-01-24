@@ -9,6 +9,11 @@
 
 namespace psi { namespace ugacc {
 
+void t3_ijk(double ***, int, int, int, double ****, double **, double ****);
+void t3_abc(double ***, int, int, int, double ****, double **, double ****);
+void l3_ijk(double ***, int, int, int, double ****, double **, double **, double ****, double ****);
+void l3_abc(double ***, int, int, int, double ****, double **, double **, double ****, double ****);
+
 double triples_ooc(void)
 {
   int no = moinfo.no;
@@ -18,6 +23,8 @@ double triples_ooc(void)
   double ****L = moinfo.L;
   double **t1 = moinfo.t1;
   double ****t2 = moinfo.t2;
+  double **t1s = moinfo.t1s;
+  double ****t2s = moinfo.t2s;
   double ***t3;
 
   // Scandinavian expression for (T) correction
@@ -27,7 +34,7 @@ double triples_ooc(void)
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int k=0; k < no; k++) {
-        t3_ijk(double ***t3, int i, int j, int k, double ****t2, double **fock, double ****ints);
+        t3_ijk(t3, i, j, k, t2, fock, ints);
 
         for(int a=0; a < nv; a++)
           for(int b=0; b < nv; b++)
@@ -137,11 +144,10 @@ void t3_abc(double ***t3, int a, int b, int c, double ****t2, double **fock, dou
   return;
 }
 
-void l3_ijk(double ***l3, int i, int, j, int k, double ****t2s, double **t1s, double
-**fock, double ****L, double ****ints)
+void l3_ijk(double ***l3, int i, int j, int k, double ****t2s, double **t1s, double **fock, double ****L, double ****ints)
 {
-  int moinfo.no;
-  int moinfo.nv;
+  int no = moinfo.no;
+  int nv = moinfo.nv;
 
   for(int a=0; a < nv; a++)
     for(int b=0; b < nv; b++)
@@ -201,10 +207,10 @@ void l3_ijk(double ***l3, int i, int, j, int k, double ****t2s, double **t1s, do
   return;
 }
 
-void l3_abc(double ***l3, int a, int, b, int c, double ****t2s, double **t1s, double **fock, double ****L, double ****ints)
+void l3_abc(double ***l3, int a, int b, int c, double ****t2s, double **t1s, double **fock, double ****L, double ****ints)
 {
-  int moinfo.no;
-  int moinfo.nv;
+  int no = moinfo.no;
+  int nv = moinfo.nv;
 
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)

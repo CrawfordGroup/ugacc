@@ -11,7 +11,8 @@ struct Params {
     int dertype;
     int maxiter;
     double convergence;
-    int do_diis;
+    int do_diis;        // DIIS boolean
+    int ooc;            // out-of-core boolean
 };
 
 }} // namespace devel::ugacc

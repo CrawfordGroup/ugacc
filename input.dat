@@ -18,6 +18,7 @@ set {
   basis sto-3g
   freeze_core false
   r_convergence 1e-15
+  ooc false
 }
 
 gradient('ugacc', wfn='ccsd(t)')

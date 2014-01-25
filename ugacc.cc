@@ -32,8 +32,9 @@ double increment_amps(double **, double **, double ****, double ****);
 double t1norm(void);
 void diis(int error_file, int amp_file, int iter, double **t1,
           double **t1old, double ****t2, double ****t2old);
-double triples(void);
-double triples_ooc(void);
+
+double tcorr(void);
+double tcorr_ooc(void);
 
 void init_L_amps(void);
 void hbar(void);
@@ -42,7 +43,11 @@ double pseudoenergy(void);
 void l1_build(void);
 void l2_build(void);
 void make_Z_amps(double **l1, double ****l2);
+void tgrad(void);
 
+void tgrad(void);
+void tgrad_ooc(void);
+void init_density(void);
 double onepdm(void);
 double twopdm(void);
 void dipole(boost::shared_ptr<Chkpt> chkpt);
@@ -62,6 +67,7 @@ int read_options(std::string name, Options& options)
     options.add_int("MAXITER", 100);
     options.add_bool("DIIS", true);
     options.add_double("R_CONVERGENCE", 1e-7);
+    options.add_bool("OOC", false);
   }
 
   return true;
@@ -78,6 +84,7 @@ PsiReturnType ugacc(Options& options)
   params.convergence = options.get_double("R_CONVERGENCE");
   params.do_diis = options.get_bool("DIIS");
   params.maxiter = options.get_int("MAXITER");
+  params.ooc = options.get_bool("OOC");
 
   fprintf(outfile, "\tWave function  = %s\n", params.wfn.c_str());
   fprintf(outfile, "\tReference      = %s\n", params.ref.c_str());
@@ -131,8 +138,8 @@ PsiReturnType ugacc(Options& options)
 
   fprintf(outfile,   "\n\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
   if(params.wfn == "CCSD_T") {
-    fprintf(outfile, "\t(T) Correction = %20.14f\n",moinfo.e_t = triples());
-    fprintf(outfile, "\t(T) Correction = %20.14f (occ)\n", triples_ooc());
+    if(params.ooc) fprintf(outfile, "\t(T) Correction = %20.14f (occ)\n", moinfo.e_t = tcorr_ooc());
+    else fprintf(outfile, "\t(T) Correction = %20.14f\n",moinfo.e_t = tcorr());
     fprintf(outfile, "\tCCSD(T) Energy = %20.14f\n",moinfo.escf+moinfo.eccsd+moinfo.e_t);
   }
 
@@ -144,6 +151,12 @@ PsiReturnType ugacc(Options& options)
 
   hbar();
   init_L_amps();
+  init_density();
+
+  if(params.wfn == "CCSD_T") {
+    if(params.ooc) tgrad_ooc();
+    else tgrad();
+  }
 
   fprintf(outfile, "\n\tThe Coupled-Cluster Lambda Iteration:\n");
   fprintf(outfile,   "\t-------------------------------------\n");

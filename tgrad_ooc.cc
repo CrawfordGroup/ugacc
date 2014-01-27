@@ -1,3 +1,51 @@
+/*
+ *@BEGIN LICENSE
+ *
+ * PSI4: an ab initio quantum chemistry software package
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *@END LICENSE
+ */
+ 
+/*
+  tgrad_ooc(): Computes triples contributes to the CCSD(T) gradient using a
+  triples-driven algorithm.  Both T3 and L3 amplitudes are computed in VVV
+  batches for a given combination of OOO indices.
+
+  -TDC, 1/2014
+
+  NB: Permutations of the T3 amplitudes in certains are permissible because
+  the densities are ultimately contracted against symmetric quantities.  For
+  example, a derivation of the T3 contribution to the OOOV two-electron
+  density yields:
+
+  G(jila) <-- -T*(lk,bc) (2 T(ijk,abc) - T(ijk,bac) - T(ijk,cba)
+
+  However, in the code below the second triples amplitude is written as
+  T(ijk,acb) for consistency with other terms with similar structure even
+  though that choice of index ordering actually should contribute to the
+  G(ijla) component of the density.  This still yields a correct OOOV
+  contribution to the two-electron energy because the density is ultimately
+  contracted with two-electron (derivative) integrals as:
+
+  E_OOOV += <ij|ka> G(ijka)
+
+
+*/
+
 #include <string>
 #include <cstdio>
 #include <psi4-dec.h>
@@ -34,6 +82,7 @@ void tgrad_ooc(void)
 
   double ***t3 = init_3d_array(nv, nv, nv);
   double ***l3 = init_3d_array(nv, nv, nv);
+  double ***T3 = init_3d_array(nv, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int k=0; k < no; k++) {
@@ -43,6 +92,7 @@ void tgrad_ooc(void)
         for(int a=0; a < nv; a++) 
           for(int b=0; b < nv; b++)
             for(int c=0; c < nv; c++) {
+
               X1[i][a] += (t3[a][b][c] - t3[c][b][a]) * L[j][k][b+no][c+no];
               X2[i][j][a][b] += (t3[a][b][c] - t3[c][b][a]) * fock[k][c+no];
               moinfo.Goovv[i][j][a][b] += 2.0 * t1s[k][c] * (2.0*(t3[a][b][c] - t3[a][c][b]) - (t3[b][a][c] - t3[b][c][a]));
@@ -50,14 +100,14 @@ void tgrad_ooc(void)
               for(int l=0; l < no; l++) {
                 X2[i][l][a][b] -= (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * ints[j][k][l][c+no];
                 Z2[i][l][a][b] -= l3[a][b][c] * ints[j][k][l][c+no];
-                moinfo.Gooov[j][i][l][a] -= (2.0*t3[a][b][c] - t3[b][a][c] - t3[c][b][a]) * t2s[l][k][b][c] + l3[a][b][c] * t2[l][k][b][c];
+                moinfo.Gooov[j][i][l][a] -= (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * t2s[l][k][b][c] + l3[a][b][c] * t2[l][k][b][c];
               }
 
               for(int d=0; d < nv; d++) {
                 X2[i][j][a][d] += (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * ints[d+no][k][b+no][c+no];
                 Z2[i][j][a][d] += l3[a][b][c] * ints[d+no][k][b+no][c+no];
                 moinfo.Dvv[a][b] += 0.5 * t3[b][c][d] * l3[a][c][d];
-                moinfo.Gvvvo[a][b][d][j] += (2.0*t3[a][b][c] - t3[b][a][c] - t3[a][c][b]) * t2s[k][i][c][d] + l3[a][b][c] * t2[k][i][c][d];
+                moinfo.Gvvvo[a][b][d][j] += (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * t2s[k][i][c][d] + l3[a][b][c] * t2[k][i][c][d];
               }
 
             } // abc

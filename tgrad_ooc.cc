@@ -26,7 +26,6 @@
   batches for a given combination of OOO indices.
 
   -TDC, 1/2014
-
 */
 
 #include <string>
@@ -83,14 +82,14 @@ void tgrad_ooc(void)
               for(int l=0; l < no; l++) {
                 X2[i][l][a][b] -= (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * ints[j][k][l][c+no];
                 Z2[i][l][a][b] -= l3[a][b][c] * ints[j][k][l][c+no];
-                moinfo.Gooov[j][i][l][a] -= (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * t2s[l][k][b][c] + l3[a][b][c] * t2[l][k][b][c];
+                moinfo.Gooov[j][i][l][a] -= (2.0*t3[a][b][c] - t3[b][a][c] - t3[c][b][a]) * t2s[l][k][b][c] + l3[a][b][c] * t2[l][k][b][c];
               }
 
               for(int d=0; d < nv; d++) {
                 X2[i][j][a][d] += (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * ints[d+no][k][b+no][c+no];
                 Z2[i][j][a][d] += l3[a][b][c] * ints[d+no][k][b+no][c+no];
                 moinfo.Dvv[a][b] += 0.5 * t3[b][c][d] * l3[a][c][d];
-                moinfo.Gvvvo[a][b][d][j] += (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * t2s[k][i][c][d] + l3[a][b][c] * t2[k][i][c][d];
+                moinfo.Gvvvo[a][b][d][j] += (2.0*t3[a][b][c] - t3[b][a][c] - t3[a][c][b]) * t2s[k][i][c][d] + l3[a][b][c] * t2[k][i][c][d];
               }
 
             } // abc

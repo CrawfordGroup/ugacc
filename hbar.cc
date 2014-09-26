@@ -46,6 +46,92 @@ void analyze_svd(const char* tensor_name, double*S, int dim){
 
 
 /*!
+ * Transforms an integral tensor to the MO basis
+ * @param Ints - On input, the AO basis integral.  On output, the MO basis integrals.
+ */
+void transform_integrals(double**Ints)
+{
+  /*
+   * (pq|rs) = Ct Ct (mu nu | rho sigma) C C
+   */
+  boost::shared_ptr<Wavefunction> wfn = Process::environment.wavefunction();
+  double **pS = wfn->S()->pointer();
+  double **pC = wfn->Ca()->pointer();
+  int nmo = wfn->nmo();
+  double**tmpPQRS = block_matrix(nmo*nmo, nmo*nmo);
+  /*
+   * 1st quarter transformation
+   * (mu nu | rho s)  = (mu nu | rho sigma) C
+   */
+  for(int mu=0; mu < nmo; ++mu){
+    for(int nu=0; nu < nmo; ++nu){
+      for(int rho=0; rho < nmo; ++rho){
+        for(int s=0; s < nmo; ++s){
+          double val = 0.0;
+          for(int sigma=0; sigma < nmo; ++sigma){
+            val += Ints[mu*nmo + nu][rho*nmo + sigma] * pC[sigma][s];
+          }
+          tmpPQRS[mu*nmo+nu][rho*nmo+s] = val;
+        }
+      }
+    }
+  }
+  /*
+   * 2nd quarter transformation
+   * (mu nu | r s)  = (mu nu | rho s) C
+   */
+  for(int mu=0; mu < nmo; ++mu){
+    for(int nu=0; nu < nmo; ++nu){
+      for(int r=0; r < nmo; ++r){
+        for(int s=0; s < nmo; ++s){
+          double val = 0.0;
+          for(int rho=0; rho < nmo; ++rho){
+            val += tmpPQRS[mu*nmo + nu][rho*nmo + s] * pC[rho][r];
+          }
+          Ints[mu*nmo + nu][r*nmo + s] = val;
+        }
+      }
+    }
+  }
+  /*
+   * 3rd quarter transformation
+   * (mu q | r s)  = (mu nu | r s) C
+   */
+  for(int mu=0; mu < nmo; ++mu){
+    for(int q=0; q < nmo; ++q){
+      for(int r=0; r < nmo; ++r){
+        for(int s=0; s < nmo; ++s){
+          double val = 0.0;
+          for(int nu=0; nu < nmo; ++nu){
+            val += pC[nu][q] * Ints[mu*nmo + nu][r*nmo + s];
+          }
+          tmpPQRS[mu*nmo + q][r*nmo + s] = val;
+        }
+      }
+    }
+  }
+  /*
+   * 4th quarter transformation
+   * (p q | r s)  = (mu q | r s) C
+   */
+  for(int p=0; p < nmo; ++p){
+    for(int q=0; q < nmo; ++q){
+      for(int r=0; r < nmo; ++r){
+        for(int s=0; s < nmo; ++s){
+          double val = 0.0;
+          for(int mu=0; mu < nmo; ++mu){
+            val += pC[mu][p] * tmpPQRS[mu*nmo + q][r*nmo + s];
+          }
+          Ints[p*nmo + q][r*nmo + s] = val;
+        }
+      }
+    }
+  }
+  free_block(tmpPQRS);
+}
+
+
+/*!
  * Transforms an integral tensor back to the AO basis
  * @param Ints - On input, the MO basis integral.  On output, the AO basis integrals.
  */
@@ -54,8 +140,8 @@ void backtransform_integrals(double**Ints)
   /*
    * Ct S C = I
    *
-   * => C^-1 = Ct S (MO X SO)
-   * => Ct^-1 = S C (SO X MO)
+   * => C^-1 = Ct S
+   * => Ct^-1 = S C = (C^-1)t
    *
    * (pq|rs) = Ct Ct (mu nu | rho sigma) C C
    *
@@ -65,18 +151,14 @@ void backtransform_integrals(double**Ints)
   double **pS = wfn->S()->pointer();
   double **pC = wfn->Ca()->pointer();
   int nmo = wfn->nmo();
-  double **CtInv = block_matrix(nmo, nmo);
   double **CInv = block_matrix(nmo, nmo);
   for(int p=0; p < nmo; ++p){
     for(int q=0; q < nmo; ++q){
-      double valCt = 0.0;
-      double valC = 0.0;
+      double val = 0.0;
       for(int r=0; r < nmo; ++r){
-        valC  += pC[r][p] * pS[r][q];
-        valCt += pS[p][r] * pC[r][q];
+        val  += pC[r][p] * pS[r][q];
       }
-      CInv[p][q] = valC;
-      CtInv[p][q] = valCt;
+      CInv[p][q] = val;
     }
   }
   double**tmpPQRS = block_matrix(nmo*nmo, nmo*nmo);
@@ -124,7 +206,7 @@ void backtransform_integrals(double**Ints)
         for(int sigma=0; sigma < nmo; ++sigma){
           double val = 0.0;
           for(int q=0; q < nmo; ++q){
-            val += CtInv[nu][q] * Ints[p*nmo + q][rho*nmo + sigma];
+            val += CInv[q][nu] * Ints[p*nmo + q][rho*nmo + sigma];
           }
           tmpPQRS[p*nmo + nu][rho*nmo + sigma] = val;
         }
@@ -141,7 +223,7 @@ void backtransform_integrals(double**Ints)
         for(int sigma=0; sigma < nmo; ++sigma){
           double val = 0.0;
           for(int p=0; p < nmo; ++p){
-            val += CtInv[mu][p] * tmpPQRS[p*nmo + nu][rho*nmo + sigma];
+            val += CInv[p][mu] * tmpPQRS[p*nmo + nu][rho*nmo + sigma];
           }
           Ints[mu*nmo + nu][rho*nmo + sigma] = val;
         }
@@ -149,6 +231,7 @@ void backtransform_integrals(double**Ints)
     }
   }
   free_block(tmpPQRS);
+  free_block(CInv);
 }
 
 
@@ -357,6 +440,20 @@ void hbar(void)
         for(int f=0; f < nv; ++f)
           Ints[(a+no)*nmo + b+no][(e+no)*nmo + f+no] = moinfo.Hvvvv[a][e][b][f];
   backtransform_integrals(Ints);
+#define TESTTRANS 0
+#if TESTTRANS
+  transform_integrals(Ints);
+  for(int a=0; a < nv; ++a)
+    for(int b=0; b < nv; ++b)
+      for(int e=0; e < nv; ++e)
+        for(int f=0; f < nv; ++f){
+          double exact = moinfo.Hvvvv[a][e][b][f];
+          double transformed = Ints[(a+no)*nmo + b+no][(e+no)*nmo + f+no];
+          double diff = fabs(exact-transformed);
+          fprintf(outfile, "Exact: %16.10f Trans: %16.10f Diff %16.10f\n", exact, transformed, diff);
+        }
+  exit(1);
+#endif
   dgesvd_(&jobu, &jobvt, &m, &n, Ints[0], &lda, S, U[0], &ldu, Vt[0], &ldvt, work, &lwork, &info);
   analyze_svd("W (AO Basis, Mulliken notation)", S, nmo2);
   /*

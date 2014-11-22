@@ -7,6 +7,8 @@
 #include "Params.h"
 #define EXTERN
 #include "globals.h"
+#include "libparallel/ParallelPrinter.h"
+
 
 namespace psi { namespace ugacc {
 
@@ -49,25 +51,24 @@ void get_moinfo(boost::shared_ptr<Wavefunction> wfn, boost::shared_ptr<Chkpt> ch
   moinfo.nact = moinfo.nmo - moinfo.nfzc - moinfo.nfzv;
   moinfo.nact = moinfo.nmo - moinfo.nfzc - moinfo.nfzv;
 
-  fprintf(outfile,"\n\tCheckpoint Parameters:\n");
-  fprintf(outfile,"\t------------------------\n");
-  fprintf(outfile,"\tNumber of irreps        = %d\n", nirreps);
-  fprintf(outfile,"\tNumber of MOs           = %d\n", moinfo.nmo);
-  fprintf(outfile,"\tNumber of active MOs    = %d\n", moinfo.nact);
-  fprintf(outfile,"\tNumber of active occ    = %d\n", moinfo.no);
-  fprintf(outfile,"\tNumber of active vir    = %d\n", moinfo.nv);
-  fprintf(outfile,"\tNumber of frozen occ    = %d\n", moinfo.nfzc);
-  fprintf(outfile,"\tNumber of frozen vir    = %d\n\n", moinfo.nfzv);
-  fprintf(outfile, "\tLabel\t# MOs\t# FZDC\t# DOCC\t# VIRT\t# FZVR\n");
-  fprintf(outfile, "\t-----\t-----\t------\t------\t------\t------\n");
+  outfile->Printf("\n\tCheckpoint Parameters:\n");
+  outfile->Printf("\t------------------------\n");
+  outfile->Printf("\tNumber of irreps        = %d\n", nirreps);
+  outfile->Printf("\tNumber of MOs           = %d\n", moinfo.nmo);
+  outfile->Printf("\tNumber of active MOs    = %d\n", moinfo.nact);
+  outfile->Printf("\tNumber of active occ    = %d\n", moinfo.no);
+  outfile->Printf("\tNumber of active vir    = %d\n", moinfo.nv);
+  outfile->Printf("\tNumber of frozen occ    = %d\n", moinfo.nfzc);
+  outfile->Printf("\tNumber of frozen vir    = %d\n\n", moinfo.nfzv);
+  outfile->Printf("\tLabel\t# MOs\t# FZDC\t# DOCC\t# VIRT\t# FZVR\n");
+  outfile->Printf("\t-----\t-----\t------\t------\t------\t------\n");
   for(int i=0; i < nirreps; i++) {
-      fprintf(outfile, "\t %s\t   %d\t    %d\t    %d\t    %d\t    %d\n",
+      outfile->Printf("\t %s\t   %d\t    %d\t    %d\t    %d\t    %d\n",
               labels[i],orbspi[i],frdocc[i],clsdpi[i],virtpi[i],fruocc[i]);
     }
-  fprintf(outfile,"\n\tNuclear Repulsion Energy    = %20.15f\n", moinfo.enuc);
-  fprintf(outfile,  "\tFrozen Core Energy          = %20.15f\n", moinfo.efzc);
-  fprintf(outfile,  "\tTotal SCF Energy (chkpt)    = %20.15f\n", moinfo.escf);
-  fflush(outfile);
+  outfile->Printf("\n\tNuclear Repulsion Energy    = %20.15f\n", moinfo.enuc);
+  outfile->Printf( "\tFrozen Core Energy          = %20.15f\n", moinfo.efzc);
+  outfile->Printf( "\tTotal SCF Energy (chkpt)    = %20.15f\n", moinfo.escf);
 
   for(int i=0; i < nirreps; i++) delete [] labels[i];
   delete [] labels;

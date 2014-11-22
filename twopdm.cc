@@ -7,6 +7,8 @@
 #include "Params.h"
 #define EXTERN
 #include "globals.h"
+#include "libparallel/ParallelPrinter.h"
+
 
 namespace psi { namespace ugacc {
 
@@ -38,7 +40,7 @@ double twopdm(void)
       for(int k=0; k < no; k++)
         for(int l=0; l < no; l++)
           Eoooo += 0.5 * ints[i][j][k][l] * Goooo[i][j][k][l];
-  fprintf(outfile, "\tOOOO Energy = %20.14f\n", Eoooo);
+  outfile->Printf("\tOOOO Energy = %20.14f\n", Eoooo);
 
   double ****Gvvvv = moinfo.Gvvvv;
   for(int a=0; a < nv; a++)
@@ -57,7 +59,7 @@ double twopdm(void)
       for(int c=0; c < nv; c++)
         for(int d=0; d < nv; d++)
           Evvvv += 0.5 * ints[a+no][b+no][c+no][d+no] * Gvvvv[a][b][c][d];
-  fprintf(outfile, "\tVVVV Energy = %20.14f\n", Evvvv);
+  outfile->Printf("\tVVVV Energy = %20.14f\n", Evvvv);
 
   double ****Gooov = moinfo.Gooov;
   for(int i=0; i < no; i++)
@@ -88,7 +90,7 @@ double twopdm(void)
       for(int k=0; k < no; k++)
         for(int a=0; a < nv; a++)
           Eooov += ints[i][j][k][a+no] * Gooov[i][j][k][a];
-  fprintf(outfile, "\tOOOV Energy = %20.14f\n", Eooov);
+  outfile->Printf("\tOOOV Energy = %20.14f\n", Eooov);
 
   double ****Gvvvo = moinfo.Gvvvo;
   for(int a=0; a < nv; a++)
@@ -118,7 +120,7 @@ double twopdm(void)
       for(int c=0; c < nv; c++)
         for(int i=0; i < no; i++)
           Evvvo += ints[a+no][b+no][c+no][i] * Gvvvo[a][b][c][i];
-  fprintf(outfile, "\tVVVO Energy = %20.14f\n", Evvvo);
+  outfile->Printf("\tVVVO Energy = %20.14f\n", Evvvo);
 
   double ****Govov = moinfo.Govov;
   for(int i=0; i < no; i++)
@@ -137,7 +139,7 @@ double twopdm(void)
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++)
           Eovov += ints[i][a+no][j][b+no] * Govov[i][a][j][b];
-  fprintf(outfile, "\tOVOV Energy = %20.14f\n", Eovov);
+  outfile->Printf("\tOVOV Energy = %20.14f\n", Eovov);
 
   double ****Goovv = moinfo.Goovv;
   for(int i=0; i < no; i++)
@@ -192,8 +194,8 @@ double twopdm(void)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++)
           Eoovv += 0.5 * ints[i][j][a+no][b+no] * Goovv[i][j][a][b];
-  fprintf(outfile, "\tOOVV Energy = %20.14f\n", Eoovv);
-//  fprintf(outfile, "\tOOVV + OVOV = %20.14f\n", Eoovv+Eovov);
+  outfile->Printf("\tOOVV Energy = %20.14f\n", Eoovv);
+//  outfile->Printf("\tOOVV + OVOV = %20.14f\n", Eoovv+Eovov);
 
   return Eoooo+Evvvv+Eooov+Evvvo+Eovov+Eoovv;
 }

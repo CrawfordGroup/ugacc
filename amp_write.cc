@@ -7,6 +7,8 @@
 #include "Params.h"
 #define EXTERN
 #include "globals.h"
+#include "libparallel/ParallelPrinter.h"
+
 
 /*
 ** Print the largest num_amps amplitudes to outfile.
@@ -31,21 +33,24 @@ void onestack_insert(struct onestack *stack, double value, int i, int a,
     int level, int stacklen);
 void twostack_insert(struct twostack *stack, double value, int i, int j, 
     int a, int b, int level, int stacklen);
-void amp_write_T1(double **T1, int length, std::string label, FILE *outfile);
-void amp_write_T2(double ****T2, int length, std::string label, FILE *outfile);
+void amp_write_T1(double **T1, int length, std::string label, std::string OutFileRMR);
+void amp_write_T2(double ****T2, int length, std::string label, std::string OutFileRMR);
 
 void amp_write(int num_amps, double **t1, double ****t2, std::string name)
 {
   std::string label;
 
   label = "\n\tLargest " + name + "1 Amplitudes:\n";
-  amp_write_T1(t1, num_amps, label, outfile);
+  amp_write_T1(t1, num_amps, label, "outfile");
   label = "\n\tLargest " + name + "2 Amplitudes:\n";
-  amp_write_T2(t2, num_amps, label, outfile);
+  amp_write_T2(t2, num_amps, label, "outfile");
 }
 
-void amp_write_T1(double **T1, int length, std::string label, FILE *outfile)
+void amp_write_T1(double **T1, int length, std::string label, std::string out)
 {
+   boost::shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:
+            boost::shared_ptr<OutFile>(new OutFile(out)));
+
   int num2print=0;
   struct onestack *t1stack;
 
@@ -71,11 +76,11 @@ void amp_write_T1(double **T1, int length, std::string label, FILE *outfile)
   for(int m=0; m < ((numt1 < length) ? numt1 : length); m++)
     if(fabs(t1stack[m].value) > AMP_CUTOFF) num2print++;
 
-  if(num2print) fprintf(outfile, "%s", label.c_str());
+  if(num2print) printer->Printf("%s", label.c_str());
 
   for(int m=0; m < ((numt1 < length) ? numt1 : length); m++)
     if(fabs(t1stack[m].value) > AMP_CUTOFF)
-      fprintf(outfile, "\t        %3d %3d %20.10f\n", t1stack[m].i, t1stack[m].a, t1stack[m].value);
+      printer->Printf("\t        %3d %3d %20.10f\n", t1stack[m].i, t1stack[m].a, t1stack[m].value);
 
   free(t1stack);
 }
@@ -108,8 +113,11 @@ void onestack_insert(struct onestack *stack, double value, int i, int a, int lev
   }
 }
 
-void amp_write_T2(double ****T2, int length, std::string label, FILE *outfile)
+void amp_write_T2(double ****T2, int length, std::string label, std::string out)
 {
+   boost::shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:
+            boost::shared_ptr<OutFile>(new OutFile(out)));
+
   int num2print=0;
   struct twostack *t2stack;
 
@@ -144,11 +152,11 @@ void amp_write_T2(double ****T2, int length, std::string label, FILE *outfile)
   for(int m=0; m < ((numt2 < length) ? numt2 : length); m++)
     if(fabs(t2stack[m].value) > AMP_CUTOFF) num2print++;
 
-  if(num2print) fprintf(outfile, "%s", label.c_str());
+  if(num2print) printer->Printf("%s", label.c_str());
 
   for(int m=0; m < ((numt2 < length) ? numt2 : length); m++)
     if(fabs(t2stack[m].value) > AMP_CUTOFF)
-      fprintf(outfile, "\t%3d %3d %3d %3d %20.10f\n", t2stack[m].i, t2stack[m].j, 
+      printer->Printf("\t%3d %3d %3d %3d %20.10f\n", t2stack[m].i, t2stack[m].j, 
 	      t2stack[m].a, t2stack[m].b, t2stack[m].value);
 
   free(t2stack);

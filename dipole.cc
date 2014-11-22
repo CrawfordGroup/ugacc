@@ -9,6 +9,8 @@
 #include "Params.h"
 #define EXTERN
 #include "globals.h"
+#include "libparallel/ParallelPrinter.h"
+
 
 using namespace std;
 
@@ -50,17 +52,17 @@ void dipole(boost::shared_ptr<Chkpt> chkpt)
   MintsHelper mints(Process::environment.options, 0);
   vector<SharedMatrix> dipole = mints.so_dipole();
 
-  fprintf(outfile, "\n");
+  outfile->Printf("\n");
   for(int i=0; i < 3; i++) {
     double **TMP1 = dipole[i]->to_block_matrix();
     double mu = 0.0;
     for(int p=0; p < nso; p++)
       for(int q=0; q < nso; q++)
         mu += DAO[p][q] * TMP1[p][q];
-    fprintf(outfile, "\tUnrelaxed Mu[%d] = %20.14f (AO density)\n", i, mu);
+    outfile->Printf("\tUnrelaxed Mu[%d] = %20.14f (AO density)\n", i, mu);
   }
 
-  fprintf(outfile, "\n");
+  outfile->Printf("\n");
   // Try the MO basis
   double **TMP2 = block_matrix(nso,nso);
   for(int i=0; i < 3; i++) {
@@ -71,7 +73,7 @@ void dipole(boost::shared_ptr<Chkpt> chkpt)
     for(int p=0; p < nmo; p++)
       for(int q=0; q < nmo; q++)
         mu += D[p][q] * TMP3[p][q];
-    fprintf(outfile, "\tUnrelaxed Mu[%d] = %20.14f (MO density)\n", i, mu);
+    outfile->Printf("\tUnrelaxed Mu[%d] = %20.14f (MO density)\n", i, mu);
   }
 
   free_block(TMP2);

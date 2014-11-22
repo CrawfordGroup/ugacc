@@ -8,6 +8,7 @@
 #include "MOInfo.h"
 #include "Params.h"
 #include "globals.h"
+#include "libparallel/ParallelPrinter.h"
 
 INIT_PLUGIN
 
@@ -86,13 +87,12 @@ PsiReturnType ugacc(Options& options)
   params.maxiter = options.get_int("MAXITER");
   params.ooc = options.get_bool("OOC");
 
-  fprintf(outfile, "\tWave function  = %s\n", params.wfn.c_str());
-  fprintf(outfile, "\tReference      = %s\n", params.ref.c_str());
-  fprintf(outfile, "\tComputation    = %s\n", params.dertype ? "Gradient" : "Energy");
-  fprintf(outfile, "\tMaxiter        = %d\n", params.maxiter);
-  fprintf(outfile, "\tConvergence    = %3.1e\n", params.convergence);
-  fprintf(outfile, "\tDIIS           = %s\n", params.do_diis ? "Yes" : "No");
-  fflush(outfile);
+  outfile->Printf("\tWave function  = %s\n", params.wfn.c_str());
+  outfile->Printf("\tReference      = %s\n", params.ref.c_str());
+  outfile->Printf("\tComputation    = %s\n", params.dertype ? "Gradient" : "Energy");
+  outfile->Printf("\tMaxiter        = %d\n", params.maxiter);
+  outfile->Printf("\tConvergence    = %3.1e\n", params.convergence);
+  outfile->Printf("\tDIIS           = %s\n", params.do_diis ? "Yes" : "No");
 
   boost::shared_ptr<PSIO> psio(_default_psio_lib_);
   boost::shared_ptr<Wavefunction> wfn = Process::environment.wavefunction();
@@ -107,11 +107,11 @@ PsiReturnType ugacc(Options& options)
 
   init_T_amps();
 
-  fprintf(outfile, "\n\tThe Coupled-Cluster Iteration:\n");
-  fprintf(outfile,   "\t---------------------------------------------\n");
-  fprintf(outfile,   "\t Iter   Correlation Energy  T1 Norm    RMS   \n");
-  fprintf(outfile,   "\t---------------------------------------------\n");
-  fprintf(outfile,   "\t  %3d  %20.15f\n", 0,moinfo.eccsd = energy()); fflush(outfile);
+  outfile->Printf("\n\tThe Coupled-Cluster Iteration:\n");
+  outfile->Printf(  "\t---------------------------------------------\n");
+  outfile->Printf(  "\t Iter   Correlation Energy  T1 Norm    RMS   \n");
+  outfile->Printf(  "\t---------------------------------------------\n");
+  outfile->Printf(  "\t  %3d  %20.15f\n", 0,moinfo.eccsd = energy());
 
   double rms = 0.0;
   for(int iter=1; iter <= params.maxiter; iter++) {
@@ -123,8 +123,7 @@ PsiReturnType ugacc(Options& options)
     t2_build();
     rms = increment_amps(moinfo.t1, moinfo.t1old, moinfo.t2, moinfo.t2old);
 
-    fprintf(outfile,   "\t  %3d  %20.15f  %5.3f  %5.3e\n",iter, moinfo.eccsd = energy(), t1norm(), rms);
-    fflush(outfile);
+    outfile->Printf(  "\t  %3d  %20.15f  %5.3f  %5.3e\n",iter, moinfo.eccsd = energy(), t1norm(), rms);
     if(rms < params.convergence) break;
     if(params.do_diis) diis(iter, 90, 91, moinfo.t1, moinfo.t1old,
                             moinfo.t2, moinfo.t2old);
@@ -136,14 +135,14 @@ PsiReturnType ugacc(Options& options)
   if(rms >= params.convergence)
     throw PSIEXCEPTION("Computation has not converged.");
 
-  fprintf(outfile,   "\n\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
+  outfile->Printf(  "\n\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
   if(params.wfn == "CCSD_T") {
-    if(params.ooc) fprintf(outfile, "\t(T) Correction = %20.14f (occ)\n", moinfo.e_t = tcorr_ooc());
-    else fprintf(outfile, "\t(T) Correction = %20.14f\n",moinfo.e_t = tcorr());
-    fprintf(outfile, "\tCCSD(T) Energy = %20.14f\n",moinfo.escf+moinfo.eccsd+moinfo.e_t);
+    if(params.ooc) outfile->Printf("\t(T) Correction = %20.14f (occ)\n", moinfo.e_t = tcorr_ooc());
+    else outfile->Printf("\t(T) Correction = %20.14f\n",moinfo.e_t = tcorr());
+    outfile->Printf("\tCCSD(T) Energy = %20.14f\n",moinfo.escf+moinfo.eccsd+moinfo.e_t);
   }
 
-  amp_write(20, moinfo.t1, moinfo.t2, "T"); fprintf(outfile, "\n");
+  amp_write(20, moinfo.t1, moinfo.t2, "T"); outfile->Printf("\n");
 
   if(!params.dertype) return Success;
 
@@ -158,12 +157,11 @@ PsiReturnType ugacc(Options& options)
     else tgrad();
   }
 
-  fprintf(outfile, "\n\tThe Coupled-Cluster Lambda Iteration:\n");
-  fprintf(outfile,   "\t-------------------------------------\n");
-  fprintf(outfile,   "\t Iter   Correlation Energy  RMS   \n");
-  fprintf(outfile,   "\t-------------------------------------\n");
-  fprintf(outfile,   "\t  %3d  %20.15f\n", 0, pseudoenergy());
-  fflush(outfile);
+  outfile->Printf("\n\tThe Coupled-Cluster Lambda Iteration:\n");
+  outfile->Printf(  "\t-------------------------------------\n");
+  outfile->Printf(  "\t Iter   Correlation Energy  RMS   \n");
+  outfile->Printf(  "\t-------------------------------------\n");
+  outfile->Printf(  "\t  %3d  %20.15f\n", 0, pseudoenergy());
 
   rms = 0.0;
   for(int iter=1; iter <= params.maxiter; iter++) {
@@ -173,8 +171,7 @@ PsiReturnType ugacc(Options& options)
     l2_build();
     rms = increment_amps(moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
 
-    fprintf(outfile,   "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
-    fflush(outfile);
+    outfile->Printf(  "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
     if(rms < params.convergence) break;
     if(params.do_diis) diis(iter, 92, 93, moinfo.l1, moinfo.l1old,
                             moinfo.l2, moinfo.l2old);
@@ -182,24 +179,24 @@ PsiReturnType ugacc(Options& options)
   if(rms >= params.convergence)
     throw PSIEXCEPTION("Computation has not converged.");
 
-  amp_write(20, moinfo.l1, moinfo.l2, "L"); fprintf(outfile, "\n");
+  amp_write(20, moinfo.l1, moinfo.l2, "L"); outfile->Printf("\n");
 
   // Also print non-UGA version of lambda amps for comparison to PSI4 UHF-CCSD(T) code
   make_Z_amps(moinfo.l1, moinfo.l2);
 
   double Eone = onepdm();
   double Etwo = twopdm();
-  fprintf(outfile, "\tOne-electron energy        = %20.14f\n", Eone);
-  fprintf(outfile, "\tTwo-electron energy        = %20.14f\n", Etwo);
+  outfile->Printf("\tOne-electron energy        = %20.14f\n", Eone);
+  outfile->Printf("\tTwo-electron energy        = %20.14f\n", Etwo);
   if(params.wfn == "CCSD") {
-    fprintf(outfile, "\tCCSD correlation energy    = %20.14f (from density)\n", Eone+Etwo);
-    fprintf(outfile, "\tCCSD correlation energy    = %20.14f (from moinfo)\n", moinfo.eccsd);
-    fprintf(outfile, "\tCCSD total energy          = %20.14f (from density)\n", Eone+Etwo+moinfo.escf);
+    outfile->Printf("\tCCSD correlation energy    = %20.14f (from density)\n", Eone+Etwo);
+    outfile->Printf("\tCCSD correlation energy    = %20.14f (from moinfo)\n", moinfo.eccsd);
+    outfile->Printf("\tCCSD total energy          = %20.14f (from density)\n", Eone+Etwo+moinfo.escf);
   }
   else if(params.wfn == "CCSD_T") {
-    fprintf(outfile, "\tCCSD(T) correlation energy = %20.14f (from density)\n", Eone+Etwo);
-    fprintf(outfile, "\tCCSD(T) correlation energy = %20.14f (from moinfo)\n", moinfo.eccsd+moinfo.e_t);
-    fprintf(outfile, "\tCCSD(T) total energy       = %20.14f (from density)\n", Eone+Etwo+moinfo.escf);
+    outfile->Printf("\tCCSD(T) correlation energy = %20.14f (from density)\n", Eone+Etwo);
+    outfile->Printf("\tCCSD(T) correlation energy = %20.14f (from moinfo)\n", moinfo.eccsd+moinfo.e_t);
+    outfile->Printf("\tCCSD(T) total energy       = %20.14f (from density)\n", Eone+Etwo+moinfo.escf);
   }
 
   if(chkpt->rd_nirreps() == 1 && moinfo.nact == moinfo.nmo) dipole(chkpt);
@@ -212,13 +209,13 @@ PsiReturnType ugacc(Options& options)
 
 void title(void)
 {
-  fprintf(outfile, "\n");
-  fprintf(outfile, "\t\t\t**************************\n");
-  fprintf(outfile, "\t\t\t*                        *\n");
-  fprintf(outfile, "\t\t\t*         UGA-CC         *\n");
-  fprintf(outfile, "\t\t\t*                        *\n");
-  fprintf(outfile, "\t\t\t**************************\n");
-  fprintf(outfile, "\n");
+  outfile->Printf("\n");
+  outfile->Printf("\t\t\t**************************\n");
+  outfile->Printf("\t\t\t*                        *\n");
+  outfile->Printf("\t\t\t*         UGA-CC         *\n");
+  outfile->Printf("\t\t\t*                        *\n");
+  outfile->Printf("\t\t\t**************************\n");
+  outfile->Printf("\n");
 }
 
 void make_Z_amps(double **l1, double ****l2)
@@ -234,7 +231,7 @@ void make_Z_amps(double **l1, double ****l2)
         for(int b=0; b < nv; b++)
           Z2[i][j][a][b] = (1./3.)*l2[i][j][a][b] + (1./6.)*l2[i][j][b][a];
    }
-  amp_write(20, Z1, Z2, "Z"); fprintf(outfile, "\n");
+  amp_write(20, Z1, Z2, "Z"); outfile->Printf("\n");
   free_block(Z1);
   free_4d_array(Z2, no, no, nv);
 }

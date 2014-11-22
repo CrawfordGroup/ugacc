@@ -9,6 +9,8 @@
 #include "Params.h"
 #define EXTERN
 #include "globals.h"
+#include "libparallel/ParallelPrinter.h"
+
 
 namespace psi { namespace ugacc {
 
@@ -32,14 +34,14 @@ void integrals(void)
   int noei = nact*(nact+1)/2;
   double *scratch = init_array(noei_all); 
   double *oei = init_array(noei);
-  iwl_rdone(PSIF_OEI, PSIF_MO_FZC, scratch, noei_all, 0, 0, outfile);
+  iwl_rdone(PSIF_OEI, PSIF_MO_FZC, scratch, noei_all, 0, 0, "outfile");
   filter(scratch, oei, ioff, nmo, nfzc, nfzv);
 
   int ntei = noei*(noei+1)/2;
   double *tei = init_array(ntei);
   struct iwlbuf Buf;
   iwl_buf_init(&Buf, PSIF_MO_TEI, 1e-14, 1, 1);
-  iwl_buf_rd_all(&Buf, tei, ioff, ioff, 0, ioff, 0, outfile);
+  iwl_buf_rd_all(&Buf, tei, ioff, ioff, 0, ioff, 0, "outfile");
   iwl_buf_close(&Buf, 1); /* keep the integral file */
 
   // This does not appear to work -- don't know why, but would like to debug
@@ -81,7 +83,7 @@ void integrals(void)
     for(int j=0; j < no; j++)
       escf += L[i][j][i][j];
   }
-  fprintf(outfile, "\tSCF energy (recomputed)     = %20.15f\n", escf+moinfo.enuc+moinfo.efzc);
+  outfile->Printf("\tSCF energy (recomputed)     = %20.15f\n", escf+moinfo.enuc+moinfo.efzc);
 
   free(ioff);
   free(oei); 

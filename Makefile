@@ -1,7 +1,7 @@
 #
 #@BEGIN LICENSE
 #
-# ugacc by T. Daniel Crawford, a plugin to:
+# junk by Psi4 Developer, a plugin to:
 #
 # PSI4: an ab initio quantum chemistry software package
 #
@@ -36,9 +36,9 @@ CXXSRC = $(notdir $(wildcard *.cc))
 
 # Flags that were used to compile Psi4.
 CXX = /usr/bin/g++
-CXXDEFS = -DUSE_FCMANGLE_H -DHAS_CXX11_VARIADIC_TEMPLATES -DHAS_CXX11_STATIC_ASSERT -DHAS_CXX11_SIZEOF_MEMBER -DHAS_CXX11_RVALUE_REFERENCES -DHAS_CXX11_LIB_REGEX -DHAS_CXX11_NULLPTR -DHAS_CXX11_LONG_LONG -DHAS_CXX11_LAMBDA -DHAS_CXX11_INITIALIZER_LIST -DHAS_CXX11_DECLTYPE -DHAS_CXX11_CSTDINT_H -DHAS_CXX11_CONSTEXPR -DHAS_CXX11_AUTO_RET_TYPE -DHAS_CXX11_AUTO -DHAS_CXX11_FUNC -DHAS_CXX11 -DVAR_MFDS -DSYS_DARWIN
-CXXFLAGS = -DRESTRICT=__restrict__ -fPIC -std=c++11 -O0 -g -DDEBUG -Wall -Wextra -Winit-self -Woverloaded-virtual -Wuninitialized -Wmissing-declarations -Wwrite-strings -Weffc++ -Wdocumentation
-INCLUDES = -I/Users/crawdad/src/psi4/build/src/lib -I/Users/crawdad/src/psi4/src/lib -I/Users/crawdad/src/psi4/include -I/Users/crawdad/src/psi4/build/include -I/Users/crawdad/src/psi4/build/boost/include -I/System/Library/Frameworks/Python.framework/Versions/2.6/include/python2.6
+CXXDEFS = -DFC_SYMBOL=2 -DHAVE_SYSTEM_NATIVE_LAPACK -DHAVE_SYSTEM_NATIVE_BLAS -DHAS_CXX11_VARIADIC_TEMPLATES -DHAS_CXX11_STATIC_ASSERT -DHAS_CXX11_SIZEOF_MEMBER -DHAS_CXX11_RVALUE_REFERENCES -DHAS_CXX11_LIB_REGEX -DHAS_CXX11_NULLPTR -DHAS_CXX11_LONG_LONG -DHAS_CXX11_LAMBDA -DHAS_CXX11_INITIALIZER_LIST -DHAS_CXX11_DECLTYPE -DHAS_CXX11_CSTDINT_H -DHAS_CXX11_CONSTEXPR -DHAS_CXX11_AUTO_RET_TYPE -DHAS_CXX11_AUTO -DHAS_CXX11_FUNC -DHAS_CXX11 -DVAR_MFDS -DSYS_DARWIN
+CXXFLAGS = -DRESTRICT=__restrict__ -fPIC -std=c++11 -O0 -g -DDEBUG -Wall -Wextra -Winit-self -Woverloaded-virtual -Wuninitialized -Wmissing-declarations -Wwrite-strings -Weffc++ -Wdocumentation -Wno-unknown-pragmas
+INCLUDES = -I/Users/crawdad/src/psi4/build/src/lib -I/Users/crawdad/src/psi4/src/lib -I/Users/crawdad/src/psi4/include -I/Users/crawdad/src/psi4/build/include -I/usr/local/include -I/usr/local/Cellar/python/2.7.9/Frameworks/Python.framework/Versions/2.7/include/python2.7 -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/include
 OBJDIR = /Users/crawdad/src/psi4/build
 
 # Used to determine linking flags.
@@ -75,5 +75,4 @@ $(PSITARGET): $(BINOBJ)
 # Erase all compiled intermediate files
 clean:
 	rm -f $(BINOBJ) $(PSITARGET) *.d *.pyc *.test output.dat psi.timer.dat
-
 

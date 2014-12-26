@@ -27,21 +27,21 @@ void analyze_svd(const char* tensor_name, double*S, int dim){
   int count3 = 0;
   int count4 = 0;
   int count5 = 0;
-  fprintf(outfile, "\n%s singular values\n", tensor_name);
+  outfile->Printf( "\n%s singular values\n", tensor_name);
   for(int n = 0; n < dim; ++n){
-    fprintf(outfile, " Singular values[%3d] = %16.10f\n", n, S[n]);
+    outfile->Printf( " Singular values[%3d] = %16.10f\n", n, S[n]);
     if(fabs(S[n] > 1.0E-2)) count2++;
     if(fabs(S[n] > 1.0E-3)) count3++;
     if(fabs(S[n] > 1.0E-4)) count4++;
     if(fabs(S[n] > 1.0E-5)) count5++;
     totcount++;
   }
-  fprintf(outfile, "\nSparsity report for %s\n", tensor_name);
-  fprintf(outfile, "10^-2: %5d elements (%.2f\%)\n", count2, 100.0*(double)count2/(double)totcount);
-  fprintf(outfile, "10^-3: %5d elements (%.2f\%)\n", count3, 100.0*(double)count3/(double)totcount);
-  fprintf(outfile, "10^-4: %5d elements (%.2f\%)\n", count4, 100.0*(double)count4/(double)totcount);
-  fprintf(outfile, "10^-5: %5d elements (%.2f\%)\n", count5, 100.0*(double)count5/(double)totcount);
-  fprintf(outfile, "\n");
+  outfile->Printf( "\nSparsity report for %s\n", tensor_name);
+  outfile->Printf( "10^-2: %5d elements (%.2f\%)\n", count2, 100.0*(double)count2/(double)totcount);
+  outfile->Printf( "10^-3: %5d elements (%.2f\%)\n", count3, 100.0*(double)count3/(double)totcount);
+  outfile->Printf( "10^-4: %5d elements (%.2f\%)\n", count4, 100.0*(double)count4/(double)totcount);
+  outfile->Printf( "10^-5: %5d elements (%.2f\%)\n", count5, 100.0*(double)count5/(double)totcount);
+  outfile->Printf( "\n");
 }
 
 
@@ -328,7 +328,7 @@ void hbar(void)
 #define PRINT 0
 
 #if PRINT
-    fprintf(outfile, "Wabcd\n");
+    outfile->Printf( "Wabcd\n");
     print_mat(Wvvvv, nv2, nv2, outfile);
 #endif
 #if TEST_EVALS
@@ -336,9 +336,9 @@ void hbar(void)
   double *evalsR = new double[nv2];
   double *evalsI = new double[nv2];
   int info = C_DGEEV('n', 'n', nv*nv, Wvvvv[0], nv2, evalsR, evalsI, NULL, 1, NULL, 1, work, 4*nv2);
-  fprintf(outfile, "Info: %d\n", info);
+  outfile->Printf( "Info: %d\n", info);
   for(int n = 0; n < nv2; ++n)
-    fprintf(outfile, "Evals[%3d] = %16.10f + %16.10fi\n", n, evalsR[n], evalsI[n]);
+    outfile->Printf( "Evals[%3d] = %16.10f + %16.10fi\n", n, evalsR[n], evalsI[n]);
 #endif
 #if SVD
   int nv2 = nv*nv;
@@ -450,7 +450,7 @@ void hbar(void)
           double exact = moinfo.Hvvvv[a][e][b][f];
           double transformed = Ints[(a+no)*nmo + b+no][(e+no)*nmo + f+no];
           double diff = fabs(exact-transformed);
-          fprintf(outfile, "Exact: %16.10f Trans: %16.10f Diff %16.10f\n", exact, transformed, diff);
+          outfile->Printf( "Exact: %16.10f Trans: %16.10f Diff %16.10f\n", exact, transformed, diff);
         }
   exit(1);
 #endif

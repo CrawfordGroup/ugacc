@@ -125,8 +125,7 @@ PsiReturnType ugacc(Options& options)
 
     outfile->Printf(  "\t  %3d  %20.15f  %5.3f  %5.3e\n",iter, moinfo.eccsd = energy(), t1norm(), rms);
     if(rms < params.convergence) break;
-    if(params.do_diis) diis(iter, 90, 91, moinfo.t1, moinfo.t1old,
-                            moinfo.t2, moinfo.t2old);
+    if(params.do_diis) diis(iter, 90, 91, moinfo.t1, moinfo.t1old, moinfo.t2, moinfo.t2old);
   }
 
   tau_build(2, moinfo.t1, moinfo.t2);
@@ -144,7 +143,11 @@ PsiReturnType ugacc(Options& options)
 
   amp_write(20, moinfo.t1, moinfo.t2, "T"); outfile->Printf("\n");
 
-  if(!params.dertype) return Success;
+  if(!params.dertype) {
+    ccdump();
+    cleanup();
+    return Success;
+  }
 
   // ****** Lambda-amplitude equations
 
@@ -173,8 +176,7 @@ PsiReturnType ugacc(Options& options)
 
     outfile->Printf(  "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
     if(rms < params.convergence) break;
-    if(params.do_diis) diis(iter, 92, 93, moinfo.l1, moinfo.l1old,
-                            moinfo.l2, moinfo.l2old);
+    if(params.do_diis) diis(iter, 92, 93, moinfo.l1, moinfo.l1old, moinfo.l2, moinfo.l2old);
   }
   if(rms >= params.convergence)
     throw PSIEXCEPTION("Computation has not converged.");

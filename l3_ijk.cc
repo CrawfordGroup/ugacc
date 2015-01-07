@@ -5,23 +5,6 @@
 
 namespace psi { namespace ugacc {
 
-void l3_ijk_new(double ***l3, int i, int j, int k, double ****t2, double **t1, double **fock, double ****ints)
-{
-  int no = moinfo.no;
-  int nv = moinfo.nv;
-
-  for(int a=0; a < nv; a++)
-    for(int b=0; b < nv; b++)
-      for(int c=0; c < nv; c++) {
-        double value = 0.0;
-
-
-      }
-    }
-  }
-  return;
-}
-
 void l3_ijk(double ***l3, int i, int j, int k, double ****t2s, double **t1s, double **fock, double ****L, double ****ints)
 {
   int no = moinfo.no;

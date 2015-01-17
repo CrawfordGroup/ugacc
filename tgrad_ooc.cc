@@ -43,6 +43,7 @@ namespace psi { namespace ugacc {
 void t3_ijk(double ***, int, int, int, double ****, double **, double ****);
 void t3_abc(double ***, int, int, int, double ****, double **, double ****);
 void l3_ijk(double ***, int, int, int, double ****, double **, double **, double ****, double ****);
+void l3_ijk_new(double ***, int, int, int, double ****, double **, double **, double ****);
 void l3_abc(double ***, int, int, int, double ****, double **, double **, double ****, double ****);
 
 void tgrad_ooc(void)
@@ -64,18 +65,19 @@ void tgrad_ooc(void)
 
   double ***t3 = init_3d_array(nv, nv, nv);
   double ***l3 = init_3d_array(nv, nv, nv);
-  double ***T3 = init_3d_array(nv, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int k=0; k < no; k++) {
         t3_ijk(t3, i, j, k, t2, fock, ints);
-        l3_ijk(l3, i, j, k, t2s, t1s, fock, L, ints);
+//        l3_ijk(l3, i, j, k, t2s, t1s, fock, L, ints);
+        l3_ijk_new(l3, i, j, k, t2, t1, fock, ints);
 
         for(int a=0; a < nv; a++) 
           for(int b=0; b < nv; b++)
             for(int c=0; c < nv; c++) {
 
-              X1[i][a] += (t3[a][b][c] - t3[c][b][a]) * L[j][k][b+no][c+no];
+//              X1[i][a] += (4.0*t3[a][b][c] - 2.0*t3[c][b][a] - 2.0*t3[a][c][b] + t3[b][c][a])*ints[j][k][b+no][c+no];
+              moinfo.s1[i][a] += 2.0*(t3[a][b][c] - t3[c][b][a]) * L[j][k][b+no][c+no];
               X2[i][j][a][b] += (t3[a][b][c] - t3[c][b][a]) * fock[k][c+no];
               moinfo.Goovv[i][j][a][b] += 2.0 * t1s[k][c] * (2.0*(t3[a][b][c] - t3[a][c][b]) - (t3[b][a][c] - t3[b][c][a]));
 
@@ -117,9 +119,9 @@ void tgrad_ooc(void)
   free_3d_array(t3, no, no);
   free_3d_array(l3, no, no);
 
-  for(int i=0; i < no; i++)
-    for(int a=0; a < nv; a++) 
-      moinfo.s1[i][a] = 2.0 * X1[i][a];
+//  for(int i=0; i < no; i++)
+//    for(int a=0; a < nv; a++) 
+//      moinfo.s1[i][a] = X1[i][a];
   double ****Y2 = init_4d_array(no, no, nv, nv);
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) 

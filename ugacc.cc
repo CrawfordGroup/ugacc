@@ -36,6 +36,7 @@ void diis(int error_file, int amp_file, int iter, double **t1,
 
 double tcorr(void);
 double tcorr_ooc(void);
+double tcorr_ooc_TJL(void);
 
 void init_L_amps(void);
 void hbar(void);
@@ -136,7 +137,10 @@ PsiReturnType ugacc(Options& options)
 
   outfile->Printf(  "\n\tCCSD Energy    = %20.14f\n",moinfo.eccsd+moinfo.escf);
   if(params.wfn == "CCSD_T") {
-    if(params.ooc) outfile->Printf("\t(T) Correction = %20.14f (occ)\n", moinfo.e_t = tcorr_ooc());
+    if(params.ooc) {
+      outfile->Printf("\t(T) Correction = %20.14f (occ)\n", moinfo.e_t = tcorr_ooc());
+      outfile->Printf("\t(T) Correction = %20.14f (TJL)\n", tcorr_ooc_TJL());
+    }
     else outfile->Printf("\t(T) Correction = %20.14f\n",moinfo.e_t = tcorr());
     outfile->Printf("\tCCSD(T) Energy = %20.14f\n",moinfo.escf+moinfo.eccsd+moinfo.e_t);
   }

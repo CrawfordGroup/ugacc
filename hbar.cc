@@ -324,7 +324,7 @@ void hbar(void)
           moinfo.Hvvvv[a][b][e][f] = value;
         }
 #define TEST_EVALS 0
-#define SVD 1
+#define SVD 0
 #define PRINT 0
 
 #if PRINT
@@ -453,7 +453,7 @@ void hbar(void)
           outfile->Printf( "Exact: %16.10f Trans: %16.10f Diff %16.10f\n", exact, transformed, diff);
         }
   exit(1);
-#endif
+#endif // TESTTRANS
   dgesvd_(&jobu, &jobvt, &m, &n, Ints[0], &lda, S, U[0], &ldu, Vt[0], &ldvt, work, &lwork, &info);
   analyze_svd("W (AO Basis, Mulliken notation)", S, nmo2);
   /*
@@ -472,8 +472,8 @@ void hbar(void)
   dgesvd_(&jobu, &jobvt, &m, &n, Ints[0], &lda, S, U[0], &ldu, Vt[0], &ldvt, work, &lwork, &info);
   analyze_svd("H (AO Basis, Mulliken notation)", S, nmo2);
 
-#endif
   exit(1);
+#endif // SVd
   for(int a=0; a < nv; a++)
     for(int m=0; m < no; m++)
       for(int e=0; e < nv; e++)

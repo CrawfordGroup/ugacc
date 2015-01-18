@@ -40,11 +40,10 @@
 
 namespace psi { namespace ugacc {
 
-void t3_ijk(double ***, int, int, int, double ****, double **, double ****);
-void t3_abc(double ***, int, int, int, double ****, double **, double ****);
-void l3_ijk(double ***, int, int, int, double ****, double **, double **, double ****, double ****);
-void l3_ijk_new(double ***, int, int, int, double ****, double **, double **, double ****);
-void l3_abc(double ***, int, int, int, double ****, double **, double **, double ****, double ****);
+void M3_ijk(double ***, int, int, int, double ****, double **, double ****);
+void N3_ijk(double ***, int, int, int, double ****, double **, double **, double ****);
+void M3_abc(double ***, int, int, int, double ****, double **, double ****);
+void N3_abc(double ***, int, int, int, double ****, double **, double **, double ****);
 
 void tgrad_ooc(void)
 {
@@ -52,94 +51,92 @@ void tgrad_ooc(void)
   int nv = moinfo.nv;
   double **fock = moinfo.fock;
   double ****ints = moinfo.ints;
-  double ****L = moinfo.L;
   double **t1 = moinfo.t1;
   double ****t2 = moinfo.t2;
-  double **t1s = moinfo.t1s;
-  double ****t2s = moinfo.t2s;
-
 
   double **X1 = block_matrix(no, nv); // T3 --> L1
-  double ****X2 = init_4d_array(no, no, nv, nv); // T3 --> L2
-  double ****Z2 = init_4d_array(no, no, nv, nv); // L3 --> L2
+  double ****X2 = init_4d_array(no, no, nv, nv); // T3 & L3 --> L2
 
-  double ***t3 = init_3d_array(nv, nv, nv);
-  double ***l3 = init_3d_array(nv, nv, nv);
+  double ***M3 = init_3d_array(nv, nv, nv);
+  double ***N3 = init_3d_array(nv, nv, nv);
+  double ***X3 = init_3d_array(nv, nv, nv);
+  double ***Y3 = init_3d_array(nv, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int k=0; k < no; k++) {
-        t3_ijk(t3, i, j, k, t2, fock, ints);
-//        l3_ijk(l3, i, j, k, t2s, t1s, fock, L, ints);
-        l3_ijk_new(l3, i, j, k, t2, t1, fock, ints);
+        M3_ijk(M3, i, j, k, t2, fock, ints);
+        N3_ijk(N3, i, j, k, t2, t1, fock, ints);
+
+        for(int a=0; a < nv; a++) 
+          for(int b=0; b < nv; b++)
+            for(int c=0; c < nv; c++) {
+              X3[a][b][c] = 8.0*M3[a][b][c]-4.0*M3[b][a][c]-4.0*M3[a][c][b]-4.0*M3[c][b][a]+2.0*M3[c][a][b]+2.0*M3[b][c][a];
+              Y3[a][b][c] = 8.0*N3[a][b][c]-4.0*N3[b][a][c]-4.0*N3[a][c][b]-4.0*N3[c][b][a]+2.0*N3[c][a][b]+2.0*N3[b][c][a];
+            }
 
         for(int a=0; a < nv; a++) 
           for(int b=0; b < nv; b++)
             for(int c=0; c < nv; c++) {
 
-//              X1[i][a] += (4.0*t3[a][b][c] - 2.0*t3[c][b][a] - 2.0*t3[a][c][b] + t3[b][c][a])*ints[j][k][b+no][c+no];
-              moinfo.s1[i][a] += 2.0*(t3[a][b][c] - t3[c][b][a]) * L[j][k][b+no][c+no];
-              X2[i][j][a][b] += (t3[a][b][c] - t3[c][b][a]) * fock[k][c+no];
-              moinfo.Goovv[i][j][a][b] += 2.0 * t1s[k][c] * (2.0*(t3[a][b][c] - t3[a][c][b]) - (t3[b][a][c] - t3[b][c][a]));
+              moinfo.Dvv[a][a] += 0.5 * M3[a][b][c] * (X3[a][b][c] + Y3[a][b][c]);
+              moinfo.s1[i][a] += (4.0*M3[a][b][c] - 2.0*M3[c][b][a] - 2.0*M3[a][c][b] + M3[b][c][a]) * ints[j][k][b+no][c+no];
+              moinfo.Goovv[i][j][a][b] += 4.0 * t1[k][c] * (2.0*(M3[a][b][c] - M3[a][c][b]) - (M3[b][a][c] - M3[b][c][a]));
 
               for(int l=0; l < no; l++) {
-                X2[i][l][a][b] -= (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * ints[j][k][l][c+no];
-                Z2[i][l][a][b] -= l3[a][b][c] * ints[j][k][l][c+no];
-                moinfo.Gooov[j][i][l][a] -= (2.0*t3[a][b][c] - t3[b][a][c] - t3[c][b][a]) * t2s[l][k][b][c] + l3[a][b][c] * t2[l][k][b][c];
+                X2[i][l][a][b] -= (2.0 * X3[a][b][c] + Y3[a][b][b]) * ints[j][k][l][c+no];
+                moinfo.Gooov[j][i][l][a] -= (2.0 * X3[a][b][c] + Y3[a][b][c]) * t2[l][k][b][c];
               }
 
               for(int d=0; d < nv; d++) {
-                X2[i][j][a][d] += (2.0*t3[a][b][c] - t3[a][c][b] - t3[c][b][a]) * ints[d+no][k][b+no][c+no];
-                Z2[i][j][a][d] += l3[a][b][c] * ints[d+no][k][b+no][c+no];
-                moinfo.Dvv[a][b] += 0.5 * t3[b][c][d] * l3[a][c][d];
-                moinfo.Gvvvo[a][b][d][j] += (2.0*t3[a][b][c] - t3[b][a][c] - t3[a][c][b]) * t2s[k][i][c][d] + l3[a][b][c] * t2[k][i][c][d];
+                X2[i][j][a][d] += (2.0 * X3[a][b][c] + Y3[a][b][c]) * ints[d+no][k][b+no][c+no];
+                moinfo.Gvvvo[a][b][d][j] += (2.0 * X3[a][b][c] + Y3[a][b][c]) * t2[k][i][c][d];
               }
 
             } // abc
 
       } // ijk
-  free_3d_array(t3, nv, nv);
-  free_3d_array(l3, nv, nv);
+  free_3d_array(M3, nv, nv);
+  free_3d_array(N3, nv, nv);
+  free_3d_array(X3, nv, nv);
+  free_3d_array(Y3, nv, nv);
 
-  t3 = init_3d_array(no, no, no);
-  l3 = init_3d_array(no, no, no);
+  M3 = init_3d_array(no, no, no);
+  N3 = init_3d_array(no, no, no);
+  X3 = init_3d_array(no, no, no);
+  Y3 = init_3d_array(no, no, no);
   for(int a=0; a < nv; a++)
     for(int b=0; b < nv; b++)
       for(int c=0; c < nv; c++) {
-        t3_abc(t3, a, b, c, t2, fock, ints);
-        l3_abc(l3, a, b, c, t2s, t1s, fock, L, ints);
+        M3_abc(M3, a, b, c, t2, fock, ints);
+        N3_abc(N3, a, b, c, t2, t1, fock, ints);
 
         for(int i=0; i < no; i++)
           for(int j=0; j < no; j++)
             for(int k=0; k < no; k++) {
-              for(int l=0; l < no; l++)
-                moinfo.Doo[i][j] -= 0.5 * t3[i][k][l] * l3[j][k][l];
+              X3[i][j][k] = 8.0*M3[i][j][k]-4.0*M3[j][i][k]-4.0*M3[i][k][j]-4.0*M3[k][j][i]+2.0*M3[k][i][j]+2.0*M3[j][k][i];
+              Y3[i][j][k] = 8.0*N3[i][j][k]-4.0*N3[j][i][k]-4.0*N3[i][k][j]-4.0*N3[k][j][i]+2.0*N3[k][i][j]+2.0*N3[j][k][i];
+            }
 
-            } // ijk
+        for(int i=0; i < no; i++)
+          for(int j=0; j < no; j++)
+            for(int k=0; k < no; k++)
+                moinfo.Doo[i][i] -= 0.5 * M3[i][j][k] * (X3[i][j][k] + Y3[i][j][k]);
+           
       } // abc
-  free_3d_array(t3, no, no);
-  free_3d_array(l3, no, no);
+  free_3d_array(M3, no, no);
+  free_3d_array(N3, no, no);
+  free_3d_array(X3, no, no);
+  free_3d_array(Y3, no, no);
 
-//  for(int i=0; i < no; i++)
-//    for(int a=0; a < nv; a++) 
-//      moinfo.s1[i][a] = X1[i][a];
-  double ****Y2 = init_4d_array(no, no, nv, nv);
-  for(int i=0; i < no; i++)
-    for(int a=0; a < nv; a++) 
-      for(int j=0; j < no; j++)
-        for(int b=0; b < nv; b++)
-          Y2[i][j][a][b] = X2[i][j][a][b] + X2[j][i][b][a];
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) 
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
-          moinfo.s2[i][j][a][b] = 4.0 * Y2[i][j][a][b] - 2.0 * Y2[i][j][b][a];
-          moinfo.s2[i][j][a][b] += Z2[i][j][a][b] + Z2[j][i][b][a];
+          moinfo.s2[i][j][a][b] = X2[i][j][a][b] + X2[j][i][b][a];
         }
-  free_4d_array(Y2, no, no, nv);
 
   free_block(X1);
   free_4d_array(X2, no, no, nv);
-  free_4d_array(Z2, no, no, nv);
 
   return;
 }

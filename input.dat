@@ -7,19 +7,19 @@ molecule {
 0 1
     O         0.000000000000     0.000000000000    -0.116529192243
     H        -0.000000000000     1.344767972762     0.924701422022
-    F        -0.000000000000    -1.344767972762     0.924701422022
+    H        -0.000000000000    -1.344767972762     0.924701422022
 no_reorient
 no_com
 units bohr
-symmetry c1
 }
 
 set {
-  basis sto-3g
-  freeze_core false
+  basis cc-pVDZ
+  freeze_core true
   r_convergence 1e-15
   e_convergence 1e-15
   ooc true
 }
 
 gradient('ugacc', wfn='ccsd(t)')
+

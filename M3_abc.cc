@@ -5,14 +5,14 @@
 
 namespace psi { namespace ugacc {
 
-void W3_ijk(double ***W3, int i, int j, int k, double ****t2, double ****ints)
+void M3_abc(double ***M3, int a, int b, int c, double ****t2, double **fock, double ****ints)
 {
   int no = moinfo.no;
   int nv = moinfo.nv;
 
-  for(int a=0; a < nv; a++)
-    for(int b=0; b < nv; b++)
-      for(int c=0; c < nv; c++) {
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int k=0; k < no; k++) {
         double value = 0.0;
         for(int e=0; e < nv; e++) {
           value +=
@@ -32,9 +32,11 @@ void W3_ijk(double ***W3, int i, int j, int k, double ****t2, double ****ints)
             + ints[k][i][m][a+no] * t2[j][m][b][c]
             + ints[i][k][m][c+no] * t2[j][m][b][a];
         }
+        double denom = fock[i][i] + fock[j][j] + fock[k][k];
+        denom -= fock[a+no][a+no] + fock[b+no][b+no] + fock[c+no][c+no];
 
-        W3[a][b][c] = value;
-      } // abc
+        M3[i][j][k] = value/denom;
+      } // ijk
 
   return;
 }

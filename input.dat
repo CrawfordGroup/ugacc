@@ -18,7 +18,6 @@ set {
   freeze_core true
   r_convergence 1e-15
   e_convergence 1e-15
-  ooc true
 }
 
 energy('ugacc', wfn='ccsd(t)')

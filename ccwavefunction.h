@@ -69,6 +69,11 @@ public:
   void diis(int iter);
   double increment_amps();
 
+  double **t1_p() { return t1_; }
+  double ****t2_p() { return t2_; }
+  int no() { return no_; }
+  int nv() { return nv_; }
+
 }; // CCWavefunction
 
 } // psi

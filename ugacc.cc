@@ -14,6 +14,8 @@ using namespace boost;
 
 namespace psi { namespace ugacc {
 
+void amp_write(int, double **, double ****, int, int, std::string);
+
 extern "C" 
 int read_options(std::string name, Options& options)
 {
@@ -48,23 +50,26 @@ PsiReturnType ugacc(Options& options)
 
   double rms = 0.0;
   for(int iter=1; iter <= ccwfn->maxiter(); iter++) {
-    ccwfn->amp_save();
-    ccwfn->build_tau();
     ccwfn->build_F();
     ccwfn->build_W();
+    ccwfn->amp_save();
     ccwfn->build_t1();
     ccwfn->build_t2();
     rms = ccwfn->increment_amps();
+    ccwfn->build_tau();
 
-    outfile->Printf(  "\t  %3d  %20.15f  %5.3f  %5.3e\n",iter, ccwfn->energy(), ccwfn->t1norm(), rms);
+    outfile->Printf(  "\t  %3d  %20.15f  %8.6f  %8.6e\n",iter, ccwfn->energy(), ccwfn->t1norm(), rms);
     if(rms < ccwfn->convergence()) break;
-    if(ccwfn->do_diis()) ccwfn->diis(iter);
+//    if(ccwfn->do_diis()) ccwfn->diis(iter);
   }
 
   ccwfn->build_tau();
 
   if(rms >= ccwfn->convergence())
     throw PSIEXCEPTION("Computation has not converged.");
+
+  amp_write(20, ccwfn->t1_p(), ccwfn->t2_p(), ccwfn->no(), ccwfn->nv(), "T"); 
+  outfile->Printf("\n");
 
   return Success;
 }

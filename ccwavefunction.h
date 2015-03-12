@@ -65,6 +65,9 @@ public:
   void build_W();
   void build_t1();
   void build_t2();
+  double t1norm();
+  void diis(int iter);
+  double increment_amps();
 
 }; // CCWavefunction
 

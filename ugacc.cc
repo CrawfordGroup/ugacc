@@ -46,6 +46,26 @@ PsiReturnType ugacc(Options& options)
   outfile->Printf(  "\t---------------------------------------------\n");
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, ccwfn->energy());
 
+  double rms = 0.0;
+  for(int iter=1; iter <= ccwfn->maxiter(); iter++) {
+    ccwfn->amp_save();
+    ccwfn->build_tau();
+    ccwfn->build_F();
+    ccwfn->build_W();
+    ccwfn->build_t1();
+    ccwfn->build_t2();
+    rms = ccwfn->increment_amps();
+
+    outfile->Printf(  "\t  %3d  %20.15f  %5.3f  %5.3e\n",iter, ccwfn->energy(), ccwfn->t1norm(), rms);
+    if(rms < ccwfn->convergence()) break;
+    if(ccwfn->do_diis()) ccwfn->diis(iter);
+  }
+
+  ccwfn->build_tau();
+
+  if(rms >= ccwfn->convergence())
+    throw PSIEXCEPTION("Computation has not converged.");
+
   return Success;
 }
 

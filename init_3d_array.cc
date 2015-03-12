@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace psi { namespace ugacc {
+namespace psi {
 
 double ***init_3d_array(int p, int q, int r)
 {
@@ -34,5 +34,6 @@ void free_3d_array(double ***A, int p, int q)
 
   free(A);
 }
-}} // namespace psi::ugacc
+
+} // namespace psi
 

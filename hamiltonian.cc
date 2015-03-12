@@ -50,7 +50,7 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference)
   double *tei = new double[ntei];
   std::memset(static_cast<void*>(tei), '\0', ntei*sizeof(double));
   struct iwlbuf Buf;
-  iwl_buf_init(&Buf, PSIF_MO_TEI, 1e-14, 1, 1);
+  iwl_buf_init(&Buf, PSIF_MO_TEI, 1e-16, 1, 1);
   iwl_buf_rd_all(&Buf, tei, ioff, ioff, 0, ioff, 0, "outfile");
   iwl_buf_close(&Buf, 1);
 

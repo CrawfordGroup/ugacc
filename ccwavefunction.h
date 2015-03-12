@@ -49,6 +49,30 @@ protected:
   double ****Wovvo_; 
   double ****Wovov_; 
 
+  // L-amplitude quantities
+  double **l1;      /* current l1 amplitudes */
+  double **l1old;   /* previous l1 amplitudes */
+  double ****l2;    /* current l2 amplitudes */
+  double ****l2old; /* previous l2 amplitudes */
+
+  // HBAR components
+  double **Hoo_;
+  double **Hvv_;
+  double **Hov_;
+  double ****Hoooo_;
+  double ****Hvvvv_;
+  double ****Hovov_;
+  double ****Hovvo_;
+  double ****Hvovv_;
+  double ****Hooov_;
+  double ****Hovoo_;
+  double ****Hvvvo_;
+
+  // Three-body intermediates
+  double **Gvv_;
+  double **Goo_;
+
+
 public:
   int maxiter() { return maxiter_; }
   double convergence() { return convergence_; }
@@ -68,6 +92,8 @@ public:
   double t1norm();
   void diis(int iter);
   double increment_amps();
+
+  void hbar();
 
   double **t1_p() { return t1_; }
   double ****t2_p() { return t2_; }

@@ -10,7 +10,7 @@ class Hamiltonian {
 public:
   Hamiltonian(boost::shared_ptr<Wavefunction> reference);
   virtual ~Hamiltonian();
-  Hamiltonian(const boost::shared_ptr<Hamiltonian> &H);
+//  Hamiltonian(const boost::shared_ptr<Hamiltonian> &H);
 
   double ** fock_p() { return fock_; }
   double **** ints_p() { return ints_; }

@@ -20,6 +20,11 @@ protected:
   int maxiter_;         // maximum number of iterations
   bool do_diis_;        // use DIIS algorithms?
   bool ooc_;            // Use out-of-core algorithms?
+
+  int no_;  // Number of active occupied MOs
+  int nv_;  // Number of active virtual MOs
+
+  boost::shared_ptr<Hamiltonian> H_; // integrals and Fock matrix
   
   // Energy denominators
   double **D1_;
@@ -52,6 +57,14 @@ public:
   bool ooc() { return ooc_; }
 
   double compute_energy();
+
+  double energy();
+  void build_tau();
+  void amp_save();
+  void build_F();
+  void build_W();
+  void build_t1();
+  void build_t2();
 
 }; // CCWavefunction
 

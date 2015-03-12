@@ -54,12 +54,15 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference)
   iwl_buf_rd_all(&Buf, tei, ioff, ioff, 0, ioff, 0, "outfile");
   iwl_buf_close(&Buf, 1);
 
-  ints_ = init_4d_array(nact_, nact_, nact_, nact_);
-  for(int p=0; p < nact_; p++)
-    for(int r=0; r < nact_; r++) {
+  int no = no_;
+  int nact = nact_;
+
+  ints_ = init_4d_array(nact, nact, nact, nact);
+  for(int p=0; p < nact; p++)
+    for(int r=0; r < nact; r++) {
       int pr = INDEX(p,r);
-      for(int q=0; q < nact_; q++)
-        for(int s=0; s < nact_; s++) {
+      for(int q=0; q < nact; q++)
+        for(int s=0; s < nact; s++) {
           int qs = INDEX(q,s);
           int prqs = INDEX(pr,qs);
           ints_[p][q][r][s] = tei[prqs];
@@ -67,19 +70,19 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference)
     }
 
   // L(pqrs) = 2<pq|rs> - <pq|sr>  
-  L_ = init_4d_array(nact_, nact_, nact_, nact_);
-  for(int p=0; p < nact_; p++)
-    for(int q=0; q < nact_; q++)
-      for(int r=0; r < nact_; r++)
-        for(int s=0; s < nact_; s++)
+  L_ = init_4d_array(nact, nact, nact, nact);
+  for(int p=0; p < nact; p++)
+    for(int q=0; q < nact; q++)
+      for(int r=0; r < nact; r++)
+        for(int s=0; s < nact; s++)
           L_[p][q][r][s] = 2*ints_[p][q][r][s] - ints_[p][q][s][r];
 
   // Build the Fock matrix
-  fock_ = block_matrix(nact_, nact_);
-  for(int p=0; p < nact_; p++)
-    for(int q=0; q < nact_; q++) {
+  fock_ = block_matrix(nact, nact);
+  for(int p=0; p < nact; p++)
+    for(int q=0; q < nact; q++) {
       fock_[p][q] = oei[INDEX(p,q)];
-      for(int m=0; m < no_; m++)
+      for(int m=0; m < no; m++)
         fock_[p][q] += L_[p][m][q][m];
     }
 
@@ -96,6 +99,7 @@ Hamiltonian::~Hamiltonian()
   free_block(fock_); 
 }
 
+/*
 Hamiltonian::Hamiltonian(const boost::shared_ptr<Hamiltonian> &H)
 {
   nmo_ = H->nmo_;
@@ -104,19 +108,22 @@ Hamiltonian::Hamiltonian(const boost::shared_ptr<Hamiltonian> &H)
   nfzc_ = H->nfzc_;
   nfzv_ = H->nfzv_;
 
-  fock_ = block_matrix(nact_, nact_);
-  for(int p=0; p < nact_; p++)
-    for(int q=0; q < nact_; q++)
+  int nact = nact_;
+
+  fock_ = block_matrix(nact, nact);
+  for(int p=0; p < nact; p++)
+    for(int q=0; q < nact; q++)
       fock_[p][q] = H->fock_[p][q];
 
-  ints_ = init_4d_array(nact_, nact_, nact_, nact_);
-  for(int p=0; p < nact_; p++)
-    for(int q=0; q < nact_; q++)
-      for(int r=0; r < nact_; r++)
-        for(int s=0; s < nact_; s++) {
+  ints_ = init_4d_array(nact, nact, nact, nact);
+  for(int p=0; p < nact; p++)
+    for(int q=0; q < nact; q++)
+      for(int r=0; r < nact; r++)
+        for(int s=0; s < nact; s++) {
           ints_[p][q][r][s] = H->ints_[p][q][r][s];
           L_[p][q][r][s] = H->L_[p][q][r][s];
         }
 }
+*/
 
 } // namespace psi

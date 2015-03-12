@@ -40,6 +40,12 @@ PsiReturnType ugacc(Options& options)
   boost::shared_ptr<Hamiltonian> H(new Hamiltonian(ref));
   boost::shared_ptr<CCWavefunction> ccwfn(new CCWavefunction(ref, H, options, psio));
 
+  outfile->Printf("\n\tThe Coupled-Cluster Iteration:\n");
+  outfile->Printf(  "\t---------------------------------------------\n");
+  outfile->Printf(  "\t Iter   Correlation Energy  T1 Norm    RMS   \n");
+  outfile->Printf(  "\t---------------------------------------------\n");
+  outfile->Printf(  "\t  %3d  %20.15f\n", 0, ccwfn->energy());
+
   return Success;
 }
 

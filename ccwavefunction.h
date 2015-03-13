@@ -51,10 +51,10 @@ protected:
   double ****Wovov_; 
 
   // L-amplitude quantities
-  double **l1;      /* current l1 amplitudes */
-  double **l1old;   /* previous l1 amplitudes */
-  double ****l2;    /* current l2 amplitudes */
-  double ****l2old; /* previous l2 amplitudes */
+  double **l1_;      /* current l1 amplitudes */
+  double **l1old_;   /* previous l1 amplitudes */
+  double ****l2_;    /* current l2 amplitudes */
+  double ****l2old_; /* previous l2 amplitudes */
 
   // HBAR components
   double **Hoo_;
@@ -86,7 +86,7 @@ public:
 
   double energy();
   void build_tau();
-  void amp_save();
+  void amp_save(double **, double **, double ****, double ****);
   void build_F();
   void build_W();
   void build_t1();

@@ -870,9 +870,6 @@ void CCWavefunction::init_lambda()
   int nv = nv_;
   double **t1 = t1_;
   double ****t2 = t2_;
-  double ****ints = H_->ints_p();
-  double ****L = H_->L_p();
-  double ****D2 = D2_;
 
   l1_ = block_matrix(no,nv);
   l1old_ = block_matrix(no,nv);

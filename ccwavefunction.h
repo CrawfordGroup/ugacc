@@ -20,6 +20,7 @@ protected:
   int maxiter_;         // maximum number of iterations
   bool do_diis_;        // use DIIS algorithms?
   bool ooc_;            // Use out-of-core algorithms?
+  int dertype_;         // Gradient level
 
   int no_;  // Number of active occupied MOs
   int nv_;  // Number of active virtual MOs
@@ -79,6 +80,7 @@ public:
   std::string wfn() { return wfn_; } 
   bool do_diis() { return do_diis_; }
   bool ooc() { return ooc_; }
+  int dertype() { return dertype_; }
 
   double compute_energy();
 
@@ -94,6 +96,7 @@ public:
   double increment_amps();
 
   void hbar();
+  void init_lambda();
 
   double **t1_p() { return t1_; }
   double ****t2_p() { return t2_; }

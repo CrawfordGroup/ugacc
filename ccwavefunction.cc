@@ -27,12 +27,14 @@ CCWavefunction::CCWavefunction(boost::shared_ptr<Wavefunction> reference, boost:
   maxiter_ = options.get_int("MAXITER");
   do_diis_ = options.get_bool("DIIS");
   ooc_ = options.get_bool("OOC");
+  dertype_ = options.get_int("DERTYPE");
 
   outfile->Printf("\tWave function  = %s\n", wfn().c_str());
   outfile->Printf("\tMaxiter        = %d\n", maxiter());
   outfile->Printf("\tConvergence    = %3.1e\n", convergence());
   outfile->Printf("\tDIIS           = %s\n", do_diis() ? "Yes" : "No");
   outfile->Printf("\tOut-of-core    = %s\n", ooc() ? "Yes" : "No");
+  outfile->Printf("\tDertype        = %d\n", dertype());
 
   set_reference_wavefunction(reference);
   copy(reference);
@@ -118,20 +120,42 @@ CCWavefunction::CCWavefunction(boost::shared_ptr<Wavefunction> reference, boost:
 
 CCWavefunction::~CCWavefunction()
 {
+  int no = no_;
+  int nv = nv_;
+
   free_block(D1_);
-  free_4d_array(D2_, no_, no_, nv_);
+  free_4d_array(D2_, no, no, nv);
   free_block(t1_);
   free_block(t1old_);
-  free_4d_array(t2_, no_, no_, nv_);
-  free_4d_array(t2old_, no_, no_, nv_);
-  free_4d_array(tau_, no_, no_, nv_);
-  free_4d_array(ttau_, no_, no_, nv_);
+  free_4d_array(t2_, no, no, nv);
+  free_4d_array(t2old_, no, no, nv);
+  free_4d_array(tau_, no, no, nv);
+  free_4d_array(ttau_, no, no, nv);
   free_block(Fvv_);
   free_block(Foo_);
   free_block(Fov_);
-  free_4d_array(Woooo_, no_, no_, no_);
-  free_4d_array(Wovov_, no_, nv_, no_);
-  free_4d_array(Wovvo_, no_, nv_, nv_);
+  free_4d_array(Woooo_, no, no, no);
+  free_4d_array(Wovov_, no, nv, no);
+  free_4d_array(Wovvo_, no, nv, nv);
+
+  if(dertype()) {
+    free_block(l1_);
+    free_block(l1old_);
+    free_4d_array(l2_, no, no, nv);
+    free_4d_array(l2old_, no, no, nv);
+
+    free_block(Hoo_);
+    free_block(Hvv_);
+    free_block(Hov_);
+    free_4d_array(Hoooo_, no, no, no);
+    free_4d_array(Hvvvv_, nv, nv, nv);
+    free_4d_array(Hovov_, no, nv, no);
+    free_4d_array(Hovvo_, no, nv, nv);
+    free_4d_array(Hvovv_, nv, no, nv);
+    free_4d_array(Hooov_, no, no, no);
+    free_4d_array(Hovoo_, no, nv, no);
+    free_4d_array(Hvvvo_, nv, nv, nv);
+  }
 }
 
 double CCWavefunction::compute_energy() { return 0.0; }
@@ -177,15 +201,16 @@ void CCWavefunction::build_tau()
         }
 }
 
-void CCWavefunction::amp_save()
+void CCWavefunction::amp_save(double **t1, double **t1old, double ****t2,
+double ****t2old)
 {
-  double ****t2tmp = t2_;
-  t2_ = t2old_;
-  t2old_ = t2tmp;
+  double ****t2tmp = t2;
+  t2 = t2old;
+  t2old = t2tmp;
 
-  double **t1tmp = t1_;
-  t1_ = t1old_;
-  t1old_ = t1tmp;
+  double **t1tmp = t1;
+  t1 = t1old;
+  t1old = t1tmp;
 }
 
 void CCWavefunction::build_F()
@@ -837,6 +862,33 @@ void CCWavefunction::hbar()
           Hovoo_[m][b][i][j] = value;
         }
 
+}
+
+void CCWavefunction::init_lambda()
+{
+  int no = no_;
+  int nv = nv_;
+  double **t1 = t1_;
+  double ****t2 = t2_;
+  double ****ints = H_->ints_p();
+  double ****L = H_->L_p();
+  double ****D2 = D2_;
+
+  l1_ = block_matrix(no,nv);
+  l1old_ = block_matrix(no,nv);
+
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++)
+      l1_[i][a] = 2*t1[i][a];
+
+  l2_ = init_4d_array(no,no,nv,nv);
+  l2old_ = init_4d_array(no,no,nv,nv);
+
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++)
+          l2_[i][j][a][b] = 2*(2*t2[i][j][a][b]-t2[i][j][b][a]);
 }
 
 } // psi

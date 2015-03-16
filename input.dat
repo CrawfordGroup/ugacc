@@ -15,10 +15,10 @@ units bohr
 
 set {
   basis cc-pVDZ
-  freeze_core true
+  freeze_core false
   r_convergence 1e-15
   e_convergence 1e-15
 }
 
-energy('ugacc', wfn='ccsd(t)')
+gradient('ugacc', wfn='ccsd')
 

@@ -86,17 +86,21 @@ public:
 
   double energy();
   void build_tau();
-  void amp_save(double **, double **, double ****, double ****);
+  void amp_save(std::string);
   void build_F();
   void build_W();
   void build_t1();
   void build_t2();
   double t1norm();
-  void diis(int iter);
-  double increment_amps();
+  void diis(int iter, std::string);
+  double increment_amps(std::string);
 
   void hbar();
   void init_lambda();
+  void build_G();
+  void build_l1();
+  void build_l2();
+  double pseudoenergy();
 
   double **t1_p() { return t1_; }
   double ****t2_p() { return t2_; }

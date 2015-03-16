@@ -50,14 +50,14 @@ PsiReturnType ugacc(Options& options)
 
   double rms = 0.0;
   for(int iter=1; iter <= ccwfn->maxiter(); iter++) {
-    ccwfn->amp_save();
+    ccwfn->amp_save("T");
     ccwfn->build_F();
     ccwfn->build_W();
     ccwfn->build_t1();
     ccwfn->build_t2();
-    rms = ccwfn->increment_amps();
+    rms = ccwfn->increment_amps("T");
     if(rms < ccwfn->convergence()) break;
-    if(ccwfn->do_diis()) ccwfn->diis(iter);
+    if(ccwfn->do_diis()) ccwfn->diis(iter, "T");
     ccwfn->build_tau();
     outfile->Printf(  "\t  %3d  %20.15f  %8.6f  %8.6e\n",iter, ccwfn->energy(), ccwfn->t1norm(), rms);
   }
@@ -69,6 +69,31 @@ PsiReturnType ugacc(Options& options)
 
   amp_write(20, ccwfn->t1_p(), ccwfn->t2_p(), ccwfn->no(), ccwfn->nv(), "T"); 
   outfile->Printf("\n");
+
+  if(!ccwfn->dertype()) return Success;
+
+  ccwfn->hbar();
+  ccwfn->init_lambda();
+
+  outfile->Printf("\n\tThe Coupled-Cluster Lambda Iteration:\n");
+  outfile->Printf(  "\t-------------------------------------\n");
+  outfile->Printf(  "\t Iter   Correlation Energy  RMS   \n");
+  outfile->Printf(  "\t-------------------------------------\n");
+  outfile->Printf(  "\t  %3d  %20.15f\n", 0, ccwfn->pseudoenergy());
+
+  rms = 0.0;
+  for(int iter=1; iter <= ccwfn->maxiter(); iter++) {
+    ccwfn->amp_save("L");
+    ccwfn->build_G();
+    ccwfn->build_l1();
+    ccwfn->build_l2();
+    rms = ccwfn->increment_amps("L");
+    if(rms < ccwfn->convergence()) break;
+    if(ccwfn->do_diis()) ccwfn->diis(iter, "L");
+    outfile->Printf(  "\t  %3d  %20.15f  %5.3e\n",iter, ccwfn->pseudoenergy(), rms);
+  }
+  if(rms >= ccwfn->convergence())
+    throw PSIEXCEPTION("Computation has not converged.");
 
   return Success;
 }

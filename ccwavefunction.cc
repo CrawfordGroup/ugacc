@@ -27,7 +27,8 @@ CCWavefunction::CCWavefunction(boost::shared_ptr<Wavefunction> reference, boost:
   maxiter_ = options.get_int("MAXITER");
   do_diis_ = options.get_bool("DIIS");
   ooc_ = options.get_bool("OOC");
-  dertype_ = options.get_int("DERTYPE");
+  if(options.get_str("DERTYPE") == "NONE") dertype_ = 0;
+  else if(options.get_str("DERTYPE") == "FIRST") dertype_ = 1;
 
   outfile->Printf("\tWave function  = %s\n", wfn().c_str());
   outfile->Printf("\tMaxiter        = %d\n", maxiter());
@@ -155,6 +156,9 @@ CCWavefunction::~CCWavefunction()
     free_4d_array(Hooov_, no, no, no);
     free_4d_array(Hovoo_, no, nv, no);
     free_4d_array(Hvvvo_, nv, nv, nv);
+
+    free_block(Gvv_);
+    free_block(Goo_);
   }
 }
 
@@ -201,16 +205,26 @@ void CCWavefunction::build_tau()
         }
 }
 
-void CCWavefunction::amp_save(double **t1, double **t1old, double ****t2,
-double ****t2old)
+void CCWavefunction::amp_save(std::string wfn)
 {
-  double ****t2tmp = t2;
-  t2 = t2old;
-  t2old = t2tmp;
+  if(wfn == "T") {
+    double ****t2tmp = t2_;
+    t2_ = t2old_;
+    t2old_ = t2tmp;
 
-  double **t1tmp = t1;
-  t1 = t1old;
-  t1old = t1tmp;
+    double **t1tmp = t1_;
+    t1_ = t1old_;
+    t1old_ = t1tmp;
+  }
+  else if(wfn == "L") {
+    double ****t2tmp = l2_;
+    l2_ = l2old_;
+    l2old_ = t2tmp;
+
+    double **t1tmp = l1_;
+    l1_ = l1old_;
+    l1old_ = t1tmp;
+  }
 }
 
 void CCWavefunction::build_F()
@@ -462,7 +476,7 @@ double CCWavefunction::t1norm()
   return sqrt(diag/(2*no));
 }
 
-void CCWavefunction::diis(int iter)
+void CCWavefunction::diis(int iter, std::string wfn)
 {
   int nvector=8;  /* Number of error vectors to keep */
   int word;
@@ -473,16 +487,32 @@ void CCWavefunction::diis(int iter)
   double **B, *C, **vector;
   double product, determinant, maximum;
   psio_address start, end;
-  int error_file = 90;
-  int amp_file = 91;
+  int error_file, amp_file;
+  if(wfn == "T") {
+    error_file = 90;
+    amp_file = 91;
+  } 
+  else if(wfn == "L") {
+    error_file = 92;
+    amp_file = 93;
+  }
 
   int no = no_; 
   int nv = nv_;
 
-  double **t1 = t1_;
-  double **t1old = t1old_;
-  double ****t2 = t2_;
-  double ****t2old = t2old_;
+  double **t1, **t1old, ****t2, ****t2old;
+  if(wfn == "T") {
+    t1 = t1_;
+    t1old = t1old_;
+    t2 = t2_;
+    t2old = t2old_;
+  }
+  else if(wfn == "L") {
+    t1 = l1_;
+    t1old = l1old_;
+    t2 = l2_;
+    t2old = l2old_;
+  }
 
   /* Calculate the length of a single error vector */
   vector_length = no*nv + no*no*nv*nv;
@@ -618,16 +648,25 @@ void CCWavefunction::diis(int iter)
   return;
 }
 
-double CCWavefunction::increment_amps()
+double CCWavefunction::increment_amps(std::string wfn)
 {
   int no = no_;
   int nv = nv_;
   double **D1 = D1_;
   double ****D2 = D2_;
-  double **t1 = t1_;
-  double **t1old = t1old_;
-  double ****t2 = t2_;
-  double ****t2old = t2old_;
+  double **t1, **t1old, ****t2, ****t2old;
+  if(wfn == "T") {
+    t1 = t1_;
+    t1old = t1old_;
+    t2 = t2_;
+    t2old = t2old_;
+  }
+  else if(wfn == "L") {
+    t1 = l1_;
+    t1old = l1old_;
+    t2 = l2_;
+    t2old = l2old_;
+  }
 
   double residual1 = 0.0;
   double residual2 = 0.0;
@@ -886,6 +925,191 @@ void CCWavefunction::init_lambda()
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++)
           l2_[i][j][a][b] = 2*(2*t2[i][j][a][b]-t2[i][j][b][a]);
+
+  Gvv_ = block_matrix(nv, nv);
+  Goo_ = block_matrix(no, no);
+}
+
+void CCWavefunction::build_G()
+{
+  int no = no_;
+  int nv = nv_;
+  double ****t2 = t2_;
+  double ****l2 = l2old_;
+
+  for(int m=0; m < no; m++)
+    for(int i=0; i < no; i++) {
+      double value = 0.0;
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++)
+          for(int j=0; j < no; j++)
+            value += t2[m][j][a][b] * l2[i][j][a][b];
+      Goo_[m][i] = value;
+    }
+
+  for(int a=0; a < nv; a++)
+    for(int e=0; e < nv; e++) {
+      double value = 0.0;
+      for(int i=0; i < no; i++)
+        for(int j=0; j < no; j++)
+          for(int b=0; b < nv; b++)
+            value -= t2[i][j][e][b] * l2[i][j][a][b];
+      Gvv_[a][e] = value;
+    }
+}
+
+void CCWavefunction::build_l1()
+{
+  int no = no_;
+  int nv = nv_;
+  double **l1 = l1old_;
+  double ****l2 = l2old_;
+  double **l1new = l1_;
+  double **Gvv = Gvv_;
+  double **Goo = Goo_;
+  double **Hov = Hov_;
+  double **Hvv = Hvv_;
+  double **Hoo = Hoo_;
+  double ****Hvvvo = Hvvvo_;
+  double ****Hovoo = Hovoo_;
+  double ****Hovvo = Hovvo_;
+  double ****Hovov = Hovov_;
+  double ****Hvovv = Hvovv_;
+  double ****Hooov = Hooov_;
+
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++) {
+      double value = 2 * Hov[i][a];
+
+      for(int e=0; e < nv; e++)
+        value += l1[i][e] * Hvv[e][a];
+
+      for(int m=0; m < no; m++)
+        value -= l1[m][a] * Hoo[i][m];
+
+      for(int m=0; m < no; m++)
+        for(int e=0; e < nv; e++)
+          value += l1[m][e] * (2*Hovvo[i][e][a][m] - Hovov[i][e][m][a]);
+
+      for(int m=0; m < no; m++)
+        for(int e=0; e < nv; e++)
+          for(int f=0; f < nv; f++)
+            value += l2[i][m][e][f] * Hvvvo[e][f][a][m];
+
+      for(int m=0; m < no; m++)
+        for(int n=0; n < no; n++)
+          for(int e=0; e < nv; e++)
+            value -= l2[m][n][a][e] * Hovoo[i][e][m][n];
+
+      for(int e=0; e < nv; e++)
+        for(int f=0; f < nv; f++)
+          value -= Gvv[e][f] * (2*Hvovv[e][i][f][a] - Hvovv[e][i][a][f]);
+
+      for(int m=0; m < no; m++)
+        for(int n=0; n < no; n++)
+          value -= Goo[m][n] * (2*Hooov[m][i][n][a] - Hooov[i][m][n][a]);
+
+      l1new[i][a] = value;
+    }
+}
+
+void CCWavefunction::build_l2()
+{
+  int no = no_;
+  int nv = nv_;
+  double **l1 = l1old_;
+  double ****l2 = l2old_;
+  double ****l2new = l2_;
+  double ****L = H_->L_p();
+  double **Gvv = Gvv_;
+  double **Goo = Goo_;
+  double **Hov = Hov_;
+  double **Hvv = Hvv_;
+  double **Hoo = Hoo_;
+
+  double ****Hovvo = Hovvo_;
+  double ****Hovov = Hovov_;
+  double ****Hoooo = Hoooo_;
+  double ****Hvvvv = Hvvvv_;
+  double ****Hvovv = Hvovv_;
+  double ****Hooov = Hooov_;
+
+  double ****Z = init_4d_array(no, no, nv, nv);
+
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++) {
+          double value = L[i][j][a+no][b+no];
+
+          value += 2.0*l1[i][a]*Hov[j][b] - l1[j][a]*Hov[i][b];
+
+          for(int e=0; e < nv; e++)
+            value += l2[i][j][e][b]*Hvv[e][a];
+
+          for(int m=0; m < no; m++)
+            value -= l2[m][j][a][b]*Hoo[i][m];
+
+          for(int m=0; m < no; m++)
+            for(int n=0; n < no; n++)
+              value += 0.5 * l2[m][n][a][b] * Hoooo[i][j][m][n];
+
+          for(int e=0; e < nv; e++)
+            for(int f=0; f < nv; f++)
+              value += 0.5 * l2[i][j][e][f] * Hvvvv[e][f][a][b];
+
+          for(int e=0; e < nv; e++)
+              value += l1[i][e]*(2*Hvovv[e][j][a][b] - Hvovv[e][j][b][a]);
+
+          for(int m=0; m < no; m++)
+              value -= l1[m][b]*(2*Hooov[j][i][m][a] - Hooov[i][j][m][a]);
+
+          for(int m=0; m < no; m++)
+            for(int e=0; e < nv; e++) {
+              value += (2*Hovvo[i][e][a][m] - Hovov[i][e][m][a])*l2[m][j][e][b];
+              value -= Hovov[j][e][m][a]*l2[m][i][b][e];
+              value -= Hovvo[j][e][a][m]*l2[m][i][e][b];
+            }
+
+          for(int e=0; e < nv; e++)
+            value += Gvv[a][e]*L[i][j][e+no][b+no];
+          for(int m=0; m < no; m++)
+            value -= Goo[m][i]*L[m][j][a+no][b+no];
+
+          Z[i][j][a][b] = value;
+    }
+
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++)
+          l2new[i][j][a][b] = Z[i][j][a][b] + Z[j][i][b][a];
+
+   free_4d_array(Z, no, no, nv);
+}
+
+/*
+** pseudoenergy(): Evaluates an energy-like expression for the Lambda
+doubles
+** amplitudes: 
+**   E = <0|L2 H|0> = 1/2 <ab|ij> L(ij,ab)
+** This expression is derived in the UGA formalism.
+*/
+double CCWavefunction::pseudoenergy()
+{
+  int no = no_;
+  int nv = nv_;
+  double ****ints = H_->ints_p();
+  double ****l2 = l2_;
+
+  double energy=0.0;
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++)
+          energy += 0.5*ints[i][j][a+no][b+no]*l2[i][j][a][b];
+
+  return energy;
 }
 
 } // psi

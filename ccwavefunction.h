@@ -7,6 +7,18 @@
 
 namespace psi {
 
+struct onestack {
+    double value;
+    int i;
+    int a;
+};
+
+struct twostack {
+    double value;
+    int i; int j;
+    int a; int b;
+};
+
 class CCWavefunction: public Wavefunction {
 public:
   CCWavefunction(boost::shared_ptr<Wavefunction> reference,
@@ -40,6 +52,10 @@ protected:
   // Effective doubles 
   double ****tau_;  // tau(ijab) = t2(ijab) + t1(ia) * t1(jb)
   double ****ttau_; // ttau(ijab) = t2(ijab) + (1/2) t1(ia) * t1(jb)
+
+  // Biorthogonal projection doubles
+  double **t1s_;
+  double ****t2s_;
   
   // CCSD intermediates for amplitude equations (related to, but not the
   // same as corresponding HBAR quantities
@@ -87,6 +103,14 @@ protected:
   double ****Gooov_;
   double ****Gvvvo_;
 
+  // In-core triples
+  double ******t3_;
+  double ******l3_;
+
+  // Extra inhomogeneous terms for Lambda from (T)-gradient
+  double **s1_;
+  double ****s2_;
+
 public:
   int maxiter() { return maxiter_; }
   double convergence() { return convergence_; }
@@ -107,6 +131,7 @@ public:
   double t1norm();
   void diis(int iter, std::string);
   double increment_amps(std::string);
+  void build_tstar();
 
   void hbar();
   void init_lambda();
@@ -119,10 +144,26 @@ public:
   double onepdm();
   double twopdm();
 
-  double **t1_p() { return t1_; }
-  double ****t2_p() { return t2_; }
-  int no() { return no_; }
-  int nv() { return nv_; }
+  double tcorr();
+  double tcorr_ooc();
+  double tcorr_ooc_TJL();
+
+  void tgrad();
+  void tgrad_ooc();
+
+  void t3_ijk(double ***t3, int i, int j, int k, double ****t2, double **fock, double ****ints);
+  void W3_ijk(double ***W3, int i, int j, int k, double ****t2, double ****ints);
+  void t3_abc(double ***t3, int a, int b, int c, double ****t2, double **fock, double ****ints);
+  void M3_ijk(double ***M3, int i, int j, int k, double ****t2, double **fock, double ****ints);
+  void M3_abc(double ***M3, int a, int b, int c, double ****t2, double **fock, double ****ints);
+  void N3_ijk(double ***N3, int i, int j, int k, double ****t2, double **t1, double **fock, double ****ints);
+  void N3_abc(double ***N3, int a, int b, int c, double ****t2, double **t1, double **fock, double ****ints);
+
+  void amp_write(int, std::string);
+  void onestack_insert(struct onestack *stack, double value, int i, int a, int level, int stacklen);
+  void twostack_insert(struct twostack *stack, double value, int i, int j, int a, int b, int level, int stacklen);
+  void amp_write_T1(double **T1, int no, int nv, int length, std::string label);
+  void amp_write_T2(double ****T2, int no, int nv, int length, std::string label);
 
 }; // CCWavefunction
 

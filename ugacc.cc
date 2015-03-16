@@ -14,8 +14,6 @@ using namespace boost;
 
 namespace psi { namespace ugacc {
 
-void amp_write(int, double **, double ****, int, int, std::string);
-
 extern "C" 
 int read_options(std::string name, Options& options)
 {
@@ -42,11 +40,14 @@ PsiReturnType ugacc(Options& options)
   boost::shared_ptr<Hamiltonian> H(new Hamiltonian(ref));
   boost::shared_ptr<CCWavefunction> ccwfn(new CCWavefunction(ref, H, options, psio));
 
+  double eref, emp2, eccsd, et;
+  eref = ccwfn->reference_energy();
+
   outfile->Printf("\n\tThe Coupled-Cluster Iteration:\n");
   outfile->Printf(  "\t---------------------------------------------------\n");
   outfile->Printf(  "\t Iter   Correlation Energy   T1 Norm      RMS   \n");
   outfile->Printf(  "\t---------------------------------------------------\n");
-  outfile->Printf(  "\t  %3d  %20.15f\n", 0, ccwfn->energy());
+  outfile->Printf(  "\t  %3d  %20.15f\n", 0, emp2 = ccwfn->energy());
 
   double rms = 0.0;
   for(int iter=1; iter <= ccwfn->maxiter(); iter++) {
@@ -59,15 +60,30 @@ PsiReturnType ugacc(Options& options)
     if(rms < ccwfn->convergence()) break;
     if(ccwfn->do_diis()) ccwfn->diis(iter, "T");
     ccwfn->build_tau();
-    outfile->Printf(  "\t  %3d  %20.15f  %8.6f  %8.6e\n",iter, ccwfn->energy(), ccwfn->t1norm(), rms);
+    outfile->Printf(  "\t  %3d  %20.15f  %8.6f  %8.6e\n",iter, eccsd = ccwfn->energy(), ccwfn->t1norm(), rms);
   }
 
   ccwfn->build_tau();
+  ccwfn->build_tstar();
 
   if(rms >= ccwfn->convergence())
     throw PSIEXCEPTION("Computation has not converged.");
 
-  amp_write(20, ccwfn->t1_p(), ccwfn->t2_p(), ccwfn->no(), ccwfn->nv(), "T"); 
+  outfile->Printf(  "\n\tMP2 Correlation Energy     = %20.14f\n", emp2);
+  outfile->Printf(  "\tMP2 Total Energy           = %20.14f\n", emp2 + eref);
+  outfile->Printf(  "\tCCSD Correlation Energy    = %20.14f\n", eccsd);
+  outfile->Printf(  "\tCCSD Total Energy          = %20.14f\n", eccsd + eref);
+  if(ccwfn->wfn() == "CCSD_T") {
+    if(ccwfn->ooc()) {
+      outfile->Printf("\t(T) Correction             = %20.14f (ooc)\n", et = ccwfn->tcorr_ooc());
+      outfile->Printf("\t(T) Correction             = %20.14f (TJL)\n", ccwfn->tcorr_ooc_TJL());
+    }
+    else outfile->Printf("\t(T) Correction             = %20.14f\n", et = ccwfn->tcorr());
+    outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f\n", eccsd + et);
+    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f\n", eref + eccsd + et);
+  }
+
+  ccwfn->amp_write(20, "T"); 
   outfile->Printf("\n");
 
   if(!ccwfn->dertype()) return Success;
@@ -75,6 +91,11 @@ PsiReturnType ugacc(Options& options)
   ccwfn->hbar();
   ccwfn->init_lambda();
   ccwfn->init_density();
+
+  if(ccwfn->wfn() == "CCSD_T") {
+    if(ccwfn->ooc()) ccwfn->tgrad_ooc();
+    else ccwfn->tgrad();
+  }
 
   outfile->Printf("\n\tThe Coupled-Cluster Lambda Iteration:\n");
   outfile->Printf(  "\t-------------------------------------\n");
@@ -96,19 +117,24 @@ PsiReturnType ugacc(Options& options)
   if(rms >= ccwfn->convergence())
     throw PSIEXCEPTION("Computation has not converged.");
 
+  ccwfn->amp_write(20, "L");
+  outfile->Printf("\n");
+
   double Eone = ccwfn->onepdm();
   double Etwo = ccwfn->twopdm();
-  outfile->Printf("\tOne-electron energy        = %20.14f\n", Eone);
-  outfile->Printf("\tTwo-electron energy        = %20.14f\n", Etwo);
+  outfile->Printf("\tOne-Electron Energy        = %20.14f\n", Eone);
+  outfile->Printf("\tTwo-Electron Energy        = %20.14f\n", Etwo);
   if(ccwfn->wfn() == "CCSD") {
-    outfile->Printf("\tCCSD correlation energy    = %20.14f (from density)\n", Eone+Etwo);
-    outfile->Printf("\tCCSD correlation energy    = %20.14f (from ccwfn)\n", ccwfn->energy());
-//    outfile->Printf("\tCCSD total energy          = %20.14f (from density)\n", Eone+Etwo+reference_wavefunction_->reference_energy());
+    outfile->Printf("\tCCSD Correlation Energy    = %20.14f (from density)\n", Eone+Etwo);
+    outfile->Printf("\tCCSD Correlation Energy    = %20.14f (from ccwfn)\n", eccsd);
+    outfile->Printf("\tCCSD Total Energy          = %20.14f (from density)\n", Eone+Etwo+eref);
+    outfile->Printf("\tCCSD Total Energy          = %20.14f (from ccwfn)\n", eccsd+eref);
   }
   else if(ccwfn->wfn() == "CCSD_T") {
-    outfile->Printf("\tCCSD(T) correlation energy = %20.14f (from density)\n", Eone+Etwo);
-    outfile->Printf("\tCCSD(T) correlation energy = %20.14f (from ccwfn)\n", ccwfn->energy());
-//    outfile->Printf("\tCCSD(T) total energy       = %20.14f (from density)\n", Eone+Etwo+reference_wavefunction_->reference_energy());
+    outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f (from density)\n", Eone+Etwo);
+    outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f (from ccwfn)\n", eccsd + et);
+    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from density)\n", Eone+Etwo+eref);
+    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from ccwfn)\n", eccsd+et+eref);
   }
 
 

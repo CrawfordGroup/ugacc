@@ -74,6 +74,7 @@ PsiReturnType ugacc(Options& options)
 
   ccwfn->hbar();
   ccwfn->init_lambda();
+  ccwfn->init_density();
 
   outfile->Printf("\n\tThe Coupled-Cluster Lambda Iteration:\n");
   outfile->Printf(  "\t-------------------------------------\n");
@@ -94,6 +95,22 @@ PsiReturnType ugacc(Options& options)
   }
   if(rms >= ccwfn->convergence())
     throw PSIEXCEPTION("Computation has not converged.");
+
+  double Eone = ccwfn->onepdm();
+  double Etwo = ccwfn->twopdm();
+  outfile->Printf("\tOne-electron energy        = %20.14f\n", Eone);
+  outfile->Printf("\tTwo-electron energy        = %20.14f\n", Etwo);
+  if(ccwfn->wfn() == "CCSD") {
+    outfile->Printf("\tCCSD correlation energy    = %20.14f (from density)\n", Eone+Etwo);
+    outfile->Printf("\tCCSD correlation energy    = %20.14f (from ccwfn)\n", ccwfn->energy());
+//    outfile->Printf("\tCCSD total energy          = %20.14f (from density)\n", Eone+Etwo+reference_wavefunction_->reference_energy());
+  }
+  else if(ccwfn->wfn() == "CCSD_T") {
+    outfile->Printf("\tCCSD(T) correlation energy = %20.14f (from density)\n", Eone+Etwo);
+    outfile->Printf("\tCCSD(T) correlation energy = %20.14f (from ccwfn)\n", ccwfn->energy());
+//    outfile->Printf("\tCCSD(T) total energy       = %20.14f (from density)\n", Eone+Etwo+reference_wavefunction_->reference_energy());
+  }
+
 
   return Success;
 }

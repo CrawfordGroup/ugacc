@@ -73,6 +73,19 @@ protected:
   double **Gvv_;
   double **Goo_;
 
+  // One-electron density components
+  double **Doo_;
+  double **Dvv_;
+  double **Dov_;
+  double **Dvo_;
+
+  // Two-electron density components
+  double ****Goooo_;
+  double ****Gvvvv_;
+  double ****Goovv_;
+  double ****Govov_;
+  double ****Gooov_;
+  double ****Gvvvo_;
 
 public:
   int maxiter() { return maxiter_; }
@@ -101,6 +114,10 @@ public:
   void build_l1();
   void build_l2();
   double pseudoenergy();
+
+  void init_density();
+  double onepdm();
+  double twopdm();
 
   double **t1_p() { return t1_; }
   double ****t2_p() { return t2_; }

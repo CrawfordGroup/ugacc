@@ -65,8 +65,8 @@ CCWavefunction::CCWavefunction(boost::shared_ptr<Wavefunction> reference, boost:
               labels[i],nmopi_[i],frzcpi_[i],doccpi_[i],nmopi_[i]-doccpi_[i],frzvpi_[i]);
     }
   outfile->Printf("\n\tNuclear Repulsion Energy    = %20.15f\n", molecule_->nuclear_repulsion_energy());
-  outfile->Printf( "\tFrozen Core Energy          = %20.15f\n", efzc_);
-  outfile->Printf( "\tTotal SCF Energy (chkpt)    = %20.15f\n", reference_wavefunction_->reference_energy());
+  outfile->Printf( "\tFrozen Core Energy          = %20.15f\n", reference->efzc());
+  outfile->Printf( "\tTotal SCF Energy (ref)      = %20.15f\n", reference_wavefunction_->reference_energy());
 
   for(int i=0; i < nirrep_; i++) free(labels[i]);
   free(labels);

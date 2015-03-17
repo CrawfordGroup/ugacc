@@ -49,6 +49,7 @@ PsiReturnType ugacc(Options& options)
   outfile->Printf(  "\t---------------------------------------------------\n");
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, emp2 = ccwfn->energy());
 
+
   double rms = 0.0;
   for(int iter=1; iter <= ccwfn->maxiter(); iter++) {
     ccwfn->amp_save("T");

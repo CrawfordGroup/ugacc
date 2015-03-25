@@ -28,7 +28,7 @@ def run_ugacc(name, **kwargs):
         elif (kwargs['wfn'] == 'ccsd(t)'):
             psi4.set_global_option('WFN', 'CCSD_T')
     scf_helper(name, **kwargs)
-    psi4.transqt2()
+#    psi4.transqt2()
     returnvalue = psi4.plugin('ugacc.so')
 #    psi4.set_variable('CURRENT ENERGY', returnvalue)
 

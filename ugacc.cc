@@ -6,6 +6,7 @@
 #include <liboptions/liboptions.h>
 #include <libmints/mints.h>
 #include <libpsio/psio.hpp>
+#include <libtrans/integraltransform.h>
 #include "globals.h"
 
 INIT_PLUGIN
@@ -37,7 +38,14 @@ PsiReturnType ugacc(Options& options)
   boost::shared_ptr<PSIO> psio(_default_psio_lib_);
   boost::shared_ptr<Wavefunction> ref = Process::environment.wavefunction();
   if(!ref) throw PSIEXCEPTION("SCF has not been run yet!");
-  boost::shared_ptr<Hamiltonian> H(new Hamiltonian(ref));
+
+  std::vector<boost::shared_ptr<MOSpace> > spaces;
+  spaces.push_back(MOSpace::all);
+
+  boost::shared_ptr<Hamiltonian> H(new Hamiltonian(ref, spaces));
+
+  return Success;
+
   boost::shared_ptr<CCWavefunction> ccwfn(new CCWavefunction(ref, H, options, psio));
 
   double eref, emp2, eccsd, et;

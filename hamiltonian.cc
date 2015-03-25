@@ -5,13 +5,14 @@
 #include <psifiles.h>
 #include <libciomr/libciomr.h>
 #include <libqt/qt.h>
+#include <libtrans/integraltransform.h>
 
 namespace psi {
 
 #define IOFF_MAX 32641
 #define INDEX(i,j) ((i>j) ? (ioff[(i)]+(j)) : (ioff[(j)]+(i)))
 
-Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference)
+Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference, std::vector<boost::shared_ptr<MOSpace> > spaces)
 {
 
   nmo_ = reference->nmo();
@@ -33,6 +34,11 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference)
   outfile->Printf("\tNumber of frozen occ    = %d\n", nfzc_);
 */
 
+  IntegralTransform ints(reference, spaces, IntegralTransform::Restricted);
+  ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
+
+  return;
+
   int *ioff = new int[IOFF_MAX];
   ioff[0] = 0;
   for(int i=0; i < IOFF_MAX; i++) ioff[i] = ioff[i-1] + i;
@@ -43,17 +49,18 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference)
   std::memset(static_cast<void*>(scratch), '\0', noei_all*sizeof(double));
   double *oei = new double[noei];
   std::memset(static_cast<void*>(oei), '\0', noei*sizeof(double));
-  iwl_rdone(PSIF_OEI, PSIF_MO_FZC, scratch, noei_all, 0, 0, "outfile");
-  filter(scratch, oei, ioff, nmo_, nfzc_, nfzv_);
+//  iwl_rdone(PSIF_OEI, PSIF_MO_FZC, scratch, noei_all, 0, 0, "outfile");
+//  filter(scratch, oei, ioff, nmo_, nfzc_, nfzv_);
 
   int ntei = noei*(noei+1)/2;
   double *tei = new double[ntei];
   std::memset(static_cast<void*>(tei), '\0', ntei*sizeof(double));
-  struct iwlbuf Buf;
-  iwl_buf_init(&Buf, PSIF_MO_TEI, 1e-16, 1, 1);
-  iwl_buf_rd_all(&Buf, tei, ioff, ioff, 0, ioff, 0, "outfile");
-  iwl_buf_close(&Buf, 1);
+//  struct iwlbuf Buf;
+//  iwl_buf_init(&Buf, PSIF_MO_TEI, 1e-16, 1, 1);
+//  iwl_buf_rd_all(&Buf, tei, ioff, ioff, 0, ioff, 0, "outfile");
+//  iwl_buf_close(&Buf, 1);
 
+/*
   int no = no_;
   int nact = nact_;
 
@@ -85,6 +92,7 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference)
       for(int m=0; m < no; m++)
         fock_[p][q] += L_[p][m][q][m];
     }
+*/
 
   delete[] ioff;
   delete[] oei;

@@ -6,13 +6,14 @@
 #include <libciomr/libciomr.h>
 #include <libqt/qt.h>
 #include <libtrans/integraltransform.h>
+#include <libdpd/dpd.h>
 
 namespace psi {
 
 #define IOFF_MAX 32641
 #define INDEX(i,j) ((i>j) ? (ioff[(i)]+(j)) : (ioff[(j)]+(i)))
 
-Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference, const std::vector<boost::shared_ptr<MOSpace> > spaces)
+Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefunction> reference, std::vector<boost::shared_ptr<MOSpace> > spaces)
 {
   nmo_ = reference->nmo();
   nfzc_ = reference->nfrzc();
@@ -24,11 +25,6 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference, const std::v
   }
   nact_ = nmo_ - nfzc_ - nfzv_;
 
-  return;
-
-  IntegralTransform ints(reference, spaces, IntegralTransform::Restricted);
-  ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
-
 /*
   outfile->Printf("\n\tHamiltonian Parameters:\n");
   outfile->Printf("\t-------------------------\n");
@@ -38,22 +34,51 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference, const std::v
   outfile->Printf("\tNumber of frozen occ    = %d\n", nfzc_);
 */
 
+  int noei_all = nmo_*(nmo_+1)/2;
+  int noei = nact_*(nact_+1)/2;
+  int ntei = noei*(noei+1)/2;
+  double *tei = new double[ntei];
+  std::memset(static_cast<void*>(tei), '\0', ntei*sizeof(double));
+
+  IntegralTransform ints(reference, spaces, IntegralTransform::Restricted);
+  ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
+  dpd_set_default(ints.get_dpd_id());
+
+  dpdbuf4 K;
+  psio->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
+  global_dpd_->buf4_init(&K, PSIF_LIBRTRANS_DPD, 0, ID("[A,A]"), ID("[A,A]"), ID("[A>=A]+"), ID("[A>=A]+"), 0, "MO Ints (AA|AA)");
+  global_dpd_->buf4_mat_irrep_init(&K, 0); // symmetry = c1
+  global_dpd_->buf4_mat_irrep_rd(&K, 0);
+  for(int pq=0; pq < K.params->rowtot[0]; pq++) {
+    int p = K.params->roworb[0][pq][0];
+    int q = K.params->roworb[0][pq][1];
+    for(int rs=0; rs < K.params->coltot[0]; rs++) {
+      int r = K.params->colorb[0][rs][0];
+      int s = K.params->colorb[0][rs][1];
+      pr = INDEX(p,r);
+      pqrs =     
+    }
+  }
+  global_dpd_->buf4_mat_irrep_close(&K, 0);
+  global_dpd_->buf4_close(&K);
+  psio->close(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
+
+
+  return;
+
+/*
   int *ioff = new int[IOFF_MAX];
   ioff[0] = 0;
   for(int i=0; i < IOFF_MAX; i++) ioff[i] = ioff[i-1] + i;
 
-  int noei_all = nmo_*(nmo_+1)/2;
-  int noei = nact_*(nact_+1)/2;
   double *scratch = new double[noei_all];
   std::memset(static_cast<void*>(scratch), '\0', noei_all*sizeof(double));
   double *oei = new double[noei];
   std::memset(static_cast<void*>(oei), '\0', noei*sizeof(double));
+*/
 //  iwl_rdone(PSIF_OEI, PSIF_MO_FZC, scratch, noei_all, 0, 0, "outfile");
 //  filter(scratch, oei, ioff, nmo_, nfzc_, nfzv_);
 
-  int ntei = noei*(noei+1)/2;
-  double *tei = new double[ntei];
-  std::memset(static_cast<void*>(tei), '\0', ntei*sizeof(double));
 //  struct iwlbuf Buf;
 //  iwl_buf_init(&Buf, PSIF_MO_TEI, 1e-16, 1, 1);
 //  iwl_buf_rd_all(&Buf, tei, ioff, ioff, 0, ioff, 0, "outfile");
@@ -91,19 +116,21 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference, const std::v
       for(int m=0; m < no; m++)
         fock_[p][q] += L_[p][m][q][m];
     }
-*/
 
   delete[] ioff;
   delete[] oei;
   delete[] tei;
   delete[] scratch;
+*/
 }
 
 Hamiltonian::~Hamiltonian()
 {
+/*
   free_4d_array(ints_, nact_, nact_, nact_);
   free_4d_array(L_, nact_, nact_, nact_);
   free_block(fock_); 
+*/
 }
 
 /*

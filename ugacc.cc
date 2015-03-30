@@ -42,7 +42,7 @@ PsiReturnType ugacc(Options& options)
   std::vector<boost::shared_ptr<MOSpace> > spaces;
   spaces.push_back(MOSpace::all);
 
-  boost::shared_ptr<Hamiltonian> H(new Hamiltonian(ref, spaces));
+  boost::shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
 
   return Success;
 

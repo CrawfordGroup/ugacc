@@ -12,9 +12,8 @@ namespace psi {
 #define IOFF_MAX 32641
 #define INDEX(i,j) ((i>j) ? (ioff[(i)]+(j)) : (ioff[(j)]+(i)))
 
-Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference, std::vector<boost::shared_ptr<MOSpace> > spaces)
+Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference, const std::vector<boost::shared_ptr<MOSpace> > spaces)
 {
-
   nmo_ = reference->nmo();
   nfzc_ = reference->nfrzc();
   no_ = 0;
@@ -25,6 +24,11 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference, std::vector<
   }
   nact_ = nmo_ - nfzc_ - nfzv_;
 
+  return;
+
+  IntegralTransform ints(reference, spaces, IntegralTransform::Restricted);
+  ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
+
 /*
   outfile->Printf("\n\tHamiltonian Parameters:\n");
   outfile->Printf("\t-------------------------\n");
@@ -33,11 +37,6 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<Wavefunction> reference, std::vector<
   outfile->Printf("\tNumber of active occ    = %d\n", no_);
   outfile->Printf("\tNumber of frozen occ    = %d\n", nfzc_);
 */
-
-  IntegralTransform ints(reference, spaces, IntegralTransform::Restricted);
-  ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
-
-  return;
 
   int *ioff = new int[IOFF_MAX];
   ioff[0] = 0;

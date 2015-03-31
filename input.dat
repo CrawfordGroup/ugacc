@@ -11,6 +11,7 @@ molecule {
 no_reorient
 no_com
 units bohr
+symmetry c1
 }
 
 set {
@@ -21,5 +22,5 @@ set {
   ooc true
 }
 
-gradient('ugacc', wfn='ccsd(t)')
+energy('ugacc', wfn='ccsd(t)')
 

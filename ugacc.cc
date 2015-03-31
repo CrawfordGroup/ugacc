@@ -44,8 +44,6 @@ PsiReturnType ugacc(Options& options)
 
   boost::shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
 
-  return Success;
-
   boost::shared_ptr<CCWavefunction> ccwfn(new CCWavefunction(ref, H, options, psio));
 
   double eref, emp2, eccsd, et;

@@ -19,12 +19,9 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
 {
   nmo_ = reference->nmo();
   nfzc_ = reference->nfrzc();
-  no_ = 0;
   nfzv_ = 0;
-  for(int i=0; i < reference->nirrep(); i++) {
-    no_ += reference->doccpi()[i] - reference->frzcpi()[i];
+  for(int i=0; i < reference->nirrep(); i++) 
     nfzv_ += reference->frzvpi()[i];
-  }
   nact_ = nmo_ - nfzc_ - nfzv_;
 
 /*
@@ -36,26 +33,34 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
   outfile->Printf("\tNumber of frozen occ    = %d\n", nfzc_);
 */
 
+  int nact = nact_;
+  SharedMatrix Fa = reference->Fa();
+  SharedMatrix Ca = reference->Ca();
+  Fa->transform(Ca);
+  double **fock_ = block_matrix(nact, nact);
+  for(int h=0; h < Fa->nirrep(); i++)
+    for(int p=0; p < Fa->rowspi(h); p++)
+      for(int q=0; q < Fa->colspi(h); q++)
+        fock[p][q] = 
+/*
+  fock_ = block_matrix(nact, nact);
+  for(int p=0; p < nact; p++)
+    for(int q=0; q < nact; q++)
+      fock_[p][q] = fock_p[p][q];
+*/
+  mat_print(fock_, nact, nact, "outfile");
 
   IntegralTransform ints(reference, spaces, IntegralTransform::Restricted);
-  ints.transform_oei(MOSpace::all, MOSpace::all);
   ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
   dpd_set_default(ints.get_dpd_id());
 
-  dpdfile2 F;
   dpdbuf4 K;
   psio->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
-  global_dpd_->file2_init(&F, PSIF_LIBTRANS_DPD, 0, ID("[A,A]"), ID("[A,A]", "MO Ints (A|A)");
-
-
   global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[A,A]"), ID("[A,A]"), ID("[A>=A]+"), ID("[A>=A]+"), 0, "MO Ints (AA|AA)");
   global_dpd_->buf4_mat_irrep_init(&K, 0); // symmetry = c1
   global_dpd_->buf4_mat_irrep_rd(&K, 0);
 
-  int no = no_;
-  int nact = nact_;
   ints_ = init_4d_array(nact, nact, nact, nact);
-
   for(int pq=0; pq < K.params->rowtot[0]; pq++) {
     int p = K.params->roworb[0][pq][0];
     int q = K.params->roworb[0][pq][1];
@@ -67,6 +72,7 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
   }
   global_dpd_->buf4_mat_irrep_close(&K, 0);
   global_dpd_->buf4_close(&K);
+
   psio->close(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
 
 
@@ -135,32 +141,5 @@ Hamiltonian::~Hamiltonian()
   free_block(fock_); 
 */
 }
-
-/*
-Hamiltonian::Hamiltonian(const boost::shared_ptr<Hamiltonian> &H)
-{
-  nmo_ = H->nmo_;
-  nact_ = H->nact_;
-  no_ = H->nact_;
-  nfzc_ = H->nfzc_;
-  nfzv_ = H->nfzv_;
-
-  int nact = nact_;
-
-  fock_ = block_matrix(nact, nact);
-  for(int p=0; p < nact; p++)
-    for(int q=0; q < nact; q++)
-      fock_[p][q] = H->fock_[p][q];
-
-  ints_ = init_4d_array(nact, nact, nact, nact);
-  for(int p=0; p < nact; p++)
-    for(int q=0; q < nact; q++)
-      for(int r=0; r < nact; r++)
-        for(int s=0; s < nact; s++) {
-          ints_[p][q][r][s] = H->ints_[p][q][r][s];
-          L_[p][q][r][s] = H->L_[p][q][r][s];
-        }
-}
-*/
 
 } // namespace psi

@@ -22,9 +22,11 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
   nact_ = nmo_ - nfzc_ - nfzv_;
 
   int nact = nact_;
+
   SharedMatrix Fa = reference->Fa();
   SharedMatrix Ca = reference->Ca();
   Fa->transform(Ca);
+  Fa->print();
   fock_ = block_matrix(nact, nact);
   for(int h=0; h < Fa->nirrep(); h++)
     for(int p=0; p < nact; p++)

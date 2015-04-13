@@ -12,74 +12,65 @@
 
 namespace psi {
 
-Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefunction> reference, std::vector<boost::shared_ptr<MOSpace> > spaces)
+Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefunction> ref, std::vector<boost::shared_ptr<MOSpace> > spaces)
 {
-  nmo_ = reference->nmo();
-  nfzc_ = reference->nfrzc();
+  nmo_ = ref->nmo();
+  nfzc_ = ref->nfrzc();
   nfzv_ = 0;
-  for(int i=0; i < reference->nirrep(); i++) 
-    nfzv_ += reference->frzvpi()[i];
+  for(int i=0; i < ref->nirrep(); i++) 
+    nfzv_ += ref->frzvpi()[i];
   nact_ = nmo_ - nfzc_ - nfzv_;
 
   int nact = nact_;
 
-  SharedMatrix Fa = reference->Fa();
-  SharedMatrix Ca = reference->Ca();
+  // Prepare Fock matrix in MO basis
+  SharedMatrix Fa = ref->Fa();
+  SharedMatrix Ca = ref->Ca();
   Fa->transform(Ca);
-  Fa->print();
 
-  // Prepare mapping array Pitzer -> QT
-  reference->doccpi().print();
-  reference->soccpi().print();
-  reference->frzcpi().print();
-  reference->frzvpi().print();
-  reference->nmopi().print();
-
-  int * doccpi = (int *) reference->doccpi();
-  int * soccpi = (int *) reference->soccpi();
-  int * frzcpi = (int *) reference->frzcpi();;
-  int * frzvpi = (int *) reference->frzvpi();;
-  int * nmopi = (int *) reference->nmopi();;
+  // Translate from Pitzer to QT
   int *map = init_int_array(nmo_);
-  reorder_qt(doccpi, soccpi, frzcpi, frzvpi, map, nmopi, reference->nirrep());
+  reorder_qt((int *) ref->doccpi(), (int *) ref->soccpi(), (int *) ref->frzcpi(), (int *) ref->frzvpi(), 
+             map, (int *) ref->nmopi(), ref->nirrep());
 
-  outfile->Printf("Pitzer -> QT Map: ");
-  for(int h=0; h < nmo_; h++) outfile->Printf("%d ", map[h]);
-  outfile->Printf("\n");
-   
   fock_ = block_matrix(nact, nact);
-  for(int h=0; h < reference->nirrep(); h++)
-    for(int p=frzcpi[h]; p < nmopi[h]; p++)
-      for(int q=frzcpi[h]; q < nmopi[h]; q++)
-        fock_[map[p]][map[q]] = Fa->get(h, p, q);
+  int mo_offset=0;
+  for(int h=0; h < ref->nirrep(); h++) {
+    int nmo = ref->nmopi()[h]; int nfv = ref->frzvpi()[h]; int nfc = ref->frzcpi()[h];
+    for(int p=nfc; p < nmo-nfv; p++) {
+      for(int q=nfc; q < nmo-nfv; q++) {
+      int P = map[p+mo_offset]; int Q = map[q+mo_offset];
+      fock_[P-nfzc_][Q-nfzc_] = Fa->get(h,p,q);
+      }
+    }
+    mo_offset += nmo;
+  }
 
-//  outfile->Printf("Fock Matrix?\n");
-//  mat_print(fock_, nact, nact, "outfile");
-
-  IntegralTransform ints(reference, spaces, IntegralTransform::Restricted);
+  IntegralTransform ints(ref, spaces, IntegralTransform::Restricted, IntegralTransform::DPDOnly, 
+                         IntegralTransform::QTOrder, IntegralTransform::OccAndVir, true);
   ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
   dpd_set_default(ints.get_dpd_id());
 
-  dpdbuf4 K;
-  psio->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
-  global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[A,A]"), ID("[A,A]"), ID("[A>=A]+"), ID("[A>=A]+"), 0, "MO Ints (AA|AA)");
-  global_dpd_->buf4_mat_irrep_init(&K, 0); // symmetry = c1
-  global_dpd_->buf4_mat_irrep_rd(&K, 0);
-
   ints_ = init_4d_array(nact, nact, nact, nact);
-  for(int pq=0; pq < K.params->rowtot[0]; pq++) {
-    int p = K.params->roworb[0][pq][0];
-    int q = K.params->roworb[0][pq][1];
-    for(int rs=0; rs < K.params->coltot[0]; rs++) {
-      int r = K.params->colorb[0][rs][0];
-      int s = K.params->colorb[0][rs][1];
-      ints_[p][r][q][s] = K.matrix[0][pq][rs];
+  psio->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
+  dpdbuf4 K;
+  global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[A,A]"), ID("[A,A]"), ID("[A>=A]+"), ID("[A>=A]+"), 0, "MO Ints (AA|AA)");
+  for(int h=0; h < ref->nirrep(); h++) {
+    global_dpd_->buf4_mat_irrep_init(&K, h);
+    global_dpd_->buf4_mat_irrep_rd(&K, h);
+    for(int pq=0; pq < K.params->rowtot[h]; pq++) {
+      int p = map[ K.params->roworb[h][pq][0] ];
+      int q = map[ K.params->roworb[h][pq][1] ];
+      for(int rs=0; rs < K.params->coltot[h]; rs++) {
+        int r = map[ K.params->colorb[h][rs][0] ];
+        int s = map[ K.params->colorb[h][rs][1] ];
+        ints_[p][r][q][s] = K.matrix[h][pq][rs];
+      }
     }
+    global_dpd_->buf4_mat_irrep_close(&K, h);
   }
-  global_dpd_->buf4_mat_irrep_close(&K, 0);
   global_dpd_->buf4_close(&K);
-
-  psio->close(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
+  psio->close(PSIF_LIBTRANS_DPD, 1);
 
   // L(pqrs) = 2<pq|rs> - <pq|sr>  
   L_ = init_4d_array(nact, nact, nact, nact);

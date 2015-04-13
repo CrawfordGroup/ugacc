@@ -27,11 +27,34 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
   SharedMatrix Ca = reference->Ca();
   Fa->transform(Ca);
   Fa->print();
+
+  // Prepare mapping array Pitzer -> QT
+  reference->doccpi().print();
+  reference->soccpi().print();
+  reference->frzcpi().print();
+  reference->frzvpi().print();
+  reference->nmopi().print();
+
+  int * doccpi = (int *) reference->doccpi();
+  int * soccpi = (int *) reference->soccpi();
+  int * frzcpi = (int *) reference->frzcpi();;
+  int * frzvpi = (int *) reference->frzvpi();;
+  int * nmopi = (int *) reference->nmopi();;
+  int *map = init_int_array(nmo_);
+  reorder_qt(doccpi, soccpi, frzcpi, frzvpi, map, nmopi, reference->nirrep());
+
+  outfile->Printf("Pitzer -> QT Map: ");
+  for(int h=0; h < nmo_; h++) outfile->Printf("%d ", map[h]);
+  outfile->Printf("\n");
+   
   fock_ = block_matrix(nact, nact);
-  for(int h=0; h < Fa->nirrep(); h++)
-    for(int p=0; p < nact; p++)
-      for(int q=0; q < nact; q++)
-        fock_[p][q] = Fa->get(h, p+nfzc_, q+nfzc_);
+  for(int h=0; h < reference->nirrep(); h++)
+    for(int p=frzcpi[h]; p < nmopi[h]; p++)
+      for(int q=frzcpi[h]; q < nmopi[h]; q++)
+        fock_[map[p]][map[q]] = Fa->get(h, p, q);
+
+//  outfile->Printf("Fock Matrix?\n");
+//  mat_print(fock_, nact, nact, "outfile");
 
   IntegralTransform ints(reference, spaces, IntegralTransform::Restricted);
   ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);

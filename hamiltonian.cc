@@ -65,6 +65,7 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
         int r = map[ K.params->colorb[h][rs][0] ];
         int s = map[ K.params->colorb[h][rs][1] ];
         ints_[p][r][q][s] = K.matrix[h][pq][rs];
+        if(fabs(ints_[p][q][r][s]) > 1e-6) outfile->Printf("%d %d %d %d %20.14f\n", p, q, r, s, ints_[p][q][r][s]);
       }
     }
     global_dpd_->buf4_mat_irrep_close(&K, h);

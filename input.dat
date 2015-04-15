@@ -11,15 +11,16 @@ molecule {
 no_reorient
 no_com
 units bohr
+symmetry c1
 }
 
 set {
   basis cc-pVDZ
-  freeze_core true
+  freeze_core false
   r_convergence 1e-15
   e_convergence 1e-15
   ooc true
 }
 
-gradient('ugacc', wfn='ccsd(t)')
+energy('ugacc', wfn='ccsd(t)')
 

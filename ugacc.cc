@@ -39,12 +39,14 @@ PsiReturnType ugacc(Options& options)
   boost::shared_ptr<Wavefunction> ref = Process::environment.wavefunction();
   if(!ref) throw PSIEXCEPTION("SCF has not been run yet!");
 
+  // Make sure this isn't an open-shell system
+  for(int h=0; h < ref->nirrep(); h++)
+    if(ref->soccpi()[h]) throw PSIEXCEPTION("UGACC is for closed-shell systems only.");
+
   std::vector<boost::shared_ptr<MOSpace> > spaces;
   spaces.push_back(MOSpace::all);
 
-  boost::shared_ptr<Hamiltonian> H(new Hamiltonian(ref, spaces));
-
-  return Success;
+  boost::shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
 
   boost::shared_ptr<CCWavefunction> ccwfn(new CCWavefunction(ref, H, options, psio));
 

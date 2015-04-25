@@ -44,6 +44,7 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
     }
     mo_offset += nmo;
   }
+  free(map);
 
   // Use reorder_qt() to generate a new mapping array w/o frozen core or virtual orbitals
   int *doccpi = init_int_array(ref->nirrep());
@@ -90,8 +91,6 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
         for(int s=0; s < nact; s++)
           L_[p][q][r][s] = 2*ints_[p][q][r][s] - ints_[p][q][s][r];
 
-  free(map);
-  free(null);
 }
 
 Hamiltonian::~Hamiltonian()

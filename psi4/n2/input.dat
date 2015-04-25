@@ -1,6 +1,3 @@
-sys.path.insert(0, './..')
-import ugacc
-
 molecule {
 0 1
 N
@@ -14,9 +11,7 @@ set {
   freeze_core true
   r_convergence 1e-15
   e_convergence 1e-15
-  ooc true
 }
 
-gradient('ugacc', wfn='ccsd(t)')
-
+energy('ccsd(t)')
 

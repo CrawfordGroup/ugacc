@@ -1,0 +1,568 @@
+    -----------------------------------------------------------------------
+          PSI4: An Open-Source Ab Initio Electronic Structure Package
+                              PSI 4.0 Driver
+
+               Git: Rev {master} 7e4331fb560d7cb080c7db8b0636399c2cc3a981
+
+    J. M. Turney, A. C. Simmonett, R. M. Parrish, E. G. Hohenstein,
+    F. A. Evangelista, J. T. Fermann, B. J. Mintz, L. A. Burns, J. J. Wilke,
+    M. L. Abrams, N. J. Russ, M. L. Leininger, C. L. Janssen, E. T. Seidl,
+    W. D. Allen, H. F. Schaefer, R. A. King, E. F. Valeev, C. D. Sherrill,
+    and T. D. Crawford, WIREs Comput. Mol. Sci. 2, 556-565 (2012)
+    (doi: 10.1002/wcms.93)
+
+                         Additional Contributions by
+    A. E. DePrince, M. Saitow, U. Bozkaya, A. Yu. Sokolov
+    -----------------------------------------------------------------------
+
+    Process ID:   8986
+    PSI4DATADIR: /Users/crawdad/psi4/share/psi
+    Memory level set to 256.000 MB
+
+  ==> Input File <==
+
+--------------------------------------------------------------------------
+molecule {
+0 1
+    O         0.000000000000     0.000000000000    -0.116529192243
+    H        -0.000000000000     1.344767972762     0.924701422022
+    F        -0.000000000000    -1.344767972762     0.924701422022
+no_reorient
+no_com
+units bohr
+symmetry c1
+}
+
+set {
+  reference rhf
+  basis sto-3g
+  freeze_core false
+  r_convergence 1e-15
+  e_convergence 1e-15
+}
+
+energy('ccsd(t)')
+
+
+--------------------------------------------------------------------------
+
+*** tstart() called on ganymede.local
+*** at Fri Nov 21 12:25:36 2014
+
+
+*** tstart() called on ganymede.local
+*** at Fri Nov 21 12:25:36 2014
+
+
+         ---------------------------------------------------------
+                                   SCF
+            by Justin Turney, Rob Parrish, and Andy Simmonett
+                              RHF Reference
+                        1 Threads,    256 MiB Core
+         ---------------------------------------------------------
+
+  ==> Geometry <==
+
+    Molecular point group: c1
+    Full point group: Cs
+
+    Geometry (in Bohr), charge = 0, multiplicity = 1:
+
+       Center              X                  Y                   Z       
+    ------------   -----------------  -----------------  -----------------
+           O          0.000000000000     0.000000000000    -0.116529192243
+           H          0.000000000000     1.344767972762     0.924701422022
+           F          0.000000000000    -1.344767972762     0.924701422022
+
+  Running in c1 symmetry.
+
+  Rotational constants: A =     24.32461  B =      1.17973  C =      1.12516 [cm^-1]
+  Rotational constants: A = 729233.39530  B =  35367.38085  C =  33731.42694 [MHz]
+  Nuclear repulsion =   50.384279869733497
+
+  Charge       = 0
+  Multiplicity = 1
+  Electrons    = 18
+  Nalpha       = 9
+  Nbeta        = 9
+
+  ==> Algorithm <==
+
+  SCF Algorithm Type is PK.
+  DIIS enabled.
+  MOM disabled.
+  Fractional occupation disabled.
+  Guess Type is CORE.
+  Energy threshold   = 1.00e-15
+  Density threshold  = 1.00e-08
+  Integral threshold = 0.00e+00
+
+  ==> Primary Basis <==
+
+  Basis Set: STO-3G
+    Number of shells: 7
+    Number of basis function: 11
+    Number of Cartesian functions: 11
+    Spherical Harmonics?: true
+    Max angular momentum: 1
+
+  ==> Pre-Iterations <==
+
+   -------------------------------------------------------
+    Irrep   Nso     Nmo     Nalpha   Nbeta   Ndocc  Nsocc
+   -------------------------------------------------------
+     A         11      11       0       0       0       0
+   -------------------------------------------------------
+    Total      11      11       9       9       9       0
+   -------------------------------------------------------
+
+  Starting with a DF guess...
+
+ OEINTS: Overlap, kinetic, potential, dipole, and quadrupole integrals
+         stored in file 35.
+
+  ==> Integral Setup <==
+
+  ==> DFJK: Density-Fitted J/K Matrices <==
+
+    J tasked:                  Yes
+    K tasked:                  Yes
+    wK tasked:                  No
+    OpenMP threads:              1
+    Integrals threads:           1
+    Memory (MB):               183
+    Algorithm:                Core
+    Integral Cache:           NONE
+    Schwarz Cutoff:          1E-12
+    Fitting Condition:       1E-12
+
+   => Auxiliary Basis Set <=
+
+  Basis Set: 
+    Number of shells: 42
+    Number of basis function: 126
+    Number of Cartesian functions: 147
+    Spherical Harmonics?: true
+    Max angular momentum: 3
+
+  Minimum eigenvalue in the overlap matrix is 1.6312810210E-01.
+  Using Symmetric Orthogonalization.
+  SCF Guess: Core (One-Electron) Hamiltonian.
+
+  ==> Iterations <==
+
+                           Total Energy        Delta E     RMS |[F,P]|
+
+   @DF-RHF iter   1:  -167.17182644475659   -1.67172e+02   1.15962e-01 
+   @DF-RHF iter   2:  -171.10185348031109   -3.93003e+00   8.21990e-02 DIIS
+   @DF-RHF iter   3:  -171.55305273346460   -4.51199e-01   1.34889e-02 DIIS
+   @DF-RHF iter   4:  -171.57033219716996   -1.72795e-02   2.96020e-03 DIIS
+   @DF-RHF iter   5:  -171.57122377217507   -8.91575e-04   4.46440e-04 DIIS
+   @DF-RHF iter   6:  -171.57124865172949   -2.48796e-05   5.89209e-05 DIIS
+   @DF-RHF iter   7:  -171.57124908781333   -4.36084e-07   6.09011e-06 DIIS
+   @DF-RHF iter   8:  -171.57124909238016   -4.56683e-09   7.93981e-07 DIIS
+   @DF-RHF iter   9:  -171.57124909243922   -5.90603e-11   6.36829e-08 DIIS
+   @DF-RHF iter  10:  -171.57124909243956   -3.41061e-13   5.89512e-09 DIIS
+   @DF-RHF iter  11:  -171.57124909243961   -5.68434e-14   8.16738e-10 DIIS
+   @DF-RHF iter  12:  -171.57124909243964   -2.84217e-14   4.67438e-11 DIIS
+   @DF-RHF iter  13:  -171.57124909243973   -8.52651e-14   4.44670e-12 DIIS
+   @DF-RHF iter  14:  -171.57124909243967    5.68434e-14   2.48871e-13 DIIS
+   @DF-RHF iter  15:  -171.57124909243947    1.98952e-13   4.39746e-14 DIIS
+   @DF-RHF iter  16:  -171.57124909243959   -1.13687e-13   1.07312e-14 DIIS
+   @DF-RHF iter  17:  -171.57124909243953    5.68434e-14   5.65052e-15 DIIS
+   @DF-RHF iter  18:  -171.57124909243950    2.84217e-14   4.41999e-15 DIIS
+   @DF-RHF iter  19:  -171.57124909243959   -8.52651e-14   5.48249e-15 DIIS
+   @DF-RHF iter  20:  -171.57124909243959    0.00000e+00   4.49746e-15 DIIS
+
+  DF guess converged.
+
+  ==> Integral Setup <==
+
+ MINTS: Wrapper to libmints.
+   by Justin Turney
+
+   Calculation information:
+      Number of atoms:                   3
+      Number of AO shells:               7
+      Number of SO shells:               7
+      Number of primitives:             21
+      Number of atomic orbitals:        11
+      Number of basis functions:        11
+
+      Number of irreps:                  1
+      Integral cutoff                 0.00e+00
+      Number of functions per irrep: [  11 ]
+
+ OEINTS: Overlap, kinetic, potential, dipole, and quadrupole integrals
+         stored in file 35.
+
+      Computing two-electron integrals...done
+      Computed 1272 non-zero two-electron integrals.
+        Stored in file 33.
+
+	Batch   1 pq = [       0,      66] index = [             0,2211]
+  ==> DiskJK: Disk-Based J/K Matrices <==
+
+    J tasked:                  Yes
+    K tasked:                  Yes
+    wK tasked:                  No
+    Memory (MB):               183
+    Schwarz Cutoff:          1E-12
+
+   @RHF iter  21:  -171.57054016679209    7.08926e-04   2.09285e-05 DIIS
+   @RHF iter  22:  -171.57054018479437   -1.80023e-08   3.27816e-06 DIIS
+   @RHF iter  23:  -171.57054018586200   -1.06763e-09   6.49908e-07 DIIS
+   @RHF iter  24:  -171.57054018591521   -5.32054e-11   9.09123e-08 DIIS
+   @RHF iter  25:  -171.57054018591617   -9.66338e-13   7.00048e-09 DIIS
+   @RHF iter  26:  -171.57054018591620   -2.84217e-14   9.94636e-10 DIIS
+   @RHF iter  27:  -171.57054018591620    0.00000e+00   8.48473e-11 DIIS
+
+  ==> Post-Iterations <==
+
+	Orbital Energies (a.u.)
+	-----------------------
+
+	Doubly Occupied:                                                      
+
+	   1A    -26.127734     2A    -20.491481     3A     -2.116318  
+	   4A     -1.120312     5A     -0.928926     6A     -0.902158  
+	   7A     -0.758964     8A     -0.329687     9A     -0.245294  
+
+	Virtual:                                                              
+
+	  10A      0.671335    11A      1.461851  
+
+	Final Occupation by Irrep:
+	          A 
+	DOCC [     9 ]
+
+  Energy converged.
+
+  @RHF Final Energy:  -171.57054018591620
+
+   => Energetics <=
+
+    Nuclear Repulsion Energy =             50.3842798697334970
+    One-Electron Energy =                -337.8678935895428594
+    Two-Electron Energy =                 115.9130735338931402
+    DFT Exchange-Correlation Energy =       0.0000000000000000
+    Empirical Dispersion Energy =           0.0000000000000000
+    Total Energy =                       -171.5705401859162009
+
+
+
+Properties will be evaluated at   0.000000,   0.000000,   0.000000 Bohr
+  ==> Properties <==
+
+
+Properties computed using the SCF density matrix
+
+  Nuclear Dipole Moment: (a.u.)
+     X:     0.0000      Y:   -10.7581      Z:     8.3148
+
+  Electronic Dipole Moment: (a.u.)
+     X:     0.0000      Y:    11.0339      Z:    -7.9133
+
+  Dipole Moment: (a.u.)
+     X:     0.0000      Y:     0.2757      Z:     0.4015     Total:     0.4870
+
+  Dipole Moment: (Debye)
+     X:     0.0000      Y:     0.7008      Z:     1.0204     Total:     1.2379
+
+
+  Saving occupied orbitals to File 180.
+
+*** tstop() called on ganymede.local at Fri Nov 21 12:25:37 2014
+Module time:
+	user time   =       0.49 seconds =       0.01 minutes
+	system time =       0.05 seconds =       0.00 minutes
+	total time  =          1 seconds =       0.02 minutes
+Total time:
+	user time   =       0.51 seconds =       0.01 minutes
+	system time =       0.05 seconds =       0.00 minutes
+	total time  =          1 seconds =       0.02 minutes
+
+*** tstart() called on ganymede.local
+*** at Fri Nov 21 12:25:37 2014
+
+
+	**************************************************
+	* TRANSQT2: Program to transform integrals from  *
+	*           the SO basis to the MO basis.        *
+	*                                                *
+	*            Daniel, David, & Justin             *
+	**************************************************
+
+
+	Input parameters:
+	-----------------
+	Wave function   =	CCSD_T
+	Backtransform   =	No
+	Print Level     =	1
+	Print TEIs      =	No
+	Reference wfn   =	RHF
+	Derivative      =	None
+	Delete TEI File =	Yes
+	Memory (Mbytes) =	256.0
+	Cache Level     =	2
+	Cache Type      =	LRU
+	Chkpt Parameters:
+	--------------------
+	Number of irreps     = 1
+	Number of SOs        = 11
+	Number of MOs        = 11
+	Number of active MOs = 11
+
+	Label	# SOs	# FZDC	# DOCC	# SOCC	# VIRT	# FZVR
+	-----	-----	------	------	------	------	------
+	 A	   11	    0	    9	    0	    2	    0
+
+	Nuclear Rep. energy (chkpt) =     50.38427986973350
+	SCF energy          (chkpt) =   -171.57054018591620
+
+	Presorting SO-basis two-electron integrals.
+	Sorting File: SO Ints (pq,rs) nbuckets = 1
+	Frozen-core energy =    0.000000000000000
+	Starting first half-transformation.
+	Sorting half-transformed integrals.
+	Starting second half-transformation.
+	Two-electron integral transformation complete.
+
+*** tstop() called on ganymede.local at Fri Nov 21 12:25:37 2014
+Module time:
+	user time   =       0.00 seconds =       0.00 minutes
+	system time =       0.05 seconds =       0.00 minutes
+	total time  =          0 seconds =       0.00 minutes
+Total time:
+	user time   =       0.52 seconds =       0.01 minutes
+	system time =       0.10 seconds =       0.00 minutes
+	total time  =          1 seconds =       0.02 minutes
+
+*** tstart() called on ganymede.local
+*** at Fri Nov 21 12:25:37 2014
+
+
+			**************************
+			*                        *
+			*         CCSORT         *
+			*                        *
+			**************************
+
+
+	Input parameters:
+	-----------------
+	Wave function   =	CCSD_T
+	Reference wfn   =	RHF
+	Derivative      =	None
+	Memory (Mbytes) =	256.0
+	AO Basis        =	NONE
+	Make (ab|cd)    =	True
+	Make unpacked (ab|cd) =	False
+	Cache Level     =	2
+	Cache Type      =	LRU
+	Local CC        =     No
+
+
+	Chkpt Parameters:
+	--------------------
+	Number of irreps     = 1
+	Number of MOs        = 11
+	Number of active MOs = 11
+
+	Label	# MOs	# FZDC	# DOCC	# SOCC	# VIRT	# FZVR
+	-----	-----	------	------	------	------	------
+	 A	   11	    0	    9	    0	    2	    0
+
+	Nuclear Rep. energy (chkpt) =     50.38427986973350
+	SCF energy          (chkpt) =   -171.57054018591620
+
+	Size of irrep 0 of <ab|cd> integrals:      0.000 (MW) /      0.000 (MB)
+	Total:                                     0.000 (MW) /      0.000 (MB)
+
+	Size of irrep 0 of <ia|bc> integrals:      0.000 (MW) /      0.001 (MB)
+	Total:                                     0.000 (MW) /      0.001 (MB)
+
+	Size of irrep 0 of tijab amplitudes:       0.000 (MW) /      0.003 (MB)
+	Total:                                     0.000 (MW) /      0.003 (MB)
+
+
+	Sorting File: A <ij|kl> nbuckets = 1
+	Sorting File: B(+) <ab|cd> nbuckets = 1
+	Sorting File: C <ia|jb> nbuckets = 1
+	Sorting File: D <ij|ab> nbuckets = 1
+	Sorting File: E <ai|jk> nbuckets = 1
+	Sorting File: F <ia|bc> nbuckets = 1
+	Nuclear energy               =     50.38427986973350
+	One-electron energy          =   -337.86789358777531
+	Two-electron (AA) energy     =     48.32010250301504
+	Two-electron (BB) energy     =     48.32010250301504
+	Two-electron (AB) energy     =     67.59297102911070
+	Two-electron energy          =    115.91307353212574
+	Frozen-core energy (transqt) =      0.00000000000000
+	Reference energy             =   -171.57054018591609
+
+*** tstop() called on ganymede.local at Fri Nov 21 12:25:37 2014
+Module time:
+	user time   =       0.02 seconds =       0.00 minutes
+	system time =       0.06 seconds =       0.00 minutes
+	total time  =          0 seconds =       0.00 minutes
+Total time:
+	user time   =       0.54 seconds =       0.01 minutes
+	system time =       0.16 seconds =       0.00 minutes
+	total time  =          1 seconds =       0.02 minutes
+
+*** tstart() called on ganymede.local
+*** at Fri Nov 21 12:25:37 2014
+
+			**************************
+			*                        *
+			*        CCENERGY        *
+			*                        *
+			**************************
+
+	Nuclear Rep. energy (chkpt)   =   50.384279869733497
+	SCF energy          (chkpt)   = -171.570540185916201
+	Reference energy    (file100) = -171.570540185916087
+
+	Input parameters:
+	-----------------
+	Wave function   =   CCSD_T
+	Reference wfn   =     RHF
+	Brueckner       =     No
+	Memory (Mbytes) =     256.0
+	Maxiter         =     50
+	R_Convergence   =     1.0e-15
+	E_Convergence   =     1.0e-15
+	Restart         =     Yes
+	DIIS            =     Yes
+	AO Basis        =     NONE
+	ABCD            =     NEW
+	Cache Level     =     2
+	Cache Type      =     LOW
+	Print Level     =     1
+	Num. of threads =     1
+	# Amps to Print =     10
+	Print MP2 Amps? =     No
+	Analyze T2 Amps =     No
+	Print Pair Ener =     No
+	Local CC        =     No
+	SCS-MP2         =     False
+	SCSN-MP2        =     False
+	SCS-CCSD        =     False
+
+	            Solving CC Amplitude Equations
+	            ------------------------------
+  Iter             Energy              RMS        T1Diag      D1Diag    New D1Diag    D2Diag
+  ----     ---------------------    ---------   ----------  ----------  ----------   --------
+     0        -0.028859642452225    0.000e+00    0.000000    0.000000    0.000000    0.073541
+     1        -0.035648902315683    2.736e-02    0.001913    0.007999    0.007999    0.096328
+     2        -0.038886928341858    1.055e-02    0.003303    0.013853    0.013853    0.109826
+     3        -0.038933140509676    1.775e-03    0.003651    0.015347    0.015347    0.110870
+     4        -0.038931348894727    5.566e-04    0.003769    0.015855    0.015855    0.111075
+     5        -0.038936174655414    1.186e-04    0.003800    0.015987    0.015987    0.111074
+     6        -0.038935909858769    1.200e-05    0.003801    0.015993    0.015993    0.111068
+     7        -0.038935981396655    1.819e-06    0.003801    0.015993    0.015993    0.111069
+     8        -0.038935968965992    3.865e-07    0.003801    0.015993    0.015993    0.111069
+     9        -0.038935968511138    8.241e-08    0.003801    0.015993    0.015993    0.111069
+    10        -0.038935968380021    1.438e-08    0.003801    0.015993    0.015993    0.111069
+    11        -0.038935968479433    2.786e-09    0.003801    0.015993    0.015993    0.111069
+    12        -0.038935968445961    5.136e-10    0.003801    0.015993    0.015993    0.111069
+    13        -0.038935968443394    7.901e-11    0.003801    0.015993    0.015993    0.111069
+    14        -0.038935968443439    1.862e-11    0.003801    0.015993    0.015993    0.111069
+    15        -0.038935968443757    4.628e-12    0.003801    0.015993    0.015993    0.111069
+    16        -0.038935968443762    9.466e-13    0.003801    0.015993    0.015993    0.111069
+    17        -0.038935968443742    2.052e-13    0.003801    0.015993    0.015993    0.111069
+    18        -0.038935968443735    6.089e-14    0.003801    0.015993    0.015993    0.111069
+    19        -0.038935968443735    1.595e-14    0.003801    0.015993    0.015993    0.111069
+    20        -0.038935968443735    3.076e-15    0.003801    0.015993    0.015993    0.111069
+    21        -0.038935968443735    5.774e-16    0.003801    0.015993    0.015993    0.111069
+
+	Iterations converged.
+
+
+	Largest TIA Amplitudes:
+	          7   0         0.0157905917
+	          6   0        -0.0019548076
+	          4   1         0.0017505038
+	          7   1         0.0012588019
+	          3   1         0.0010652426
+	          3   0         0.0006967064
+	          4   0        -0.0006670195
+	          6   1        -0.0003973659
+	          2   0        -0.0002437958
+	          2   1         0.0001471157
+
+	Largest TIjAb Amplitudes:
+	  7   7   0   0        -0.0692853415
+	  3   3   0   0        -0.0322301571
+	  3   7   0   0         0.0287098603
+	  7   3   0   0         0.0287098603
+	  6   6   1   1        -0.0286068291
+	  4   7   0   0        -0.0275463625
+	  7   4   0   0        -0.0275463625
+	  8   8   1   1        -0.0225516857
+	  2   2   1   1        -0.0209388729
+	  4   4   0   0        -0.0178123849
+
+	SCF energy       (chkpt)              = -171.570540185916201
+	Reference energy (file100)            = -171.570540185916087
+
+	Opposite-spin MP2 correlation energy  =   -0.027055818242721
+	Same-spin MP2 correlation energy      =   -0.001803824209504
+	MP2 correlation energy                =   -0.028859642452225
+      * MP2 total energy                      = -171.599399828368320
+
+	Opposite-spin CCSD correlation energy =   -0.036826431750784
+	Same-spin CCSD correlation energy     =   -0.002109536692060
+	CCSD correlation energy               =   -0.038935968443735
+      * CCSD total energy                     = -171.609476154359811
+
+
+*** tstop() called on ganymede.local at Fri Nov 21 12:25:40 2014
+Module time:
+	user time   =       0.23 seconds =       0.00 minutes
+	system time =       0.52 seconds =       0.01 minutes
+	total time  =          3 seconds =       0.05 minutes
+Total time:
+	user time   =       0.80 seconds =       0.01 minutes
+	system time =       0.68 seconds =       0.01 minutes
+	total time  =          4 seconds =       0.07 minutes
+
+*** tstart() called on ganymede.local
+*** at Fri Nov 21 12:25:40 2014
+
+			**************************
+			*                        *
+			*        CCTRIPLES       *
+			*                        *
+			**************************
+
+
+	Wave function   =    CCSD_T
+	Reference wfn   =      RHF
+
+	Nuclear Rep. energy (chkpt)   =   50.384279869733497
+	SCF energy          (chkpt)   = -171.570540185916201
+	Reference energy    (file100) = -171.570540185916087
+	CCSD energy         (file100) =   -0.038935968443735
+	Total CCSD energy   (file100) = -171.609476154359811
+
+	Number of ijk index combinations: 165
+	Memory available in words        :        32000000
+	~Words needed per explicit thread:              32
+	Number of threads for explicit ijk threading:    1.
+	(T) energy                    =   -0.000210309193937
+      * CCSD(T) total energy          = -171.609686463553771
+
+
+*** tstop() called on ganymede.local at Fri Nov 21 12:25:40 2014
+Module time:
+	user time   =       0.01 seconds =       0.00 minutes
+	system time =       0.02 seconds =       0.00 minutes
+	total time  =          0 seconds =       0.00 minutes
+Total time:
+	user time   =       0.81 seconds =       0.01 minutes
+	system time =       0.70 seconds =       0.01 minutes
+	total time  =          4 seconds =       0.07 minutes
+
+*** PSI4 exiting successfully. Buy a developer a beer!

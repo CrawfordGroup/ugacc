@@ -9,6 +9,8 @@
 #include <libdpd/dpd.h>
 
 #define ID(x) ints.DPD_ID(x)
+#define IOFF_MAX 32641
+#define INDEX(i,j) ((i>j) ? (ioff[(i)]+(j)) : (ioff[(j)]+(i)))
 
 namespace psi {
 
@@ -46,13 +48,40 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
     mo_offset += nmo;
   }
 
-  IntegralTransform ints(ref, spaces, IntegralTransform::Restricted, IntegralTransform::DPDOnly, 
-                         IntegralTransform::QTOrder, IntegralTransform::OccAndVir, true);
+
+  IntegralTransform ints(ref, spaces, IntegralTransform::Restricted, IntegralTransform::IWLAndDPD);
   ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
-  dpd_set_default(ints.get_dpd_id());
+
+  int *ioff = new int[IOFF_MAX];
+  ioff[0] = 0;
+  for(int i=0; i < IOFF_MAX; i++) ioff[i] = ioff[i-1] + i;
+
+  int noei = nact_*(nact_+1)/2;
+  int ntei = noei*(noei+1)/2;
+  double *tei = new double[ntei];
+  std::memset(static_cast<void*>(tei), '\0', ntei*sizeof(double));
+  struct iwlbuf Buf;
+  iwl_buf_init(&Buf, PSIF_MO_TEI, 1e-16, 1, 1);
+  iwl_buf_rd_all(&Buf, tei, ioff, ioff, 0, ioff, 0, "outfile");
+  iwl_buf_close(&Buf, 1);
 
   ints_ = init_4d_array(nact, nact, nact, nact);
+  for(int p=0; p < nact; p++)
+    for(int r=0; r < nact; r++) {
+      int pr = INDEX(p,r);
+      for(int q=0; q < nact; q++)
+        for(int s=0; s < nact; s++) {
+          int qs = INDEX(q,s);
+          int prqs = INDEX(pr,qs);
+          ints_[p][q][r][s] = tei[prqs];
+        }
+    }
+  delete[] tei;
+  delete[] ioff;
+
+/*
   psio->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
+  dpd_set_default(ints.get_dpd_id());
   dpdbuf4 K;
   global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[A,A]"), ID("[A,A]"), ID("[A>=A]+"), ID("[A>=A]+"), 0, "MO Ints (AA|AA)");
   for(int h=0; h < ref->nirrep(); h++) {
@@ -72,6 +101,7 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
   }
   global_dpd_->buf4_close(&K);
   psio->close(PSIF_LIBTRANS_DPD, 1);
+*/
 
   // L(pqrs) = 2<pq|rs> - <pq|sr>  
   L_ = init_4d_array(nact, nact, nact, nact);

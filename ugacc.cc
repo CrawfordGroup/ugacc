@@ -148,7 +148,6 @@ PsiReturnType ugacc(Options& options)
     outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from ccwfn)\n", eccsd+et+eref);
   }
 
-
   return Success;
 }
 

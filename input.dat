@@ -17,6 +17,6 @@ set {
   ooc true
 }
 
-gradient('ugacc', wfn='ccsd(t)')
+energy('ugacc', wfn='ccsd')
 
 

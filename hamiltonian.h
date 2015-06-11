@@ -19,6 +19,7 @@ public:
 
 protected:
   int nmo_;
+  int nso_;
   int nact_;
   int nfzc_;
   int nfzv_;
@@ -26,6 +27,9 @@ protected:
   double **fock_;
   double ****ints_;
   double ****L_;
+
+  double ***mu_;
+  int *mu_irreps_;
 
 }; // Hamiltonian
 

@@ -173,7 +173,7 @@ CCWavefunction::~CCWavefunction()
   }
 }
 
-double CCWavefunction::compute() { 
+double CCWavefunction::compute_energy() { 
   double eref, emp2, eccsd, et;
   eref = reference_energy();
 

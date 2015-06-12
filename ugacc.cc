@@ -60,7 +60,7 @@ PsiReturnType ugacc(Options& options)
   boost::shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
 
   boost::shared_ptr<CCWavefunction> ccwfn(new CCWavefunction(ref, H, options, psio));
-  ccwfn->compute();
+  ccwfn->compute_energy();
 
   if(!ccwfn->dertype()) return Success;
 

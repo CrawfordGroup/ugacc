@@ -16,6 +16,7 @@ public:
   double ** fock_p() { return fock_; }
   double **** ints_p() { return ints_; }
   double **** L_p() { return L_; }
+  double ** mu_p(int i) { return mu_[i]; }
 
 protected:
   int nmo_;
@@ -29,8 +30,6 @@ protected:
   double ****L_;
 
   double ***mu_;
-  int *mu_irreps_;
-
 }; // Hamiltonian
 
 } // psi

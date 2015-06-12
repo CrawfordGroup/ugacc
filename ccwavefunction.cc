@@ -11,17 +11,6 @@ namespace psi {
 
 CCWavefunction::CCWavefunction(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamiltonian> H, Options &options, boost::shared_ptr<PSIO> psio) : Wavefunction(options, psio)
 {
-  outfile->Printf("\n");
-  outfile->Printf("\t\t\t**************************\n");
-  outfile->Printf("\t\t\t*                        *\n");
-  outfile->Printf("\t\t\t*         UGA-CC         *\n");
-  outfile->Printf("\t\t\t*                        *\n");
-  outfile->Printf("\t\t\t**************************\n");
-  outfile->Printf("\n");
-
-  if(options.get_str("REFERENCE") != "RHF")
-    throw PSIEXCEPTION("Only for use with RHF references determinants.");
-
   wfn_ = options.get_str("WFN");
   convergence_ = options.get_double("R_CONVERGENCE");
   maxiter_ = options.get_int("MAXITER");
@@ -184,7 +173,53 @@ CCWavefunction::~CCWavefunction()
   }
 }
 
-double CCWavefunction::compute_energy() { return 0.0; }
+double CCWavefunction::compute() { 
+  double eref, emp2, eccsd, et;
+  eref = reference_energy();
+
+  outfile->Printf("\n\tThe Coupled-Cluster Iteration:\n");
+  outfile->Printf(  "\t---------------------------------------------------\n");
+  outfile->Printf(  "\t Iter   Correlation Energy   T1 Norm      RMS   \n");
+  outfile->Printf(  "\t---------------------------------------------------\n");
+  outfile->Printf(  "\t  %3d  %20.15f\n", 0, emp2 = energy());
+
+  double rms = 0.0;
+  for(int iter=1; iter <= maxiter(); iter++) {
+    amp_save("T");
+    build_F();
+    build_W();
+    build_t1();
+    build_t2();
+    rms = increment_amps("T");
+    if(rms < convergence()) break;
+    if(do_diis()) diis(iter, "T");
+    build_tau();
+    outfile->Printf(  "\t  %3d  %20.15f  %8.6f  %8.6e\n",iter, eccsd = energy(), t1norm(), rms);
+  }
+
+  build_tau();
+  build_tstar();
+
+  if(rms >= convergence())
+    throw PSIEXCEPTION("Computation has not converged.");
+
+  outfile->Printf(  "\n\tMP2 Correlation Energy     = %20.14f\n", emp2);
+  outfile->Printf(  "\tMP2 Total Energy           = %20.14f\n", emp2 + eref);
+  outfile->Printf(  "\tCCSD Correlation Energy    = %20.14f\n", eccsd);
+  outfile->Printf(  "\tCCSD Total Energy          = %20.14f\n", eccsd + eref);
+  if(wfn() == "CCSD_T") {
+    if(ooc()) {
+      outfile->Printf("\t(T) Correction             = %20.14f (ooc)\n", et = tcorr_ooc());
+      outfile->Printf("\t(T) Correction             = %20.14f (TJL)\n", tcorr_ooc_TJL());
+    }
+    else outfile->Printf("\t(T) Correction             = %20.14f\n", et = tcorr());
+    outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f\n", eccsd + et);
+    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f\n", eref + eccsd + et);
+  }
+
+  amp_write(20, "T");
+  outfile->Printf("\n");
+}
 
 double CCWavefunction::energy()
 {

@@ -119,7 +119,7 @@ public:
   bool ooc() { return ooc_; }
   int dertype() { return dertype_; }
 
-  double compute_energy();
+  double compute();
 
   double energy();
   void build_tau();

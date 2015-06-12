@@ -50,10 +50,10 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
   boost::shared_ptr<Molecule> mol = ref->molecule();
   boost::shared_ptr<IntegralFactory> fact = ref->integral();
   OperatorSymmetry dipsym(1, mol, fact);
-  mu_irreps_ = new int[3];
-  mu_irreps_[0] = dipsym.component_symmetry(0);
-  mu_irreps_[1] = dipsym.component_symmetry(1);
-  mu_irreps_[2] = dipsym.component_symmetry(2);
+  int *mu_irreps = new int[3];
+  mu_irreps[0] = dipsym.component_symmetry(0);
+  mu_irreps[1] = dipsym.component_symmetry(1);
+  mu_irreps[2] = dipsym.component_symmetry(2);
 
   double **scf = Ca->to_block_matrix();
   MintsHelper mints(Process::environment.options, 0);
@@ -67,7 +67,7 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
     C_DGEMM('t','n',nmo_,nmo_,nso_,1,scf[0],nmo_,B[0],nmo_,0,C[0],nmo_);
     mu_[i] = block_matrix(nact, nact);
     for(int hl=0; hl < ref->nirrep(); hl++) {
-      int hr = hl ^ mu_irreps_[i];
+      int hr = hl ^ mu_irreps[i];
       for(int p=ref->frzcpi()[hl]; p < (ref->nmopi()[hl]-ref->frzvpi()[hl]); p++) {
         for(int q=ref->frzcpi()[hr]; q < (ref->nmopi()[hr]-ref->frzvpi()[hr]); q++) {
           int P = map[p+mo_offset[hl]]; int Q = map[q+mo_offset[hr]];
@@ -79,6 +79,7 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
   }
   free_block(scf);
   free(mo_offset);
+  free(mu_irreps);
   free(map);
 
 
@@ -136,7 +137,6 @@ Hamiltonian::~Hamiltonian()
   free_block(fock_); 
 
   for(int i=0; i < 3; i++) free_block(mu_[i]);
-  free(mu_irreps_);
 }
 
 } // namespace psi

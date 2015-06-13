@@ -120,6 +120,7 @@ public:
   int dertype() { return dertype_; }
 
   double compute_energy();
+  double compute_lambda();
 
   double energy();
   void build_tau();

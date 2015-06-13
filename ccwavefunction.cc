@@ -203,6 +203,7 @@ double CCWavefunction::compute_energy() {
   if(rms >= convergence())
     throw PSIEXCEPTION("Computation has not converged.");
 
+  double etotal = eccsd + eref;
   outfile->Printf(  "\n\tMP2 Correlation Energy     = %20.14f\n", emp2);
   outfile->Printf(  "\tMP2 Total Energy           = %20.14f\n", emp2 + eref);
   outfile->Printf(  "\tCCSD Correlation Energy    = %20.14f\n", eccsd);
@@ -215,10 +216,13 @@ double CCWavefunction::compute_energy() {
     else outfile->Printf("\t(T) Correction             = %20.14f\n", et = tcorr());
     outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f\n", eccsd + et);
     outfile->Printf("\tCCSD(T) Total Energy       = %20.14f\n", eref + eccsd + et);
+    etotal += et;
   }
 
   amp_write(20, "T");
   outfile->Printf("\n");
+
+  return etotal;
 }
 
 double CCWavefunction::energy()
@@ -977,6 +981,39 @@ void CCWavefunction::hbar()
           Hovoo_[m][b][i][j] = value;
         }
 
+}
+
+double CCWavefunction::compute_lambda()
+{
+  init_lambda();
+  init_density(); // May need to conditional this
+
+  if(wfn() == "CCSD_T") {
+    if(ooc()) tgrad_ooc();
+    else tgrad();
+  }
+
+  outfile->Printf("\n\tThe Coupled-Cluster Lambda Iteration:\n");
+  outfile->Printf(  "\t-------------------------------------\n");  outfile->Printf(  "\t Iter   Correlation Energy  RMS   \n");
+  outfile->Printf(  "\t-------------------------------------\n");
+  outfile->Printf(  "\t  %3d  %20.15f\n", 0, pseudoenergy());
+
+  double rms = 0.0;
+  for(int iter=1; iter <= maxiter(); iter++) {
+    amp_save("L");    build_G();
+    build_l1();    build_l2();
+    rms = increment_amps("L");
+    if(rms < convergence()) break;
+    if(do_diis()) diis(iter, "L");
+    outfile->Printf(  "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
+  }
+  if(rms >= convergence())
+    throw PSIEXCEPTION("Computation has not converged.");
+
+  amp_write(20, "L");
+  outfile->Printf("\n");
+
+  return pseudoenergy();
 }
 
 void CCWavefunction::init_lambda()

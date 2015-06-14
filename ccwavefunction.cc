@@ -983,7 +983,7 @@ void CCWavefunction::hbar()
 
 }
 
-double CCWavefunction::compute_lambda()
+void CCWavefunction::compute_lambda()
 {
   init_lambda();
   init_density(); // May need to conditional this
@@ -1012,8 +1012,6 @@ double CCWavefunction::compute_lambda()
 
   amp_write(20, "L");
   outfile->Printf("\n");
-
-  return pseudoenergy();
 }
 
 void CCWavefunction::init_lambda()

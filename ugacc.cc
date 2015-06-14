@@ -43,29 +43,27 @@ PsiReturnType ugacc(Options& options)
   outfile->Printf("\t\t\t**************************\n");
   outfile->Printf("\n");
 
+  boost::shared_ptr<Wavefunction> ref = Process::environment.wavefunction();
+
+  // Error trapping – need closed-shell SCF in place
+  if(!ref) throw PSIEXCEPTION("SCF has not been run yet!");
   if(options.get_str("REFERENCE") != "RHF")
     throw PSIEXCEPTION("Only for use with RHF references determinants.");
-
-  boost::shared_ptr<PSIO> psio(_default_psio_lib_);
-  boost::shared_ptr<Wavefunction> ref = Process::environment.wavefunction();
-  if(!ref) throw PSIEXCEPTION("SCF has not been run yet!");
-
-  // Make sure this isn't an open-shell system
   for(int h=0; h < ref->nirrep(); h++)
     if(ref->soccpi()[h]) throw PSIEXCEPTION("UGACC is for closed-shell systems only.");
 
+  boost::shared_ptr<PSIO> psio(_default_psio_lib_);
   std::vector<boost::shared_ptr<MOSpace> > spaces;
   spaces.push_back(MOSpace::all);
-
   boost::shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
-
   boost::shared_ptr<CCWavefunction> ccwfn(new CCWavefunction(ref, H, options, psio));
-  double etotal = ccwfn->compute_energy();
+
+  double ecc = ccwfn->compute_energy();
 
   if(!ccwfn->dertype()) return Success;
 
   ccwfn->hbar();
-  double epseudo = ccwfn->compute_lambda();
+  ccwfn->compute_lambda();
 
   double Eone = ccwfn->onepdm();
   double Etwo = ccwfn->twopdm();
@@ -76,12 +74,12 @@ PsiReturnType ugacc(Options& options)
   if(ccwfn->wfn() == "CCSD") {
     outfile->Printf("\tCCSD Correlation Energy    = %20.14f (from density)\n", Eone+Etwo);
     outfile->Printf("\tCCSD Total Energy          = %20.14f (from density)\n", Eone+Etwo+eref);
-    outfile->Printf("\tCCSD Total Energy          = %20.14f (from ccwfn)\n", etotal);
+    outfile->Printf("\tCCSD Total Energy          = %20.14f (from ccwfn)\n", ecc);
   }
   else if(ccwfn->wfn() == "CCSD_T") {
     outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f (from density)\n", Eone+Etwo);
     outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from density)\n", Eone+Etwo+eref);
-    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from ccwfn)\n", etotal);
+    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from ccwfn)\n", ecc);
   }
 
 

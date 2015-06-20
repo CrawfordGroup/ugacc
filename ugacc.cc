@@ -1,4 +1,5 @@
 #include "ccwavefunction.h"
+#include "perturbation.h"
 
 #include <libplugin/plugin.h>
 #include <psi4-dec.h>
@@ -65,23 +66,30 @@ PsiReturnType ugacc(Options& options)
   ccwfn->hbar();
   ccwfn->compute_lambda();
 
-  double Eone = ccwfn->onepdm();
-  double Etwo = ccwfn->twopdm();
+  double eone = ccwfn->onepdm();
+  double etwo = ccwfn->twopdm();
   double eref = ccwfn->reference_energy();
 
-  outfile->Printf("\tOne-Electron Energy        = %20.14f\n", Eone);
-  outfile->Printf("\tTwo-Electron Energy        = %20.14f\n", Etwo);
+  outfile->Printf("\tOne-Electron Energy        = %20.14f\n", eone);
+  outfile->Printf("\tTwo-Electron Energy        = %20.14f\n", etwo);
   if(ccwfn->wfn() == "CCSD") {
-    outfile->Printf("\tCCSD Correlation Energy    = %20.14f (from density)\n", Eone+Etwo);
-    outfile->Printf("\tCCSD Total Energy          = %20.14f (from density)\n", Eone+Etwo+eref);
+    outfile->Printf("\tCCSD Correlation Energy    = %20.14f (from density)\n", eone+etwo);
+    outfile->Printf("\tCCSD Total Energy          = %20.14f (from density)\n", eone+etwo+eref);
     outfile->Printf("\tCCSD Total Energy          = %20.14f (from ccwfn)\n", ecc);
   }
   else if(ccwfn->wfn() == "CCSD_T") {
-    outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f (from density)\n", Eone+Etwo);
-    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from density)\n", Eone+Etwo+eref);
+    outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f (from density)\n", eone+etwo);
+    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from density)\n", eone+etwo+eref);
     outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from ccwfn)\n", ecc);
   }
 
+  // Prepare property integrals for perturbed wave functions
+  // How do you distinguish perturbation operators in the constructor?
+  // What's the interface to the data?
+  boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref));
+  mu->print(0);
+  boost::shared_ptr<Perturbation> L(new Perturbation("L", ref));
+  L->print();
 
   return Success;
 }

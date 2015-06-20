@@ -17,6 +17,6 @@ set {
   ooc true
 }
 
-gradient('ugacc', wfn='ccsd(t)')
+gradient('ugacc', wfn='ccsd')
 
 

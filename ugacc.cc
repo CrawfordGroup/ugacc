@@ -87,9 +87,17 @@ PsiReturnType ugacc(Options& options)
   // How do you distinguish perturbation operators in the constructor?
   // What's the interface to the data?
   boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref));
-  mu->print(0);
+  mu->print();
+  boost::shared_ptr<Perturbation> P(new Perturbation("P", ref));
+  P->print();
+  boost::shared_ptr<Perturbation> Pcc(new Perturbation("P*", ref));
+  Pcc->print();
   boost::shared_ptr<Perturbation> L(new Perturbation("L", ref));
   L->print();
+  boost::shared_ptr<Perturbation> Lcc(new Perturbation("L*", ref));
+  Lcc->print();
+  boost::shared_ptr<Perturbation> Q(new Perturbation("Q", ref));
+  Q->print();
 
   return Success;
 }

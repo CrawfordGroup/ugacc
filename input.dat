@@ -10,13 +10,15 @@ no_com
 }
 
 set {
-  basis cc-pVDZ
+  basis STO-3G
   freeze_core true
   r_convergence 1e-15
   e_convergence 1e-15
   ooc true
+  maxiter 100
 }
 
+#property('ccsd', properties=['polarizability'])
 gradient('ugacc', wfn='ccsd')
 
 

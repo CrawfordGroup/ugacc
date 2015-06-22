@@ -144,7 +144,7 @@ void Perturbation::print(std::string out)
   }
   else if(twobody(operator_)) {
     for(int i=0; i < 3; i++)
-      for(int j=0; j <= i; j++) {
+      for(int j=i; j < 3; j++) {
         printer->Printf("%s(%c,%c)\n", operator_.c_str(), cart[i], cart[j]);
         mat_print(prop3_[i][j], nact_, nact_, out);
       }

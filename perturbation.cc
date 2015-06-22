@@ -55,55 +55,31 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref)
   SharedMatrix Ca = ref->Ca();
   double **scf = Ca->to_block_matrix();
 
-  if(onebody(operator_)) {
-    prop2_ = new double** [3];
-    if(operator_ == "P*" || operator_ == "L*") // take complex conjugate
-      for(int i=0; i < 3; i++) prop[i]->scale(-1.0);
-    if(operator_ == "L" || operator_ == "L*") // -1/2 in definition of magnetic dipole
-      for(int i=0; i < 3; i++) prop[i]->scale(-0.5);
-    for(int i=0; i < 3; i++) {
-      double **A = prop[i]->to_block_matrix();
-      double **B = block_matrix(nso_, nmo_);
-      double **C = block_matrix(nmo_, nmo_);
-      C_DGEMM('n','n',nso_,nmo_,nso_,1,A[0],nso_,scf[0],nmo_,0,B[0],nmo_);
-      C_DGEMM('t','n',nmo_,nmo_,nso_,1,scf[0],nmo_,B[0],nmo_,0,C[0],nmo_);
-      prop2_[i] = block_matrix(nact_, nact_);
-      for(int hl=0; hl < ref->nirrep(); hl++) {
-        int hr = hl ^ prop_irreps[i];
-        for(int p=ref->frzcpi()[hl]; p < (ref->nmopi()[hl]-ref->frzvpi()[hl]); p++) {
-          for(int q=ref->frzcpi()[hr]; q < (ref->nmopi()[hr]-ref->frzvpi()[hr]); q++) {
-            int P = map[p+mo_offset[hl]]; int Q = map[q+mo_offset[hr]];
-            prop2_[i][P-nfzc_][Q-nfzc_] = C[p+mo_offset[hl]][q+mo_offset[hr]];
-          }
+  if(dipole(operator_)) prop_ = new double** [3];
+  else if(quadrupole(operator_)) prop_ = new double** [6];
+
+  if(operator_ == "P*" || operator_ == "L*") // take complex conjugate
+    for(int i=0; i < 3; i++) prop[i]->scale(-1.0);
+  if(operator_ == "L" || operator_ == "L*") // -1/2 in definition of magnetic dipole
+    for(int i=0; i < 3; i++) prop[i]->scale(-0.5);
+
+  for(int i=0; i < (dipole(operator_) ? 3 : 6); i++) {
+    double **A = prop[i]->to_block_matrix();
+    double **B = block_matrix(nso_, nmo_);
+    double **C = block_matrix(nmo_, nmo_);
+    C_DGEMM('n','n',nso_,nmo_,nso_,1,A[0],nso_,scf[0],nmo_,0,B[0],nmo_);
+    C_DGEMM('t','n',nmo_,nmo_,nso_,1,scf[0],nmo_,B[0],nmo_,0,C[0],nmo_);
+    prop_[i] = block_matrix(nact_, nact_);
+    for(int hl=0; hl < ref->nirrep(); hl++) {
+      int hr = hl ^ prop_irreps[i];
+      for(int p=ref->frzcpi()[hl]; p < (ref->nmopi()[hl]-ref->frzvpi()[hl]); p++) {
+        for(int q=ref->frzcpi()[hr]; q < (ref->nmopi()[hr]-ref->frzvpi()[hr]); q++) {
+          int P = map[p+mo_offset[hl]]; int Q = map[q+mo_offset[hr]];
+          prop_[i][P-nfzc_][Q-nfzc_] = C[p+mo_offset[hl]][q+mo_offset[hr]];
         }
       }
-      free_block(A); free_block(B); free_block(C);
     }
-  }
-  else if(twobody(operator_)) {
-    prop3_ = new double*** [3];
-    for(int i=0; i < 3; i++) prop3_[i] = new double** [3];
-    for(int i=0,ij=0; i < 3; i++) {
-      for(int j=i; j < 3; j++,ij++) {
-        double **A = prop[ij]->to_block_matrix();
-        double **B = block_matrix(nso_, nmo_);
-        double **C = block_matrix(nmo_, nmo_);
-        C_DGEMM('n','n',nso_,nmo_,nso_,1,A[0],nso_,scf[0],nmo_,0,B[0],nmo_);
-        C_DGEMM('t','n',nmo_,nmo_,nso_,1,scf[0],nmo_,B[0],nmo_,0,C[0],nmo_);
-        prop3_[i][j] = block_matrix(nact_, nact_);  
-        for(int hl=0; hl < ref->nirrep(); hl++) {
-          int hr = hl ^ prop_irreps[i];
-          for(int p=ref->frzcpi()[hl]; p < (ref->nmopi()[hl]-ref->frzvpi()[hl]); p++) {
-            for(int q=ref->frzcpi()[hr]; q < (ref->nmopi()[hr]-ref->frzvpi()[hr]); q++) {
-              int P = map[p+mo_offset[hl]]; int Q = map[q+mo_offset[hr]];
-              prop3_[i][j][P-nfzc_][Q-nfzc_] = C[p+mo_offset[hl]][q+mo_offset[hr]];
-            }
-          }
-        }
-        if(i!=j) prop3_[j][i] = prop3_[i][j];
-        free_block(A); free_block(B); free_block(C);
-      }
-    }
+    free_block(A); free_block(B); free_block(C);
   }
 
   free_block(scf);
@@ -114,19 +90,8 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref)
 
 Perturbation::~Perturbation()
 {
-  if(onebody(operator_)) {
-    for(int i=0; i < 3; i++) free_block(prop2_[i]);
-    delete [] prop2_;
-  } 
-  else if(twobody(operator_)) {
-    for(int i=0; i < 3; i++) {
-      for(int j=i; j < 3; j++) {
-        free_block(prop3_[i][j]);
-      }
-      delete [] prop3_[i];
-    }
-    delete [] prop3_;
-  }
+  for(int i=0; i < (dipole(operator_) ? 3 : 6); i++) free_block(prop_[i]);
+  delete [] prop_;
 }
 
 void Perturbation::print(std::string out)
@@ -136,18 +101,19 @@ void Perturbation::print(std::string out)
   std::string cart = "XYZ";
 
   printer->Printf("\n");
-  if(onebody(operator_)) {
+  if(dipole(operator_)) {
     for(int i=0; i < 3; i++) {
       printer->Printf("%s(%c)\n", operator_.c_str(), cart[i]);
-      mat_print(prop2_[i], nact_, nact_, out);
+      mat_print(prop_[i], nact_, nact_, out);
     }
   }
-  else if(twobody(operator_)) {
-    for(int i=0; i < 3; i++)
-      for(int j=i; j < 3; j++) {
+  else if(quadrupole(operator_)) {
+    for(int i=0,ij=0; i < 3; i++) {
+      for(int j=i; j < 3; j++,ij++) {
         printer->Printf("%s(%c,%c)\n", operator_.c_str(), cart[i], cart[j]);
-        mat_print(prop3_[i][j], nact_, nact_, out);
+        mat_print(prop_[ij], nact_, nact_, out);
       }
+    }
   }
 }
 
@@ -158,9 +124,9 @@ void Perturbation::print(int i, std::string out)
   std::string cart = "XYZ";
 
   printer->Printf("\n");
-  if(onebody(operator_)) {
+  if(dipole(operator_)) {
     printer->Printf("%s(%c)\n", operator_.c_str(), cart[i]);
-    mat_print(prop2_[i], nact_, nact_, out);
+    mat_print(prop_[i], nact_, nact_, out);
   }
   else throw PSIEXCEPTION("Single Cartesian index given for multipolar property?");
 }
@@ -172,11 +138,12 @@ void Perturbation::print(int i, int j, std::string out)
   std::string cart = "XYZ";
 
   printer->Printf("\n");
-  if(onebody(operator_))
+  if(dipole(operator_))
    throw PSIEXCEPTION("Two Cartesian indices given for dipolar property?");
-  else if(twobody(operator_)) {
-    printer->Printf("%s(%c)\n", operator_.c_str(), cart[i]);
-    mat_print(prop3_[i][j], nact_, nact_, out);
+  else if(quadrupole(operator_)) {
+    int ij = ((i) > (j) ? (i)*((i)+1)/2 + (j) : (j)*((j)+1)/2 + (i));
+    printer->Printf("%s(%c,%c)\n", operator_.c_str(), cart[i], cart[j]);
+    mat_print(prop_[ij], nact_, nact_, out);
   }
 }
 
@@ -190,13 +157,13 @@ bool Perturbation::allowed(std::string op)
   else return false;
 }
 
-bool Perturbation::onebody(std::string op)
+bool Perturbation::dipole(std::string op)
 {
   if(op == "Mu" || op == "P" || op == "P*" || op == "L" || op == "L*") return true;
   else return false;
 }
 
-bool Perturbation::twobody(std::string op)
+bool Perturbation::quadrupole(std::string op)
 {
   if(op == "Q") return true;
   else return false;

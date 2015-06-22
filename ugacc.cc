@@ -84,20 +84,17 @@ PsiReturnType ugacc(Options& options)
   }
 
   // Prepare property integrals for perturbed wave functions
-  // How do you distinguish perturbation operators in the constructor?
-  // What's the interface to the data?
   boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref));
   mu->print();
-  boost::shared_ptr<Perturbation> P(new Perturbation("P", ref));
-  P->print();
-  boost::shared_ptr<Perturbation> Pcc(new Perturbation("P*", ref));
-  Pcc->print();
-  boost::shared_ptr<Perturbation> L(new Perturbation("L", ref));
-  L->print();
-  boost::shared_ptr<Perturbation> Lcc(new Perturbation("L*", ref));
-  Lcc->print();
   boost::shared_ptr<Perturbation> Q(new Perturbation("Q", ref));
   Q->print();
+
+  // Create similarity transformed property integrals
+//  mu->simtrans();
+
+  // Solve perturbed wave function equations for give perturbation and field frequency
+  // Use perturbed wfns to construct the linear response function
+  // Alternatively, build density-based linear response function
 
   return Success;
 }

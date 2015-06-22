@@ -20,8 +20,12 @@ public:
   std::string operator_; // perturbation name
   Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref);
   ~Perturbation();
-  double **prop_p(int i) { return prop2_[i]; }
-  double **prop_p(int i, int j) { return prop3_[i][j]; }
+  double **prop_p(int i) { return prop_[i]; }
+  double **prop_p(int i, int j) // for quarupolar peturbations
+  { 
+    int ij = ((i) > (j) ? (i)*((i)+1)/2 + (j) : (j)*((j)+1)/2 + (i));
+    return prop_[ij];
+  }
   void print(std::string out);
   void print(int i, std::string out);
   void print(int i, int j, std::string out);
@@ -36,14 +40,12 @@ protected:
   int nfzc_;
   int nfzv_;
 
-  // Yes, a generalized structure would be nicer
-  double ***prop2_; // dipolar quantities use this pointer
-  double ****prop3_; // quadrupole quantities use this one
+  double ***prop_;
 
 private:
   bool allowed(std::string op);
-  bool onebody(std::string op);
-  bool twobody(std::string op);
+  bool dipole(std::string op);
+  bool quadrupole(std::string op);
 };
 
 } // psi

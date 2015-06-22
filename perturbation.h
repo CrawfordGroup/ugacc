@@ -34,12 +34,7 @@ public:
   void print(int i, int j);
 
 protected:
-  int nmo_;
-  int nso_;
   int nact_;
-  int nfzc_;
-  int nfzv_;
-
   double ***prop_;
 
 private:

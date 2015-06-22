@@ -12,18 +12,18 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref)
   operator_ = op;
 
   // Basis-set parameters
-  nmo_ = ref->nmo();
-  nso_ = ref->nso();
-  nfzc_ = ref->nfrzc();
-  nfzv_ = 0;
+  int nmo = ref->nmo();
+  int nso = ref->nso();
+  int nfzc = ref->nfrzc();
+  int nfzv = 0;
   for(int i=0; i < ref->nirrep(); i++)
-    nfzv_ += ref->frzvpi()[i];
-  nact_ = nmo_ - nfzc_ - nfzv_;
+    nfzv += ref->frzvpi()[i];
+  nact_ = nmo - nfzc - nfzv;
 
   int *mo_offset = init_int_array(ref->nirrep()); // Pitzer offsets
   for(int h=1; h < ref->nirrep(); h++) mo_offset[h] = mo_offset[h-1] + ref->nmopi()[h-1];
 
-  int *map = init_int_array(nmo_); // Translates from Pitzer (including frozen docc) to QT
+  int *map = init_int_array(nmo); // Translates from Pitzer (including frozen docc) to QT
   reorder_qt((int *) ref->doccpi(), (int *) ref->soccpi(), (int *) ref->frzcpi(), (int *) ref->frzvpi(),
              map, (int *) ref->nmopi(), ref->nirrep());
 
@@ -31,16 +31,29 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref)
   boost::shared_ptr<Molecule> mol = ref->molecule();
   boost::shared_ptr<IntegralFactory> fact = ref->integral();
   OperatorSymmetry dipsym(1, mol, fact);
-  int *prop_irreps = new int[3];
-  if(operator_ == "Mu" || operator_ == "P" || operator_ == "P*" || operator_ == "Q") {
+  int *prop_irreps;
+  if(operator_ == "Mu" || operator_ == "P" || operator_ == "P*") {
+    prop_irreps = new int[3];
     prop_irreps[0] = dipsym.component_symmetry(0);
     prop_irreps[1] = dipsym.component_symmetry(1);
     prop_irreps[2] = dipsym.component_symmetry(2);
   }
   else if(operator_ == "L" || operator_ == "L*") {
+    prop_irreps = new int[3];
     prop_irreps[0] = dipsym.component_symmetry(1) ^ dipsym.component_symmetry(2);
     prop_irreps[1] = dipsym.component_symmetry(2) ^ dipsym.component_symmetry(0);
     prop_irreps[2] = dipsym.component_symmetry(0) ^ dipsym.component_symmetry(1);
+  }
+  else if(operator_ == "Q") {
+    prop_irreps = new int[6];
+    prop_irreps[0] = dipsym.component_symmetry(0) ^ dipsym.component_symmetry(0);
+    prop_irreps[1] = dipsym.component_symmetry(0) ^ dipsym.component_symmetry(1);
+    prop_irreps[2] = dipsym.component_symmetry(0) ^ dipsym.component_symmetry(2);
+    prop_irreps[3] = dipsym.component_symmetry(1) ^ dipsym.component_symmetry(1);
+    prop_irreps[4] = dipsym.component_symmetry(1) ^ dipsym.component_symmetry(2);
+    prop_irreps[5] = dipsym.component_symmetry(2) ^ dipsym.component_symmetry(2);
+    outfile->Printf("%d %d %d %d %d %d\n", prop_irreps[0], prop_irreps[1], prop_irreps[2], prop_irreps[3],
+prop_irreps[4], prop_irreps[5]);
   }
 
   // Grab the raw SO integrals
@@ -65,17 +78,17 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref)
 
   for(int i=0; i < (dipole(operator_) ? 3 : 6); i++) {
     double **A = prop[i]->to_block_matrix();
-    double **B = block_matrix(nso_, nmo_);
-    double **C = block_matrix(nmo_, nmo_);
-    C_DGEMM('n','n',nso_,nmo_,nso_,1,A[0],nso_,scf[0],nmo_,0,B[0],nmo_);
-    C_DGEMM('t','n',nmo_,nmo_,nso_,1,scf[0],nmo_,B[0],nmo_,0,C[0],nmo_);
+    double **B = block_matrix(nso, nmo);
+    double **C = block_matrix(nmo, nmo);
+    C_DGEMM('n','n',nso,nmo,nso,1,A[0],nso,scf[0],nmo,0,B[0],nmo);
+    C_DGEMM('t','n',nmo,nmo,nso,1,scf[0],nmo,B[0],nmo,0,C[0],nmo);
     prop_[i] = block_matrix(nact_, nact_);
     for(int hl=0; hl < ref->nirrep(); hl++) {
       int hr = hl ^ prop_irreps[i];
       for(int p=ref->frzcpi()[hl]; p < (ref->nmopi()[hl]-ref->frzvpi()[hl]); p++) {
         for(int q=ref->frzcpi()[hr]; q < (ref->nmopi()[hr]-ref->frzvpi()[hr]); q++) {
           int P = map[p+mo_offset[hl]]; int Q = map[q+mo_offset[hr]];
-          prop_[i][P-nfzc_][Q-nfzc_] = C[p+mo_offset[hl]][q+mo_offset[hr]];
+          prop_[i][P-nfzc][Q-nfzc] = C[p+mo_offset[hl]][q+mo_offset[hr]];
         }
       }
     }

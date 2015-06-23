@@ -87,9 +87,13 @@ PsiReturnType ugacc(Options& options)
   boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref));
 
   // Create similarity transformed property integrals
-  boost::shared_ptr<Pertbar> mubar(mu, ccwfn);
+  boost::shared_ptr<Pertbar> mubar(new PertBar(mu, ccwfn));
 
   // Solve perturbed wave function equations for give perturbation and field frequency
+  boost::shared_ptr<PertCC> mucc(new PertCC(mubar, ccwfn));
+
+
+
   // Use perturbed wfns to construct the linear response function
   // Alternatively, build density-based linear response function
 

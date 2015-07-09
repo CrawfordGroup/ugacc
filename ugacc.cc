@@ -90,7 +90,7 @@ PsiReturnType ugacc(Options& options)
   boost::shared_ptr<Pertbar> mubar(new PertBar(mu, ccwfn));
 
   // Solve perturbed wave function equations for give perturbation and field frequency
-  boost::shared_ptr<PertCC> mucc(new PertCC(mubar, ccwfn));
+  boost::shared_ptr<PertCC> mucc(new PertCC(mu, ccwfn));
 
 
 

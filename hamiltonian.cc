@@ -15,6 +15,7 @@ namespace psi {
 Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefunction> ref, std::vector<boost::shared_ptr<MOSpace> > spaces)
 {
   nmo_ = ref->nmo();
+  nso_ = ref->nso();
   nfzc_ = ref->nfrzc();
   nfzv_ = 0;
   for(int i=0; i < ref->nirrep(); i++) 
@@ -23,27 +24,29 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
 
   int nact = nact_;
 
-  // Prepare Fock matrix in MO basis
-  SharedMatrix Fa = ref->Fa();
-  SharedMatrix Ca = ref->Ca();
-  Fa->transform(Ca);
+  int *mo_offset = init_int_array(ref->nirrep()); // Pitzer offsets
+  for(int h=1; h < ref->nirrep(); h++) mo_offset[h] = mo_offset[h-1] + ref->nmopi()[h-1];
 
   int *map = init_int_array(nmo_); // Translates from Pitzer (including frozen docc) to QT
   reorder_qt((int *) ref->doccpi(), (int *) ref->soccpi(), (int *) ref->frzcpi(), (int *) ref->frzvpi(), 
              map, (int *) ref->nmopi(), ref->nirrep());
 
+  // Prepare Fock matrix in MO basis in QT ordering
+  SharedMatrix Fa = ref->Fa();
+  SharedMatrix Ca = ref->Ca();
+  Fa->transform(Ca);
   fock_ = block_matrix(nact, nact);
-  int mo_offset=0;
   for(int h=0; h < ref->nirrep(); h++) {
     int nmo = ref->nmopi()[h]; int nfv = ref->frzvpi()[h]; int nfc = ref->frzcpi()[h];
     for(int p=nfc; p < nmo-nfv; p++) {
       for(int q=nfc; q < nmo-nfv; q++) {
-      int P = map[p+mo_offset]; int Q = map[q+mo_offset];
+      int P = map[p+mo_offset[h]]; int Q = map[q+mo_offset[h]];
       fock_[P-nfzc_][Q-nfzc_] = Fa->get(h,p,q);
       }
     }
-    mo_offset += nmo;
   }
+
+  free(mo_offset);
   free(map);
 
   // Use reorder_qt() to generate a new mapping array w/o frozen core or virtual orbitals

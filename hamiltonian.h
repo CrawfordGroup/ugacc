@@ -21,6 +21,7 @@ public:
 
 protected:
   int nmo_;
+  int nso_;
   int nact_;
   int nfzc_;
   int nfzv_;

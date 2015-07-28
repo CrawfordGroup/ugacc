@@ -5,7 +5,7 @@
 #include <libmints/mints.h>
 #include <libtrans/integraltransform.h>
 
-namespace psi {
+namespace psi { namespace ugacc {
 
 class Hamiltonian {
 public:
@@ -29,6 +29,6 @@ protected:
   double ****L_;
 }; // Hamiltonian
 
-} // psi
+}} // psi::ugacc
 
 #endif // HAMILTONIAN_H

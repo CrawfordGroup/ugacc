@@ -13,7 +13,7 @@
 // Q  = traceless quadrupole
 // 
 
-namespace psi {
+namespace psi { namespace ugacc {
 
 class Perturbation {
 public:
@@ -43,6 +43,6 @@ private:
   bool quadrupole(std::string op);
 };
 
-} // psi
+}} // psi::ugacc
 
 #endif // PERTURBATION_H

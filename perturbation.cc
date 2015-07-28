@@ -5,7 +5,7 @@
 #include <libmints/mints.h>
 #include "libparallel/ParallelPrinter.h"
 
-namespace psi {
+namespace psi { namespace ugacc {
 
 Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref)
 {
@@ -182,4 +182,4 @@ bool Perturbation::quadrupole(std::string op)
   else return false;
 }
 
-} // psi
+}} // psi::ugacc

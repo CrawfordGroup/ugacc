@@ -5,7 +5,7 @@
 #include <libmints/mints.h>
 #include <boost/shared_ptr.hpp>
 
-namespace psi {
+namespace psi { namespace ugacc {
 
 struct onestack {
     double value;
@@ -168,6 +168,6 @@ public:
 
 }; // CCWavefunction
 
-} // psi
+}} // psi::ugacc
 
 #endif // CCWAVEFUNCTION_H

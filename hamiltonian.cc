@@ -10,7 +10,7 @@
 
 #define ID(x) ints.DPD_ID(x)
 
-namespace psi {
+namespace psi { namespace ugacc {
 
 Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefunction> ref, std::vector<boost::shared_ptr<MOSpace> > spaces)
 {
@@ -103,4 +103,4 @@ Hamiltonian::~Hamiltonian()
   free_block(fock_); 
 }
 
-} // namespace psi
+}} // namespace psi::ugacc

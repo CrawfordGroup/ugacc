@@ -7,7 +7,7 @@
 #include <cmath>
 #include <libpsio/psio.h>
 
-namespace psi {
+namespace psi { namespace ugacc {
 
 CCWavefunction::CCWavefunction(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamiltonian> H, Options &options, boost::shared_ptr<PSIO> psio) : Wavefunction(options, psio)
 {
@@ -2438,4 +2438,4 @@ void CCWavefunction::tgrad_ooc()
   return;
 }
 
-} // psi
+}} // psi::ugacc

@@ -1,7 +1,7 @@
 #ifndef PERTBAR_H
 #define PERTBAR_H
 
-namespace psi {
+namespace psi { namespace ugacc {
 
 class Pertbar {
 public:
@@ -26,6 +26,6 @@ protected:
   double *****vvoo_;
 };
 
-} // psi
+}} // psi::ugacc
 
 #endif // PERTBAR_H

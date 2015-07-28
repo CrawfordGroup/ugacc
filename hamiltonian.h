@@ -5,6 +5,8 @@
 #include <libmints/mints.h>
 #include <libtrans/integraltransform.h>
 
+class CCWavefunction; // friend
+
 namespace psi {
 
 class Hamiltonian {
@@ -26,6 +28,8 @@ protected:
   double **fock_;
   double ****ints_;
   double ****L_;
+
+  friend class CCWavefunction;
 
 }; // Hamiltonian
 

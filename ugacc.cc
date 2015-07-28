@@ -28,6 +28,7 @@ int read_options(std::string name, Options& options)
     options.add_bool("DIIS", true);
     options.add_double("R_CONVERGENCE", 1e-7);
     options.add_bool("OOC", false);
+    options.add("OMEGA",new ArrayType());
   }
 
   return true;
@@ -83,14 +84,41 @@ PsiReturnType ugacc(Options& options)
     outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from ccwfn)\n", ecc);
   }
 
+  // Handle external field frequencies
+  int nomega;
+  std::vector<double> omega;
+  if(options["OMEGA"].size() == 0) { // Assume 0.0 E_h for field energy
+    nomega = 1;
+    omega.push_back(0.0);
+  }
+  else if(options.["OMEGA"].size() == 1) { // Assume E_h for field energy and read value
+    nomega = 1;
+    omega.push_back(options["OMEGA"][0].to_double());
+  }
+  else if(options["OMEGA"].size() >= 2) {
+    nomega = count-1;
+    omega.resize(nomega);
+    std::string units = options["OMEGA"][count-1].to_string();
+    for(int i=0; i < nomega; i++) {
+      omega[i] = options["OMEGA"][i].to_double();
+      if(units == "HZ" || units == "Hz" || units == "hz")
+        omega[i] *= pc_h / pc_hartree2J;
+      else if(units == "AU" || units == "Au" || units == "au") continue;
+      else if(units == "NM" || units == "nm")
+        omega[i] = (pc_c*pc_h*1e9)/(omega[i]*pc_hartree2J);
+      else if(units == "EV" || units == "ev" || units == "eV")
+        omega[i] /= pc_hartree2ev;
+      else
+        throw PsiException("Error in unit for input field frequencies, should be au, Hz, nm, or eV", __FILE__,__LINE__);
+    }
+  }
+
   // Prepare property integrals for perturbed wave functions
   boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref));
 
-  // Create similarity transformed property integrals
-  boost::shared_ptr<Pertbar> mubar(new PertBar(mu, ccwfn));
-
   // Solve perturbed wave function equations for give perturbation and field frequency
-  boost::shared_ptr<PertCC> mucc(new PertCC(mu, ccwfn));
+//  std::map<double, boost::shared_ptr<PertCC> > pertcc; // map for all perturbed CC wfns
+  boost::shared_ptr<PertCC> pertcc(new PertCC(ccwfn, ));
 
 
 

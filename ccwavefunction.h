@@ -5,7 +5,10 @@
 #include <libmints/mints.h>
 #include <boost/shared_ptr.hpp>
 
-namespace psi {
+namespace psi { namespace ugacc {
+
+// friends
+class HBAR;
 
 struct onestack {
     double value;
@@ -38,7 +41,7 @@ protected:
   int nv_;  // Number of active virtual MOs
 
   boost::shared_ptr<Hamiltonian> H_; // integrals and Fock matrix
-  
+
   // Energy denominators
   double **D1_;
   double ****D2_;
@@ -166,8 +169,10 @@ public:
   void amp_write_T1(double **T1, int no, int nv, int length, std::string label);
   void amp_write_T2(double ****T2, int no, int nv, int length, std::string label);
 
+  friend class HBAR;
+
 }; // CCWavefunction
 
-} // psi
+}} // psi::ugacc
 
 #endif // CCWAVEFUNCTION_H

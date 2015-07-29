@@ -19,6 +19,6 @@ set {
 }
 
 #property('ccsd', properties=['polarizability'])
-gradient('ugacc', wfn='ccsd')
+energy('ugacc', wfn='ccsd')
 
 

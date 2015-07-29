@@ -5,19 +5,16 @@
 #include <libmints/mints.h>
 #include <libtrans/integraltransform.h>
 
-class CCWavefunction; // friend
+// friends
+class CCWavefunction;
+class HBAR;
 
-namespace psi {
+namespace psi { namespace ugacc {
 
 class Hamiltonian {
 public:
   Hamiltonian(boost::shared_ptr<PSIO>, boost::shared_ptr<Wavefunction>, std::vector<boost::shared_ptr<MOSpace> >);
   virtual ~Hamiltonian();
-//  Hamiltonian(const boost::shared_ptr<Hamiltonian> &H);
-
-  double ** fock_p() { return fock_; }
-  double **** ints_p() { return ints_; }
-  double **** L_p() { return L_; }
 
 protected:
   int nmo_;
@@ -31,9 +28,10 @@ protected:
   double ****L_;
 
   friend class CCWavefunction;
+  friend class HBAR;
 
 }; // Hamiltonian
 
-} // psi
+}} // psi::ugacc
 
 #endif // HAMILTONIAN_H

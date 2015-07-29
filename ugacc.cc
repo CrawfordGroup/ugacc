@@ -84,13 +84,13 @@ PsiReturnType ugacc(Options& options)
   }
 
   // Prepare property integrals for perturbed wave functions
-  boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref));
+//  boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref));
 
   // Create similarity transformed property integrals
-  boost::shared_ptr<Pertbar> mubar(new PertBar(mu, ccwfn));
+//  boost::shared_ptr<Pertbar> mubar(new PertBar(mu, ccwfn));
 
   // Solve perturbed wave function equations for give perturbation and field frequency
-  boost::shared_ptr<PertCC> mucc(new PertCC(mu, ccwfn));
+//  boost::shared_ptr<PertCC> mucc(new PertCC(mu, ccwfn));
 
 
 

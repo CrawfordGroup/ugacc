@@ -6,7 +6,7 @@
 #include <libtrans/integraltransform.h>
 
 // friends
-class CCWavefunction;
+class CCRHWavefunction;
 class HBAR;
 
 namespace psi { namespace ugacc {
@@ -27,7 +27,7 @@ protected:
   double ****ints_;
   double ****L_;
 
-  friend class CCWavefunction;
+  friend class CCRHWavefunction;
   friend class HBAR;
 
 }; // Hamiltonian

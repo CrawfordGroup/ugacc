@@ -1,5 +1,5 @@
-#ifndef CCWAVEFUNCTION_H
-#define CCWAVEFUNCTION_H
+#ifndef CCRHWAVEFUNCTION_H
+#define CCRHWAVEFUNCTION_H
 
 #include "hamiltonian.h"
 #include <libmints/mints.h>
@@ -9,25 +9,13 @@ namespace psi { namespace ugacc {
 
 // friends
 class HBAR;
+class CCLHWavefunction;
 
-struct onestack {
-    double value;
-    int i;
-    int a;
-};
-
-struct twostack {
-    double value;
-    int i; int j;
-    int a; int b;
-};
-
-class CCWavefunction: public Wavefunction {
+class CCRHWavefunction: public Wavefunction {
 public:
-  CCWavefunction(boost::shared_ptr<Wavefunction> reference,
-                 boost::shared_ptr<Hamiltonian> H,
+  CCRHWavefunction(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamiltonian> H,
                  Options &options, boost::shared_ptr<PSIO> psio);
-  virtual ~CCWavefunction();
+  virtual ~CCRHWavefunction();
 
 protected:
   std::string wfn_;     // wfn type (CCSD, CCSD_T, etc.)
@@ -69,61 +57,11 @@ protected:
   double ****Wovvo_; 
   double ****Wovov_; 
 
-  // L-amplitude quantities
-  double **l1_;      /* current l1 amplitudes */
-  double **l1old_;   /* previous l1 amplitudes */
-  double ****l2_;    /* current l2 amplitudes */
-  double ****l2old_; /* previous l2 amplitudes */
-
-  // HBAR components
-  double **Hoo_;
-  double **Hvv_;
-  double **Hov_;
-  double ****Hoooo_;
-  double ****Hvvvv_;
-  double ****Hovov_;
-  double ****Hovvo_;
-  double ****Hvovv_;
-  double ****Hooov_;
-  double ****Hovoo_;
-  double ****Hvvvo_;
-
-  // Three-body intermediates
-  double **Gvv_;
-  double **Goo_;
-
-  // One-electron density components
-  double **Doo_;
-  double **Dvv_;
-  double **Dov_;
-  double **Dvo_;
-
-  // Two-electron density components
-  double ****Goooo_;
-  double ****Gvvvv_;
-  double ****Goovv_;
-  double ****Govov_;
-  double ****Gooov_;
-  double ****Gvvvo_;
-
   // In-core triples
   double ******t3_;
-  double ******l3_;
-
-  // Extra inhomogeneous terms for Lambda from (T)-gradient
-  double **s1_;
-  double ****s2_;
 
 public:
-  int maxiter() { return maxiter_; }
-  double convergence() { return convergence_; }
-  std::string wfn() { return wfn_; } 
-  bool do_diis() { return do_diis_; }
-  bool ooc() { return ooc_; }
-  int dertype() { return dertype_; }
-
   double compute_energy();
-  void compute_lambda();
 
   double energy();
   void build_tau();
@@ -136,17 +74,6 @@ public:
   void diis(int iter, std::string);
   double increment_amps(std::string);
   void build_tstar();
-
-  void hbar();
-  void init_lambda();
-  void build_G();
-  void build_l1();
-  void build_l2();
-  double pseudoenergy();
-
-  void init_density();
-  double onepdm();
-  double twopdm();
 
   double tcorr();
   double tcorr_ooc();
@@ -163,16 +90,11 @@ public:
   void N3_ijk(double ***N3, int i, int j, int k, double ****t2, double **t1, double **fock, double ****ints);
   void N3_abc(double ***N3, int a, int b, int c, double ****t2, double **t1, double **fock, double ****ints);
 
-  void amp_write(int, std::string);
-  void onestack_insert(struct onestack *stack, double value, int i, int a, int level, int stacklen);
-  void twostack_insert(struct twostack *stack, double value, int i, int j, int a, int b, int level, int stacklen);
-  void amp_write_T1(double **T1, int no, int nv, int length, std::string label);
-  void amp_write_T2(double ****T2, int no, int nv, int length, std::string label);
-
   friend class HBAR;
+  friend class CCLHWavefunction;
 
-}; // CCWavefunction
+}; // CCRHWavefunction
 
 }} // psi::ugacc
 
-#endif // CCWAVEFUNCTION_H
+#endif // CCRHWAVEFUNCTION_H

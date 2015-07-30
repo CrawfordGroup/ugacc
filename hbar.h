@@ -1,5 +1,6 @@
 #include "hamiltonian.h"
-#include "ccwavefunction.h"
+#include "ccrhwavefunction.h"
+#include "cclhwavefunction.h"
 
 namespace psi { namespace ugacc {
 
@@ -23,6 +24,9 @@ protected:
   double ****Hooov_;
   double ****Hovoo_;
   double ****Hvvvo_;
+
+  friend class CCRHWavefunction;
+  friend class CCLHWavefunction;
 };
 
 }} // psi::ugacc

@@ -1,6 +1,3 @@
-#include "ccwavefunction.h"
-#include "perturbation.h"
-
 #include <libplugin/plugin.h>
 #include <psi4-dec.h>
 #include <libparallel/parallel.h>
@@ -8,6 +5,11 @@
 #include <libmints/mints.h>
 #include <libpsio/psio.hpp>
 #include <libtrans/integraltransform.h>
+
+#include "hamiltonian.h"
+#include "ccrhwavefunction.h"
+// #include "cclhwavefunction.h"
+// #include "perturbation.h"
 #include "globals.h"
 
 INIT_PLUGIN
@@ -44,6 +46,13 @@ PsiReturnType ugacc(Options& options)
   outfile->Printf("\t\t\t**************************\n");
   outfile->Printf("\n");
 
+  outfile->Printf("\tWave function  = %s\n", options.get_str("WFN").c_str());
+  outfile->Printf("\tMaxiter        = %d\n", options.get_int("MAXITER"));
+  outfile->Printf("\tConvergence    = %3.1e\n", options.get_double("R_CONVERGENCE"));
+  outfile->Printf("\tDIIS           = %s\n", options.get_bool("DIIS") ? "Yes" : "No");
+  outfile->Printf("\tOut-of-core    = %s\n", options.get_bool("OOC") ? "Yes" : "No");
+  outfile->Printf("\tDertype        = %s\n", options.get_str("DERTYPE").c_str());
+
   boost::shared_ptr<Wavefunction> ref = Process::environment.wavefunction();
 
   // Error trapping – need closed-shell SCF in place
@@ -57,29 +66,29 @@ PsiReturnType ugacc(Options& options)
   std::vector<boost::shared_ptr<MOSpace> > spaces;
   spaces.push_back(MOSpace::all);
   boost::shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
-  boost::shared_ptr<CCWavefunction> ccwfn(new CCWavefunction(ref, H, options, psio));
+  boost::shared_ptr<CCRHWavefunction> CC(new CCRHWavefunction(ref, H, options, psio));
 
-  double ecc = ccwfn->compute_energy();
+  double ecc = CC->compute_energy();
 
-  if(!ccwfn->dertype()) return Success;
+  if(!CC->dertype()) return Success;
 
-  ccwfn->hbar();
-  ccwfn->compute_lambda();
+//  ccwfn->hbar();
+//  ccwfn->compute_lambda();
 
-  double eone = ccwfn->onepdm();
-  double etwo = ccwfn->twopdm();
-  double eref = ccwfn->reference_energy();
+//  double eone = ccwfn->onepdm();
+//  double etwo = ccwfn->twopdm();
+//  double eref = ccwfn->reference_energy();
 
-  outfile->Printf("\tOne-Electron Energy        = %20.14f\n", eone);
-  outfile->Printf("\tTwo-Electron Energy        = %20.14f\n", etwo);
-  if(ccwfn->wfn() == "CCSD") {
-    outfile->Printf("\tCCSD Correlation Energy    = %20.14f (from density)\n", eone+etwo);
-    outfile->Printf("\tCCSD Total Energy          = %20.14f (from density)\n", eone+etwo+eref);
+//  outfile->Printf("\tOne-Electron Energy        = %20.14f\n", eone);
+//  outfile->Printf("\tTwo-Electron Energy        = %20.14f\n", etwo);
+  if(CC->wfn() == "CCSD") {
+//    outfile->Printf("\tCCSD Correlation Energy    = %20.14f (from density)\n", eone+etwo);
+//    outfile->Printf("\tCCSD Total Energy          = %20.14f (from density)\n", eone+etwo+eref);
     outfile->Printf("\tCCSD Total Energy          = %20.14f (from ccwfn)\n", ecc);
   }
-  else if(ccwfn->wfn() == "CCSD_T") {
-    outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f (from density)\n", eone+etwo);
-    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from density)\n", eone+etwo+eref);
+  else if(CC->wfn() == "CCSD_T") {
+//    outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f (from density)\n", eone+etwo);
+//    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from density)\n", eone+etwo+eref);
     outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from ccwfn)\n", ecc);
   }
 

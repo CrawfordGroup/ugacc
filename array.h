@@ -1,5 +1,5 @@
-#ifndef _psi_psi_ugacc_globals_h
-#define _psi_psi_ugacc_globals_h
+#ifndef ARRAY_H
+#define ARRAY_H
 
 namespace psi {
 
@@ -14,4 +14,4 @@ void free_6d_array(double ******, int, int, int, int, int);
 
 } // namespace psi
 
-#endif // _psi_psi_ugacc_globals_h
+#endif // ARRAY_H

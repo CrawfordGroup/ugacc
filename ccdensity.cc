@@ -5,16 +5,30 @@
 #include <libpsio/psio.h>
 
 #include "ccdensity.h"
-#include "ccrhwavefunction.h"
-#include "cclhwavefunction.h"
-#include "globals.h"
+#include "ccwavefunction.h"
+#include "cclambda.h"
+#include "array.h"
 
 namespace psi { namespace ugacc {
 
-CCDensity::CCDensity(boost::shared_ptr<CCRHWavefunction> CC, boost::shared_ptr<CCLHWavefunction> Lambda)
+CCDensity::CCDensity(boost::shared_ptr<CCWavefunction> CC, boost::shared_ptr<CCLambda> CCLambda)
 {
-  no_ = CC->no_;
-  nv_ = CC->nv_;
+  CC_ = CC;
+  CCLambda_ = CCLambda;
+
+  no_ = CC_->no_;
+  nv_ = CC_->nv_;
+  t1_ = CC_->t1_;
+  t2_ = CC_->t2_;
+  tau_ = CC_->tau_;
+  l1_ = CCLambda_->l1_;
+  l2_ = CCLambda_->l2_;
+
+  H_ = CC_->H_;
+  HBAR_ = CCLambda_->HBAR_;
+
+  int no = no_;
+  int nv = nv_;
 
   Doo_ = block_matrix(no, no);
   Dvv_ = block_matrix(nv, nv);
@@ -26,6 +40,34 @@ CCDensity::CCDensity(boost::shared_ptr<CCRHWavefunction> CC, boost::shared_ptr<C
   Gvvvo_ = init_4d_array(nv, nv, nv, no);
   Govov_ = init_4d_array(no, nv, no, nv);
   Goovv_ = init_4d_array(no, no, nv, nv);
+
+  // Bring in (T) gradient contributions from the CC wfn, if necessary
+  if(CC_->wfn_ == "CCSD_T") {
+    for(int i=0; i < no; i++)
+      for(int j=0; j < no; j++)
+       Doo_[i][j] = CC_->Doo_[i][j];
+    for(int a=0; a < nv; a++)
+      for(int b=0; b < nv; b++)
+       Dvv_[a][b] = CC_->Dvv_[a][b];
+    for(int i=0; i < no; i++)
+      for(int a=0; a < nv; a++)
+       Dov_[i][a] = CC_->Dov_[i][a];
+    for(int i=0; i < no; i++)
+      for(int j=0; j < no; j++)
+        for(int k=0; k < no; k++)
+          for(int a=0; a < nv; a++)
+            Gooov_[i][j][k][a] = CC_->Gooov_[i][j][k][a];
+    for(int a=0; a < nv; a++)
+      for(int b=0; b < nv; b++)
+        for(int c=0; c < nv; c++)
+          for(int i=0; i < no; i++)
+            Gvvvo_[a][b][c][i] = CC_->Gvvvo_[a][b][c][i];
+    for(int i=0; i < no; i++)
+      for(int j=0; j < no; j++)
+        for(int a=0; a < nv; a++)
+          for(int b=0; b < nv; b++)
+            Goovv_[i][j][a][b] = CC_->Goovv_[i][j][a][b];
+  }
 }
 
 CCDensity::~CCDensity()
@@ -296,3 +338,5 @@ double CCDensity::twopdm()
 
   return Eoooo+Evvvv+Eooov+Evvvo+Eovov+Eoovv;
 }
+
+}} // psi::ugacc

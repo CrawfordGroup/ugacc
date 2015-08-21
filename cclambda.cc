@@ -1,30 +1,36 @@
+#include "cclambda.h"
+
 #include <boost/shared_ptr.hpp>
 #include <libqt/qt.h>
 #include <libciomr/libciomr.h>
 #include <cmath>
-#include <libpsio/psio.h>
+#include <libdiis/diismanager.h>
 
-#include "hbar.h"
-#include "ccrhwavefunction.h"
-#include "cclhwavefunction.h"
-
-#include "globals.h"
+#include "array.h"
 
 namespace psi { namespace ugacc {
 
-CCLHWavefunction::CCLHWavefunction(boost::shared_ptr<CCRHWavefunction> CC, boost::shared_ptr<HBAR> HBAR)
+CCLambda::CCLambda(boost::shared_ptr<CCWavefunction> CC, boost::shared_ptr<HBAR> HBAR)
 {
+  HBAR_ = HBAR;
+  CC_ = CC;
+
+  H_ = CC_->H_;
+
+  D1_ = CC_->D1_;
+  D2_ = CC_->D2_;
+
+  no_ = CC_->no_;
+  nv_ = CC_->nv_;
+
   int no = no_;
   int nv = nv_;
-
-  D1_ = CC->D1_;
-  D2_ = CC->D2_;
 
   l1_ = block_matrix(no,nv);
   l1old_ = block_matrix(no,nv);
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++)
-      l1_[i][a] = 2.0 * CC->t1_[i][a];
+      l1_[i][a] = 2.0 * CC_->t1_[i][a];
 
   l2_ = init_4d_array(no,no,nv,nv);
   l2old_ = init_4d_array(no,no,nv,nv);
@@ -32,13 +38,19 @@ CCLHWavefunction::CCLHWavefunction(boost::shared_ptr<CCRHWavefunction> CC, boost
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++)
-          l2_[i][j][a][b] = 2.0 * (2.0 * CC->t2_[i][j][a][b] - t2[i][j][b][a]);
+          l2_[i][j][a][b] = 2.0 * (2.0 * CC_->t2_[i][j][a][b] - CC_->t2_[i][j][b][a]);
 
   Gvv_ = block_matrix(nv, nv);
   Goo_ = block_matrix(no, no);
+
+  // DIIS Vectors
+  l1diis_.resize(no_*nv_);
+  l2diis_.resize(no_*no_*nv_*nv_);
+  l1err_.resize(no_*nv_);
+  l2err_.resize(no_*no_*nv_*nv_);
 }
 
-CCLHWavefunction::~CCLHWavefunction()
+CCLambda::~CCLambda()
 {
   int no = no_;
   int nv = nv_;
@@ -52,73 +64,75 @@ CCLHWavefunction::~CCLHWavefunction()
   free_block(Goo_);
 }
 
-void CCLHWavefunction::amp_save()
+void CCLambda::amp_save()
 {
-  double ****t2tmp = l2_;
+  double ****l2tmp = l2_;
   l2_ = l2old_;
-  l2old_ = t2tmp;
+  l2old_ = l2tmp;
 
-  double **t1tmp = l1_;
+  double **l1tmp = l1_;
   l1_ = l1old_;
-  l1old_ = t1tmp;
+  l1old_ = l1tmp;
 }
 
-double CCLHWavefunction::increment_amps()
+double CCLambda::increment_amps()
 {
   int no = no_;
   int nv = nv_;
-  double **D1 = D1_;
-  double ****D2 = D2_;
-  double **t1, **t1old, ****t2, ****t2old;
-
-  t1 = l1_;
-  t1old = l1old_;
-  t2 = l2_;
-  t2old = l2old_;
 
   double residual1 = 0.0;
   double residual2 = 0.0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      residual1 += t1[i][a] * t1[i][a];     
-      t1[i][a] = t1old[i][a] + t1[i][a]/D1[i][a];
+      residual1 += l1_[i][a] * l1_[i][a];     
+      l1_[i][a] = l1old_[i][a] + l1_[i][a]/D1_[i][a];
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
-          residual2 += t2[i][j][a][b] * t2[i][j][a][b];
-          t2[i][j][a][b] = t2old[i][j][a][b] + t2[i][j][a][b]/D2[i][j][a][b];
+          residual2 += l2_[i][j][a][b] * l2_[i][j][a][b];
+          l2_[i][j][a][b] = l2old_[i][j][a][b] + l2_[i][j][a][b]/D2_[i][j][a][b];
         }
     }
 
   return sqrt(residual1 + residual2);
 }
 
-void CCLHWavefunction::compute_lambda()
+void CCLambda::compute_lambda()
 {
   outfile->Printf("\n\tThe Coupled-Cluster Lambda Iteration:\n");
-  outfile->Printf(  "\t-------------------------------------\n");  outfile->Printf(  "\t Iter   Correlation Energy  RMS   \n");
+  outfile->Printf(  "\t-------------------------------------\n");
+  outfile->Printf(  "\t Iter   PseudoEnergy        RMS   \n");
   outfile->Printf(  "\t-------------------------------------\n");
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, pseudoenergy());
 
   double rms = 0.0;
-  for(int iter=1; iter <= maxiter(); iter++) {
+  boost::shared_ptr<DIISManager> diis(new DIISManager(8, "CCLambda DIIS",
+    DIISManager::LargestError, DIISManager::InCore));
+  diis->set_error_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
+  diis->set_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
+  for(int iter=1; iter <= CC_->maxiter_; iter++) {
     amp_save();    
     build_G();
     build_l1();
     build_l2();
     rms = increment_amps();
-    if(rms < convergence()) break;
-//    if(do_diis()) diis(iter, "L");
+    if(rms < CC_->convergence_) break;
+    if(CC_->do_diis_) {
+      build_diis_error();
+      diis->add_entry(4, l1err_.data(), l2err_.data(), l1diis_.data(), l2diis_.data());
+      if(diis->subspace_size() > 2) diis->extrapolate(2, l1diis_.data(), l2diis_.data());
+      save_diis_vectors();
+    }
     outfile->Printf(  "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
   }
-  if(rms >= convergence())
+  if(rms >= CC_->convergence_)
     throw PSIEXCEPTION("Computation has not converged.");
 }
 
-void CCLHWavefunction::build_G()
+void CCLambda::build_G()
 {
   int no = no_;
   int nv = nv_;
-  double ****t2 = t2_;
+  double ****t2 = CC_->t2_;
   double ****l2 = l2old_;
 
   for(int m=0; m < no; m++)
@@ -142,7 +156,7 @@ void CCLHWavefunction::build_G()
     }
 }
 
-void CCLHWavefunction::build_l1()
+void CCLambda::build_l1()
 {
   int no = no_;
   int nv = nv_;
@@ -151,19 +165,20 @@ void CCLHWavefunction::build_l1()
   double **l1new = l1_;
   double **Gvv = Gvv_;
   double **Goo = Goo_;
-  double **Hov = Hov_;
-  double **Hvv = Hvv_;
-  double **Hoo = Hoo_;
-  double ****Hvvvo = Hvvvo_;
-  double ****Hovoo = Hovoo_;
-  double ****Hovvo = Hovvo_;
-  double ****Hovov = Hovov_;
-  double ****Hvovv = Hvovv_;
-  double ****Hooov = Hooov_;
+  double **Hov = HBAR_->Hov_;
+  double **Hvv = HBAR_->Hvv_;
+  double **Hoo = HBAR_->Hoo_;
+  double ****Hvvvo = HBAR_->Hvvvo_;
+  double ****Hovoo = HBAR_->Hovoo_;
+  double ****Hovvo = HBAR_->Hovvo_;
+  double ****Hovov = HBAR_->Hovov_;
+  double ****Hvovv = HBAR_->Hvovv_;
+  double ****Hooov = HBAR_->Hooov_;
 
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
       double value = 2 * Hov[i][a];
+      if(CC_->wfn_ == "CCSD_T" && CC_->dertype_ == "FIRST") value += CC_->s1_[i][a];
 
       for(int e=0; e < nv; e++)
         value += l1[i][e] * Hvv[e][a];
@@ -197,7 +212,7 @@ void CCLHWavefunction::build_l1()
     }
 }
 
-void CCLHWavefunction::build_l2()
+void CCLambda::build_l2()
 {
   int no = no_;
   int nv = nv_;
@@ -207,16 +222,16 @@ void CCLHWavefunction::build_l2()
   double ****L = H_->L_;
   double **Gvv = Gvv_;
   double **Goo = Goo_;
-  double **Hov = Hov_;
-  double **Hvv = Hvv_;
-  double **Hoo = Hoo_;
+  double **Hov = HBAR_->Hov_;
+  double **Hvv = HBAR_->Hvv_;
+  double **Hoo = HBAR_->Hoo_;
 
-  double ****Hovvo = Hovvo_;
-  double ****Hovov = Hovov_;
-  double ****Hoooo = Hoooo_;
-  double ****Hvvvv = Hvvvv_;
-  double ****Hvovv = Hvovv_;
-  double ****Hooov = Hooov_;
+  double ****Hovvo = HBAR_->Hovvo_;
+  double ****Hovov = HBAR_->Hovov_;
+  double ****Hoooo = HBAR_->Hoooo_;
+  double ****Hvvvv = HBAR_->Hvvvv_;
+  double ****Hvovv = HBAR_->Hvovv_;
+  double ****Hooov = HBAR_->Hooov_;
 
   double ****Z = init_4d_array(no, no, nv, nv);
 
@@ -225,6 +240,7 @@ void CCLHWavefunction::build_l2()
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++) {
           double value = L[i][j][a+no][b+no];
+          if(CC_->wfn_ == "CCSD_T" && CC_->dertype_ == "FIRST") value += 0.5 * CC_->s2_[i][j][a][b];
 
           value += 2.0*l1[i][a]*Hov[j][b] - l1[j][a]*Hov[i][b];
 
@@ -273,13 +289,11 @@ void CCLHWavefunction::build_l2()
 }
 
 /*
-** pseudoenergy(): Evaluates an energy-like expression for the Lambda
-doubles
-** amplitudes: 
+** pseudoenergy(): Evaluates an energy-like expression for the Lambda doubles amplitudes: 
 **   E = <0|L2 H|0> = 1/2 <ab|ij> L(ij,ab)
 ** This expression is derived in the UGA formalism.
 */
-double CCLHWavefunction::pseudoenergy()
+double CCLambda::pseudoenergy()
 {
   int no = no_;
   int nv = nv_;
@@ -294,6 +308,42 @@ double CCLHWavefunction::pseudoenergy()
           energy += 0.5*ints[i][j][a+no][b+no]*l2[i][j][a][b];
 
   return energy;
+}
+
+void CCLambda::build_diis_error()
+{
+  int no = no_;
+  int nv = nv_;
+
+  int t1len = 0;
+  int t2len = 0;
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++) {
+      l1diis_[t1len] = l1_[i][a];
+      l1err_[t1len++] = l1_[i][a] - l1old_[i][a];
+      for(int j=0; j < no; j++)
+        for(int b=0; b < nv; b++) {
+          l2diis_[t2len] = l2_[i][j][a][b];
+          l2err_[t2len++] = l2_[i][j][a][b] - l2old_[i][j][a][b];
+        }
+    }
+}
+
+void CCLambda::save_diis_vectors()
+{
+  int no = no_;
+  int nv = nv_;
+
+  int t1len = 0;
+  int t2len = 0;
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++) {
+      l1_[i][a] = l1diis_[t1len++];
+      for(int j=0; j < no; j++)
+        for(int b=0; b < nv; b++) {
+          l2_[i][j][a][b] = l2diis_[t2len++];
+        }
+    }
 }
 
 }} // psi::ugacc

@@ -1,21 +1,25 @@
-#ifndef CCLHWAVEFUNCTION_H
-#define CCLHWAVEFUNCTION_H
+#ifndef CCLAMBDA_H
+#define CCLAMBDA_H
 
 #include "hamiltonian.h"
+#include "ccwavefunction.h"
+#include "hbar.h"
 #include <libmints/mints.h>
 #include <boost/shared_ptr.hpp>
 
 namespace psi { namespace ugacc {
 
-class CCLHWavefunction {
+class CCLambda {
 public:
-  CCLHWavefunction(boost::shared_ptr<CCRHWavefunction> CC, boost::shared_ptr<HBAR> HBAR)
-  virtual ~CCLHWavefunction();
+  CCLambda(boost::shared_ptr<CCWavefunction>, boost::shared_ptr<HBAR>);
+  virtual ~CCLambda();
 
 protected:
   int no_;  // Number of active occupied MOs
   int nv_;  // Number of active virtual MOs
 
+  boost::shared_ptr<Hamiltonian> H_;
+  boost::shared_ptr<CCWavefunction> CC_;
   boost::shared_ptr<HBAR> HBAR_;
 
   // Energy denominators
@@ -27,6 +31,12 @@ protected:
   double **l1old_;   /* previous l1 amplitudes */
   double ****l2_;    /* current l2 amplitudes */
   double ****l2old_; /* previous l2 amplitudes */
+
+  // DIIS-related vectors
+  std::vector<double> l1diis_;
+  std::vector<double> l2diis_;
+  std::vector<double> l1err_;
+  std::vector<double> l2err_;
 
   // Three-body intermediates
   double **Gvv_;
@@ -42,18 +52,19 @@ protected:
 public:
   void compute_lambda();
 
-  void amp_save()
-  double increment_amps()
-  void init_lambda();
+  void amp_save();
+  double increment_amps();
   void build_G();
   void build_l1();
   void build_l2();
   double pseudoenergy();
+  void build_diis_error();
+  void save_diis_vectors();
 
   friend class CCDensity;
 
-}; // CCLHWavefunction
+}; // CCLambda
 
 }} // psi::ugacc
 
-#endif // CCLHWAVEFUNCTION_H
+#endif // CCLAMBDA_H

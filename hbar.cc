@@ -1,4 +1,5 @@
-#include "HBAR.h"
+#include "hbar.h"
+#include "array.h"
 #include <boost/shared_ptr.hpp>
 #include <libqt/qt.h>
 #include <libciomr/libciomr.h>
@@ -7,14 +8,17 @@ namespace psi { namespace ugacc {
 
 HBAR::HBAR(boost::shared_ptr<Hamiltonian> H, boost::shared_ptr<CCWavefunction> CC)
 {
-  no_ = CC->no_;
-  nv_ = CC->nv_;
+  CC_ = CC;
+  H_ = H;
+
+  no_ = CC_->no_;
+  nv_ = CC_->nv_;
   double **fock = H_->fock_;
   double ****ints = H_->ints_;
   double ****L = H_->L_;
-  double **t1 = t1_;
-  double ****t2 = t2_;
-  double ****tau = tau_;
+  double **t1 = CC_->t1_;
+  double ****t2 = CC_->t2_;
+  double ****tau = CC_->tau_;
 
   int no = no_;
   int nv = nv_;

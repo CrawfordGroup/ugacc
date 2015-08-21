@@ -1,5 +1,5 @@
-#ifndef CCRHWAVEFUNCTION_H
-#define CCRHWAVEFUNCTION_H
+#ifndef CCWAVEFUNCTION_H
+#define CCWAVEFUNCTION_H
 
 #include "hamiltonian.h"
 #include <libmints/mints.h>
@@ -7,15 +7,12 @@
 
 namespace psi { namespace ugacc {
 
-// friends
-class HBAR;
-class CCLHWavefunction;
-
-class CCRHWavefunction: public Wavefunction {
+class CCWavefunction: public Wavefunction {
 public:
-  CCRHWavefunction(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamiltonian> H,
-                 Options &options, boost::shared_ptr<PSIO> psio);
-  virtual ~CCRHWavefunction();
+  CCWavefunction(boost::shared_ptr<Wavefunction> reference, 
+                   boost::shared_ptr<Hamiltonian> H,
+                   Options &options, boost::shared_ptr<PSIO> psio);
+  virtual ~CCWavefunction();
 
 protected:
   std::string wfn_;     // wfn type (CCSD, CCSD_T, etc.)
@@ -23,7 +20,7 @@ protected:
   int maxiter_;         // maximum number of iterations
   bool do_diis_;        // use DIIS algorithms?
   bool ooc_;            // Use out-of-core algorithms?
-  int dertype_;         // Gradient level
+  std::string dertype_; // Gradient level -- needed only for (T) gradients
 
   int no_;  // Number of active occupied MOs
   int nv_;  // Number of active virtual MOs
@@ -40,6 +37,12 @@ protected:
   double ****t2_;    // Current T2
   double ****t2old_; // Previous iteration T2
 
+  // DIIS-related vectors
+  std::vector<double> t1diis_;
+  std::vector<double> t2diis_;
+  std::vector<double> t1err_;
+  std::vector<double> t2err_;
+
   // Effective doubles 
   double ****tau_;  // tau(ijab) = t2(ijab) + t1(ia) * t1(jb)
   double ****ttau_; // ttau(ijab) = t2(ijab) + (1/2) t1(ia) * t1(jb)
@@ -49,7 +52,7 @@ protected:
   double ****t2s_;
   
   // CCSD intermediates for amplitude equations (related to, but not the
-  // same as corresponding HBAR quantities
+  // same as corresponding HBAR quantities)
   double **Fvv_;     
   double **Foo_;     
   double **Fov_;     
@@ -57,28 +60,37 @@ protected:
   double ****Wovvo_; 
   double ****Wovov_; 
 
-  // In-core triples
-  double ******t3_;
+  // Extra contributions for (T) gradients
+  double ******t3_; // only for in-core code
+  double ******l3_; // only for in-core code
+  double **s1_;
+  double ****s2_;
+  double **Doo_;
+  double **Dvv_;
+  double **Dov_;
+  double ****Gooov_;
+  double ****Gvvvo_;
+  double ****Goovv_;
 
 public:
   double compute_energy();
 
   double energy();
   void build_tau();
-  void amp_save(std::string);
+  void amp_save();
   void build_F();
   void build_W();
   void build_t1();
   void build_t2();
+  void build_diis_error();
+  void save_diis_vectors();
   double t1norm();
-  void diis(int iter, std::string);
-  double increment_amps(std::string);
+  double increment_amps();
   void build_tstar();
 
   double tcorr();
   double tcorr_ooc();
   double tcorr_ooc_TJL();
-
   void tgrad();
   void tgrad_ooc();
 
@@ -91,10 +103,11 @@ public:
   void N3_abc(double ***N3, int a, int b, int c, double ****t2, double **t1, double **fock, double ****ints);
 
   friend class HBAR;
-  friend class CCLHWavefunction;
-
-}; // CCRHWavefunction
+  friend class CCLambda;
+  friend class CCDensity;
+  friend class CCPert;
+}; // CCWavefunction
 
 }} // psi::ugacc
 
-#endif // CCRHWAVEFUNCTION_H
+#endif // CCWAVEFUNCTION_H

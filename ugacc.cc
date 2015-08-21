@@ -5,12 +5,17 @@
 #include <libmints/mints.h>
 #include <libpsio/psio.hpp>
 #include <libtrans/integraltransform.h>
+#include <map>
 
 #include "hamiltonian.h"
-#include "ccrhwavefunction.h"
-// #include "cclhwavefunction.h"
-// #include "perturbation.h"
-#include "globals.h"
+#include "ccwavefunction.h"
+#include "hbar.h"
+#include "cclambda.h"
+#include "ccdensity.h"
+#include "perturbation.h"
+#include "ccpert.h"
+
+#include "array.h"
 
 INIT_PLUGIN
 
@@ -66,42 +71,42 @@ PsiReturnType ugacc(Options& options)
   std::vector<boost::shared_ptr<MOSpace> > spaces;
   spaces.push_back(MOSpace::all);
   boost::shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
-  boost::shared_ptr<CCRHWavefunction> CC(new CCRHWavefunction(ref, H, options, psio));
+  boost::shared_ptr<CCWavefunction> cc(new CCWavefunction(ref, H, options, psio));
 
-  double ecc = CC->compute_energy();
+  double ecc = cc->compute_energy();
 
-  if(!CC->dertype()) return Success;
+  if(options.get_str("DERTYPE") == "NONE") return Success;
+ 
+  boost::shared_ptr<HBAR> hbar(new HBAR(H, cc));
+  boost::shared_ptr<CCLambda> cclambda(new CCLambda(cc, hbar));
+  cclambda->compute_lambda();
 
-//  ccwfn->hbar();
-//  ccwfn->compute_lambda();
+  boost::shared_ptr<CCDensity> ccdensity(new CCDensity(cc, cclambda));
 
-//  double eone = ccwfn->onepdm();
-//  double etwo = ccwfn->twopdm();
-//  double eref = ccwfn->reference_energy();
+  double eone = ccdensity->onepdm();
+  double etwo = ccdensity->twopdm();
+  double eref = cc->reference_energy();
 
-//  outfile->Printf("\tOne-Electron Energy        = %20.14f\n", eone);
-//  outfile->Printf("\tTwo-Electron Energy        = %20.14f\n", etwo);
-  if(CC->wfn() == "CCSD") {
-//    outfile->Printf("\tCCSD Correlation Energy    = %20.14f (from density)\n", eone+etwo);
-//    outfile->Printf("\tCCSD Total Energy          = %20.14f (from density)\n", eone+etwo+eref);
-    outfile->Printf("\tCCSD Total Energy          = %20.14f (from ccwfn)\n", ecc);
-  }
-  else if(CC->wfn() == "CCSD_T") {
-//    outfile->Printf("\tCCSD(T) Correlation Energy = %20.14f (from density)\n", eone+etwo);
-//    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from density)\n", eone+etwo+eref);
-    outfile->Printf("\tCCSD(T) Total Energy       = %20.14f (from ccwfn)\n", ecc);
-  }
+  outfile->Printf("\tOne-Electron Energy        = %20.14f\n", eone);
+  outfile->Printf("\tTwo-Electron Energy        = %20.14f\n", etwo);
+  std::string wfn = options.get_str("WFN") == "CCSD_T" ? "CCSD(T)" : options.get_str("WFN");
+  outfile->Printf("\t%s Correlation Energy    = %20.14f (from density)\n", wfn.c_str(), eone+etwo);
+  outfile->Printf("\t%s Correlation Energy    = %20.14f (from ccwfn)\n", wfn.c_str(), ecc);
+  outfile->Printf("\t%s Total Energy          = %20.14f (from density)\n", wfn.c_str(), eone+etwo+eref);
+  outfile->Printf("\t%s Total Energy          = %20.14f (from ccwfn)\n", wfn.c_str(), ecc + eref);
+
+  Process::environment.globals["CURRENT ENERGY"] = ecc + eref;
 
   // Prepare property integrals for perturbed wave functions
-//  boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref));
+  boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref, false));
 
-  // Create similarity transformed property integrals
-//  boost::shared_ptr<Pertbar> mubar(new PertBar(mu, ccwfn));
-
-  // Solve perturbed wave function equations for give perturbation and field frequency
-//  boost::shared_ptr<PertCC> mucc(new PertCC(mu, ccwfn));
-
-
+  // Solve perturbed wave function equations for given perturbation and field frequency
+  // A map might be useful to keep up with a large number of perturbations + frequencies
+  std::map<std::string, boost::shared_ptr<CCPert> > cc_perts; 
+  double omega = 0.0;
+  std::string entry = "Mu X" + std::to_string(omega);
+  cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(mu->prop_p(0), omega, cc, hbar)); // x only for now
+  cc_perts[entry]->solve();
 
   // Use perturbed wfns to construct the linear response function
   // Alternatively, build density-based linear response function

@@ -5,10 +5,6 @@
 #include <libmints/mints.h>
 #include <libtrans/integraltransform.h>
 
-// friends
-class CCRHWavefunction;
-class HBAR;
-
 namespace psi { namespace ugacc {
 
 class Hamiltonian {
@@ -22,14 +18,17 @@ protected:
   int nact_;
   int nfzc_;
   int nfzv_;
+  double efzc_;
 
   double **fock_;
   double ****ints_;
   double ****L_;
 
-  friend class CCRHWavefunction;
+  friend class CCWavefunction;
   friend class HBAR;
-
+  friend class CCLambda;
+  friend class CCDensity;
+  friend class CCPert;
 }; // Hamiltonian
 
 }} // psi::ugacc

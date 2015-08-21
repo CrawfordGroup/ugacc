@@ -23,17 +23,9 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, 
     for(int i=0; i < ref->nirrep(); i++) frzvpi[i] = 0;
   nact_ = nmo - nfzc - nfzv;
 
-  outfile->Printf("\n");
-  outfile->Printf("\t\t\t**************************\n");
-  outfile->Printf("\t\t\t*      PERTURBATION      *\n");
-  outfile->Printf("\t\t\t**************************\n");
-  outfile->Printf("\n");
+  outfile->Printf("\n  ==> Perturbation = %s <==\n", op.c_str());
 
-  outfile->Printf("\tNMO    = %d\n", nmo);
-  outfile->Printf("\tNSO    = %d\n", nso);
-  outfile->Printf("\tNFZC   = %d\n", nfzc);
-  outfile->Printf("\tNFZV   = %d\n", nfzv);
-  outfile->Printf("\tNACT   = %d\n", nact_);
+  outfile->Printf("\tNMO    = %d; NSO = %d; NFZC = %d; NFZV = %d; NACT = %d\n", nmo, nso, nfzc, nfzv, nact_);
 
   int *mo_offset = init_int_array(ref->nirrep()); // Pitzer offsets
   for(int h=1; h < ref->nirrep(); h++) mo_offset[h] = mo_offset[h-1] + ref->nmopi()[h-1];

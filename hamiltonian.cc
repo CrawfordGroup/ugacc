@@ -1,5 +1,5 @@
 #include "hamiltonian.h"
-#include "globals.h"
+#include "array.h"
 #include <libiwl/iwl.h>
 #include <libmints/wavefunction.h>
 #include <psifiles.h>
@@ -63,6 +63,7 @@ Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefun
 
   IntegralTransform ints(ref, spaces, IntegralTransform::Restricted, IntegralTransform::DPDOnly);
   ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
+  efzc_ = ints.get_frozen_core_energy();
 
   psio->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
   dpd_set_default(ints.get_dpd_id());

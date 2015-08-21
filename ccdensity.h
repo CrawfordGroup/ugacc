@@ -1,8 +1,8 @@
 #ifndef CCDENSITY_H
 #define CCDENSITY_H
 
-#include "ccrhwavefunction.h"
-#include "cclhwavefunction.h"
+#include "ccwavefunction.h"
+#include "cclambda.h"
 #include <libmints/mints.h>
 #include <boost/shared_ptr.hpp>
 
@@ -10,15 +10,23 @@ namespace psi { namespace ugacc {
 
 class CCDensity {
 public:
-  CCDensity(boost::shared_ptr<CCRHWavefunction> CC, boost::shared_ptr<CCLHWavefunction> Lambda);
+  CCDensity(boost::shared_ptr<CCWavefunction> CC, boost::shared_ptr<CCLambda> CCLambda);
   virtual ~CCDensity();
 
 protected:
-  std::string wfn_;     // wfn type (CCSD, CCSD_T, etc.)
-  bool ooc_;            // Use out-of-core algorithms?
+  int no_;
+  int nv_;
 
-  int no_;  // Number of active occupied MOs
-  int nv_;  // Number of active virtual MOs
+  boost::shared_ptr<Hamiltonian> H_;
+  boost::shared_ptr<HBAR> HBAR_;
+  boost::shared_ptr<CCWavefunction> CC_;
+  boost::shared_ptr<CCLambda> CCLambda_;
+
+  double **t1_;
+  double ****t2_;
+  double ****tau_;
+  double **l1_;
+  double ****l2_;
 
   // One-electron density components
   double **Doo_;

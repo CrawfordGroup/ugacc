@@ -18,8 +18,6 @@ CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWavefunction> CC
   H_ = CC_->H_;
   no_ = CC_->no_;
   nv_ = CC_->nv_;
-  D1_ = CC_->D1_;
-  D2_ = CC_->D2_;
 
   int no = no_;
   int nv = nv_;
@@ -34,14 +32,25 @@ CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWavefunction> CC
 
   xbar();
 
+  // Denominators
+  D1_ = block_matrix(no, nv);
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++)
+      D1_[i][a] = HBAR_->Hoo_[i][i] - HBAR_->Hvv_[a][a];
+
+  D2_ = init_4d_array(no, no, nv, nv);
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++)
+          D2_[i][j][a][b] = HBAR_->Hoo_[i][i] + HBAR_->Hoo_[j][j] - HBAR_->Hvv_[a][a] - HBAR_->Hvv_[b][b];
+
   // Initial guess perturbed amplitudes
   X1_ = block_matrix(no, nv);
   X1old_ = block_matrix(no, nv);
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++)
-      X1_[i][a] = Xvo_[a][i]/(HBAR_->Hoo_[i][i] - HBAR_->Hvv_[a][a] + omega_);
-//      X1_[i][a] = Xvo_[a][i]/(D1_[i][a] + omega_);
-
+      X1_[i][a] = Xvo_[a][i]/(D1_[i][a] + omega_);
 
   X2_ = init_4d_array(no, no, nv, nv);
   X2old_ = init_4d_array(no, no, nv, nv);
@@ -49,8 +58,8 @@ CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWavefunction> CC
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++)
-          X2_[i][j][a][b] = Xvvoo_[a][b][i][j]/(HBAR_->Hoo_[i][i] + HBAR_->Hoo_[j][j] - HBAR_->Hvv_[a][a] - HBAR_->Hvv_[b][b] + omega_);
-//          X2_[i][j][a][b] = Xvvoo_[a][b][i][j]/(D2_[i][j][a][b] + omega_);
+          X2_[i][j][a][b] = (Xvvoo_[a][b][i][j])/(D2_[i][j][a][b] + omega_);
+//          X2_[i][j][a][b] = (Xvvoo_[a][b][i][j]+Xvvoo_[b][a][j][i])/(D2_[i][j][a][b] + omega_);
 
   // DIIS Vectors
   X1diis_.resize(no_*nv_);
@@ -76,6 +85,9 @@ CCPert::~CCPert()
   free_block(X1old_);
   free_4d_array(X2_, no, no, nv);
   free_4d_array(X2old_, no, no, nv);
+
+  free_block(D1_);
+  free_4d_array(D2_, no, no, nv);
 }
 
 void CCPert::xbar()
@@ -154,17 +166,10 @@ void CCPert::xbar()
       for(int i=0; i < no; i++)
         for(int j=0; j < no; j++) {
           Xvvoo_[a][b][i][j] = 0.0;
-          for(int e=0; e < nv; e++) {
-            Xvvoo_[a][b][i][j] += t2[i][j][e][b] * pert_[a+no][e+no];
-            Xvvoo_[a][b][i][j] += t2[i][j][e][a] * pert_[b+no][e+no];
-          }
-          for(int m=0; m < no; m++) {
-            Xvvoo_[a][b][i][j] -= t2[m][j][a][b] * pert_[m][i];
-            Xvvoo_[a][b][i][j] -= t2[m][i][a][b] * pert_[m][j];
-          }
+          for(int e=0; e < nv; e++)
+            Xvvoo_[a][b][i][j] += t2[i][j][e][b] * Xvv_[a][e] + t2[j][i][e][a] * Xvv_[b][e];
           for(int m=0; m < no; m++)
-            for(int e=0; e < nv; e++)
-              Xvvoo_[a][b][i][j] -= (t2[m][j][a][b] * t1[i][e] + t2[i][j][e][b] * t1[m][a]) * pert_[m][e+no];
+            Xvvoo_[a][b][i][j] -= t2[m][j][a][b] * Xoo_[m][i] + t2[m][i][b][a] * Xoo_[m][j];
           if(fabs(Xvvoo_[a][b][i][j]) > 1e-12)
             outfile->Printf("Xvvoo[%d][%d][%d][%d] = %20.14f\n", a, b, i, j, Xvvoo_[a][b][i][j]);
         }
@@ -277,13 +282,11 @@ double CCPert::increment_amps()
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
       residual1 += X1_[i][a] * X1_[i][a];
-//      X1_[i][a] = X1old_[i][a] + X1_[i][a]/(D1_[i][a] + omega_);
-      X1_[i][a] = X1old_[i][a] + X1_[i][a]/(HBAR_->Hoo_[i][i] - HBAR_->Hvv_[a][a] + omega_);
+      X1_[i][a] = X1old_[i][a] + X1_[i][a]/(D1_[i][a] + omega_);
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
           residual2 += X2_[i][j][a][b] * X2_[i][j][a][b];
-//          X2_[i][j][a][b] = X2old_[i][j][a][b] + X2_[i][j][a][b]/(D2_[i][j][a][b] + omega_);
-          X2_[i][j][a][b] = X2old_[i][j][a][b] + X2_[i][j][a][b]/(HBAR_->Hoo_[i][i] + HBAR_->Hoo_[j][j] - HBAR_->Hvv_[a][a] - HBAR_->Hvv_[b][b] + omega_);
+          X2_[i][j][a][b] = X2old_[i][j][a][b] + X2_[i][j][a][b]/(D2_[i][j][a][b] + omega_);
         }
     }
 
@@ -324,34 +327,42 @@ void CCPert::build_X2()
   int no = no_;
   int nv = nv_;
 
+  double ****R2 = init_4d_array(no, no, nv, nv); // residual
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++) {
-          X2_[i][j][a][b] = Xvvoo_[a][b][i][j] - omega_ * X2old_[i][j][a][b];
+          R2[i][j][a][b] = Xvvoo_[a][b][i][j] - omega_ * X2old_[i][j][a][b];
           for(int e=0; e < nv; e++)
-            X2_[i][j][a][b] += X2old_[i][j][e][b] * HBAR_->Hvv_[a][e];
+            R2[i][j][a][b] += X1old_[i][e] * HBAR_->Hvvvo_[a][b][e][j];
           for(int m=0; m < no; m++)
-            X2_[i][j][a][b] -= X2old_[m][j][a][b] * HBAR_->Hoo_[m][i];
+            R2[i][j][a][b] -= X1old_[m][a] * HBAR_->Hovoo_[m][b][i][j];
           for(int e=0; e < nv; e++)
-            X2_[i][j][a][b] += X1old_[i][e] * HBAR_->Hvvvo_[a][b][e][j];
+            R2[i][j][a][b] += X2old_[i][j][e][b] * HBAR_->Hvv_[a][e];
           for(int m=0; m < no; m++)
-            X2_[i][j][a][b] -= X1old_[m][a] * HBAR_->Hovoo_[m][b][i][j];
-          for(int m=0; m < no; m++)
-            for(int e=0; e < nv; e++) {
-              X2_[i][j][a][b] -= X2old_[i][m][e][b] * HBAR_->Hovov_[m][a][j][e];
-              X2_[i][j][a][b] -= X2old_[i][m][e][a] * HBAR_->Hovvo_[m][b][e][j];
-            }
-          for(int e=0; e < nv; e++)
-            for(int f=0; f < nv; f++)
-              X2_[i][j][a][b] += 0.5 * X2old_[i][j][e][f] * HBAR_->Hvvvv_[a][b][e][f];
-          for(int m=0; m < no; m++)
-            for(int n=0; n < no; n++)
-              X2_[i][j][a][b] += 0.5 * X2old_[m][n][a][b] * HBAR_->Hoooo_[m][n][i][j];
+            R2[i][j][a][b] -= X2old_[m][j][a][b] * HBAR_->Hoo_[m][i];
           for(int m=0; m < no; m++)
             for(int e=0; e < nv; e++)
-              X2_[i][j][a][b] += X2old_[m][j][e][b] * (2.0*HBAR_->Hovvo_[m][a][e][i] - HBAR_->Hovov_[m][a][i][e]);
+              R2[i][j][a][b] -= X2old_[i][m][e][b] * HBAR_->Hovov_[m][a][j][e] + X2old_[i][m][e][a] * HBAR_->Hovvo_[m][b][e][j];
+          for(int m=0; m < no; m++)
+            for(int e=0; e < nv; e++)
+              R2[i][j][a][b] += X2old_[m][i][e][a] * (2.0*HBAR_->Hovvo_[m][b][e][j] - HBAR_->Hovov_[m][b][j][e]);
+          for(int e=0; e < nv; e++)
+            for(int f=0; f < nv; f++)
+              R2[i][j][a][b] += 0.5 * X2old_[i][j][e][f] * HBAR_->Hvvvv_[a][b][e][f];
+          for(int m=0; m < no; m++)
+            for(int n=0; n < no; n++)
+              R2[i][j][a][b] += 0.5 * X2old_[m][n][a][b] * HBAR_->Hoooo_[m][n][i][j];
         }
+
+  // symmetrize and store
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++)
+          X2_[i][j][a][b] = R2[i][j][a][b] + R2[j][i][b][a];
+
+  free_4d_array(R2, no, no, nv);
 }
 
 }} // psi::ugacc

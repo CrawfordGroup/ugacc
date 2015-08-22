@@ -19,7 +19,7 @@ set {
   r_convergence 1e-15
   d_convergence 1e-13
   e_convergence 1e-15
-  diis true
+  diis false
   maxiter 1000
 }
 

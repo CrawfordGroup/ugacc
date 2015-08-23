@@ -20,6 +20,7 @@
 INIT_PLUGIN
 
 using namespace boost;
+using namespace std;
 
 namespace psi { namespace ugacc {
 
@@ -102,11 +103,38 @@ PsiReturnType ugacc(Options& options)
 
   // Solve perturbed wave function equations for given perturbation and field frequency
   // A map might be useful to keep up with a large number of perturbations + frequencies
-  std::map<std::string, boost::shared_ptr<CCPert> > cc_perts; 
-  double omega = 0.0;
-  std::string entry = "Mu X" + std::to_string(omega);
-  cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(mu->prop_p(0), omega, cc, hbar)); // x only for now
-  cc_perts[entry]->solve();
+  map<string, boost::shared_ptr<CCPert> > cc_perts; 
+  double omega = 0.01;
+  vector<string> cart(3); cart[0] = "X"; cart[1] = "Y"; cart[2] = "Z";
+//  for(auto iter = cart.begin(); iter != cart.end(); iter++) {
+
+  for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
+    string entry = "Mu" + cart[iter] + std::to_string(omega);
+    outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
+    cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), omega, cc, hbar));
+    cc_perts[entry]->solve();
+    if(omega != 0.0) {
+      entry = "Mu" + cart[iter] + std::to_string(-omega);
+      outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
+      cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), -omega, cc, hbar));
+      cc_perts[entry]->solve();
+    }
+  }
+
+  // Prepare property integrals for perturbed wave functions
+  boost::shared_ptr<Perturbation> L(new Perturbation("L", ref, false));
+  for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
+    string entry = "L" + cart[iter] + std::to_string(omega);
+    outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
+    cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(L->prop_p((int) iter), omega, cc, hbar));
+    cc_perts[entry]->solve();
+    if(omega != 0.0) {
+      entry = "L" + cart[iter] + std::to_string(-omega);
+      outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
+      cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(L->prop_p((int) iter), -omega, cc, hbar));
+      cc_perts[entry]->solve();
+    }
+  }
 
   // Use perturbed wfns to construct the linear response function
   // Alternatively, build density-based linear response function

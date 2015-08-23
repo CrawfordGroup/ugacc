@@ -19,12 +19,14 @@ set {
   r_convergence 1e-15
   d_convergence 1e-13
   e_convergence 1e-15
-  diis false
+  diis true
   maxiter 1000
+  omega [0.01]
+  gauge both
 }
 
 #gradient('ccsd')
 set ooc true
+property('ccsd', properties=['rotation'])
 gradient('ugacc', wfn='ccsd')
-#property('ccsd', properties=['polarizability'])
 

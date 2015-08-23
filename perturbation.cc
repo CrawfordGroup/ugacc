@@ -23,7 +23,7 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, 
     for(int i=0; i < ref->nirrep(); i++) frzvpi[i] = 0;
   nact_ = nmo - nfzc - nfzv;
 
-  outfile->Printf("\n  ==> Perturbation = %s <==\n", op.c_str());
+  outfile->Printf("\n\t==> Perturbation = %s <==\n", op.c_str());
 
   outfile->Printf("\tNMO    = %d; NSO = %d; NFZC = %d; NFZV = %d; NACT = %d\n", nmo, nso, nfzc, nfzv, nact_);
 

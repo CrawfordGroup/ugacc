@@ -59,6 +59,7 @@ protected:
   double pseudoresponse();
   void build_diis_error();
   void save_diis_vectors();
+  void print_amps();
 };
 
 }} // psi::ugacc

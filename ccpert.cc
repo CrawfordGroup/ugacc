@@ -30,7 +30,7 @@ CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWavefunction> CC
   Xvvvo_ = init_4d_array(nv, nv, nv, no);
   Xvvoo_ = init_4d_array(nv, nv, no, no);
 
-  xbar();
+  pertbar();
 
   // Denominators
   D1_ = block_matrix(no, nv);
@@ -48,23 +48,35 @@ CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWavefunction> CC
   // Initial guess perturbed amplitudes
   X1_ = block_matrix(no, nv);
   X1old_ = block_matrix(no, nv);
+  Y1_ = block_matrix(no, nv);
+  Y1old_ = block_matrix(no, nv);
   for(int i=0; i < no; i++)
-    for(int a=0; a < nv; a++)
+    for(int a=0; a < nv; a++) {
       X1_[i][a] = Xvo_[a][i]/(D1_[i][a] + omega_);
+      Y1_[i][a] = Xvo_[a][i]/(D1_[i][a] + omega_);
+    }
 
   X2_ = init_4d_array(no, no, nv, nv);
   X2old_ = init_4d_array(no, no, nv, nv);
+  Y2_ = init_4d_array(no, no, nv, nv);
+  Y2old_ = init_4d_array(no, no, nv, nv);
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
-        for(int b=0; b < nv; b++)
+        for(int b=0; b < nv; b++) {
           X2_[i][j][a][b] = (Xvvoo_[a][b][i][j]+Xvvoo_[b][a][j][i])/(D2_[i][j][a][b] + omega_);
+          Y2_[i][j][a][b] = (Xvvoo_[a][b][i][j]+Xvvoo_[b][a][j][i])/(D2_[i][j][a][b] + omega_);
+        }
 
   // DIIS Vectors
   X1diis_.resize(no_*nv_);
   X2diis_.resize(no_*no_*nv_*nv_);
   X1err_.resize(no_*nv_);
   X2err_.resize(no_*no_*nv_*nv_);
+  Y1diis_.resize(no_*nv_);
+  Y2diis_.resize(no_*no_*nv_*nv_);
+  Y1err_.resize(no_*nv_);
+  Y2err_.resize(no_*no_*nv_*nv_);
 }
 
 CCPert::~CCPert()
@@ -85,11 +97,25 @@ CCPert::~CCPert()
   free_4d_array(X2_, no, no, nv);
   free_4d_array(X2old_, no, no, nv);
 
+  free_block(Y1_);
+  free_block(Y1old_);
+  free_4d_array(Y2_, no, no, nv);
+  free_4d_array(Y2old_, no, no, nv);
+
   free_block(D1_);
   free_4d_array(D2_, no, no, nv);
+
+  X1diis_.resize(0);
+  X2diis_.resize(0);
+  X1err_.resize(0);
+  X2err_.resize(0);
+  Y1diis_.resize(0);
+  Y2diis_.resize(0);
+  Y1err_.resize(0);
+  Y2err_.resize(0);
 }
 
-void CCPert::xbar()
+void CCPert::pertbar()
 {
   int no = no_;
   int nv = nv_;
@@ -157,13 +183,13 @@ void CCPert::xbar()
         }
 }
 
-void CCPert::solve()
+void CCPert::solve(enum hand myhand)
 {
-  outfile->Printf("\n\tCoupled-Cluster Perturbed Wfn Iteration:\n");
+  outfile->Printf("\n\tCoupled-Cluster RH Perturbed Wfn Iteration:\n");
   outfile->Printf(  "\t-------------------------------------\n");
   outfile->Printf(  "\t Iter   Pseudoresponse      RMS   \n");
   outfile->Printf(  "\t-------------------------------------\n");
-  outfile->Printf(  "\t  %3d  %20.15f\n", 0, pseudoresponse());
+  outfile->Printf(  "\t  %3d  %20.15f\n", 0, pseudoresponse(myhand));
 
   double rms = 0.0;
   boost::shared_ptr<DIISManager> diis(new DIISManager(8, "CCPert DIIS",
@@ -171,18 +197,26 @@ void CCPert::solve()
   diis->set_error_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
   diis->set_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
   for(int iter=1; iter <= CC_->maxiter_; iter++) {
-    amp_save();
-    build_X1();
-    build_X2();
-    rms = increment_amps();
+    amp_save(myhand);
+
+    if(myhand == right) { build_X1(); build_X2(); }
+    else { build_Y1(); build_Y2(); }
+
+    rms = increment_amps(myhand);
     if(rms < CC_->convergence_) break;
     if(CC_->do_diis_) {
-      build_diis_error();
-      diis->add_entry(4, X1err_.data(), X2err_.data(), X1diis_.data(), X2diis_.data());
-      if(diis->subspace_size() > 2) diis->extrapolate(2, X1diis_.data(), X2diis_.data());
-      save_diis_vectors();
+      build_diis_error(myhand);
+      if(myhand == right) {
+        diis->add_entry(4, X1err_.data(), X2err_.data(), X1diis_.data(), X2diis_.data());
+        if(diis->subspace_size() > 2) diis->extrapolate(2, X1diis_.data(), X2diis_.data());
+      }
+      else {
+        diis->add_entry(4, Y1err_.data(), Y2err_.data(), Y1diis_.data(), Y2diis_.data());
+        if(diis->subspace_size() > 2) diis->extrapolate(2, Y1diis_.data(), Y2diis_.data());
+      }
+      save_diis_vectors(myhand);
     }
-    outfile->Printf(  "\t  %3d  %20.15f  %5.3e\n",iter, pseudoresponse(), rms);
+    outfile->Printf(  "\t  %3d  %20.15f  %5.3e\n",iter, pseudoresponse(myhand), rms);
   }
   if(rms >= CC_->convergence_)
     throw PSIEXCEPTION("Computation has not converged.");
@@ -190,86 +224,124 @@ void CCPert::solve()
 
 // Note that the doubles contribution expression assumes a lack of
 // permutational symmetry of the Xvvoo_ quantity
-double CCPert::pseudoresponse()
+double CCPert::pseudoresponse(enum hand myhand)
 {
   int no = no_;
   int nv = nv_;
+  double **X1, ****X2;
+
+  if(myhand == right) { X1 = X1_;  X2 = X2_; }
+  else {X1 = Y1_; X2 = Y2_; }
 
   double polar1 = 0.0;
   double polar2 = 0.0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      polar1 += 2.0 * X1_[i][a] * Xvo_[a][i];
+      polar1 += 2.0 * X1[i][a] * Xvo_[a][i];
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++)
-          polar2 += 2.0 * (2.0 * X2_[i][j][a][b] - X2_[i][j][b][a]) * Xvvoo_[a][b][i][j];
+          polar2 += 2.0 * (2.0 * X2[i][j][a][b] - X2[i][j][b][a]) * Xvvoo_[a][b][i][j];
     }
 
   return -2.0*(polar1 + polar2);
 }
 
-void CCPert::build_diis_error()
+void CCPert::build_diis_error(enum hand myhand)
 {
   int no = no_;
   int nv = nv_;
+  double **X1, ****X2, **X1old, ****X2old;
+  std::vector<double> X1diis, X2diis, X1err, X2err;
+
+  if(myhand == right) { 
+    X1diis = X1diis_; X2diis = X2diis_; 
+    X1 = X1_; X2 = X2_; 
+    X1old = X1old_; X2old = X2old_; 
+  }
+  else {
+    X1diis = Y1diis_; X2diis = Y2diis_; 
+    X1 = Y1_; X2 = Y2_; 
+    X1old = Y1old_; X2old = Y2old_; 
+  }
 
   int X1len = 0;
   int X2len = 0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      X1diis_[X1len] = X1_[i][a];
-      X1err_[X1len++] = X1_[i][a] - X1old_[i][a];
+      X1diis[X1len] = X1[i][a];
+      X1err[X1len++] = X1[i][a] - X1old[i][a];
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
-          X2diis_[X2len] = X2_[i][j][a][b];
-          X2err_[X2len++] = X2_[i][j][a][b] - X2old_[i][j][a][b];
+          X2diis[X2len] = X2[i][j][a][b];
+          X2err[X2len++] = X2[i][j][a][b] - X2old[i][j][a][b];
         }
     }
 }
 
-void CCPert::save_diis_vectors()
+void CCPert::save_diis_vectors(enum hand myhand)
 {
   int no = no_;
   int nv = nv_;
+
+  double **X1, ****X2;
+  std::vector<double> X1diis, X2diis;
+ 
+  if(myhand == right) { X1 = X1_; X2 = X2_; X1diis = X1diis_; X2diis = X2diis_; }
+  else { X1 = Y1_; X2 = Y2_; X1diis = Y1diis_; X2diis = Y2diis_; }
 
   int X1len = 0;
   int X2len = 0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      X1_[i][a] = X1diis_[X1len++];
+      X1[i][a] = X1diis[X1len++];
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
-          X2_[i][j][a][b] = X2diis_[X2len++];
+          X2[i][j][a][b] = X2diis[X2len++];
         }
     }
 }
 
-void CCPert::amp_save()
+void CCPert::amp_save(enum hand myhand)
 {
-  double ****X2tmp = X2_;
-  X2_ = X2old_;
-  X2old_ = X2tmp;
-
-  double **X1tmp = X1_;
-  X1_ = X1old_;
-  X1old_ = X1tmp;
+  if(myhand == right) {
+    double ****X2tmp = X2_;
+    X2_ = X2old_;
+    X2old_ = X2tmp;
+    double **X1tmp = X1_;
+    X1_ = X1old_;
+    X1old_ = X1tmp;
+  }
+  else {
+    double ****X2tmp = Y2_;
+    Y2_ = Y2old_;
+    Y2old_ = X2tmp;
+    double **X1tmp = Y1_;
+    Y1_ = Y1old_;
+    Y1old_ = X1tmp;
+  }
 }
 
-double CCPert::increment_amps()
+double CCPert::increment_amps( enum hand myhand)
 {
   int no = no_;
   int nv = nv_;
+
+  double **X1, **X1old;
+  double ****X2, ****X2old;
+
+  if(myhand == right) { X1 = X1_; X1old = X1old_; X2 = X2_; X2old = X2_; }
+  else { X1 = Y1_; X1old = Y1old_; X2 = Y2_; X2old = Y2_; }
 
   double residual1 = 0.0;
   double residual2 = 0.0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      residual1 += X1_[i][a] * X1_[i][a];
-      X1_[i][a] = X1old_[i][a] + X1_[i][a]/(D1_[i][a] + omega_);
+      residual1 += X1[i][a] * X1[i][a];
+      X1[i][a] = X1old[i][a] + X1[i][a]/(D1_[i][a] + omega_);
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
-          residual2 += X2_[i][j][a][b] * X2_[i][j][a][b];
-          X2_[i][j][a][b] = X2old_[i][j][a][b] + X2_[i][j][a][b]/(D2_[i][j][a][b] + omega_);
+          residual2 += X2[i][j][a][b] * X2[i][j][a][b];
+          X2[i][j][a][b] = X2old[i][j][a][b] + X2[i][j][a][b]/(D2_[i][j][a][b] + omega_);
         }
     }
 
@@ -378,10 +450,14 @@ void CCPert::build_X2()
   free_block(Zvv);
 }
 
-void CCPert::print_amps()
+void CCPert::print_amps(enum hand myhand)
 {
   int no = no_;
   int nv = nv_;
+
+  double **X1, ****X2;
+  if(myhand == right) { X1 = X1_; X2 = X2_; }
+  else { X1 = Y1_; X2 = Y2_; }
 
   outfile->Printf("X1 Amplitudes:\n");
   for(int i=0; i < no; i++)
@@ -396,6 +472,16 @@ void CCPert::print_amps()
         for(int b=0; b < nv; b++)
  if(fabs(X2_[i][j][a][b]) > 1e-12)
  outfile->Printf("X2[%d][%d][%d][%d] = %20.15f\n", i, j, a, b, X2_[i][j][a][b]);
+
+}
+
+void CCPert::build_Y1()
+{
+
+}
+
+void CCPert::build_Y2()
+{
 
 }
 

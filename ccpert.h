@@ -10,11 +10,13 @@
 
 namespace psi { namespace ugacc {
 
+enum hand {left, right};
+
 class CCPert {
 public:
   CCPert(double **pert, double omega, boost::shared_ptr<CCWavefunction> CC, boost::shared_ptr<HBAR> HBAR);
   ~CCPert();
-  void solve();
+  void solve(enum hand);
 
 protected:
   int no_;
@@ -39,27 +41,39 @@ protected:
   double ****Xvvvo_;
   double ****Xvvoo_;
 
-  // Perturbed wave function
+  // Right-hand perturbed wave function
   double **X1_;
   double ****X2_;
   double **X1old_;
   double ****X2old_;
+
+  // Left-hand perturbed wave function
+  double **Y1_;
+  double ****Y2_;
+  double **Y1old_;
+  double ****Y2old_;
 
   // DIIS-related vectors
   std::vector<double> X1diis_;
   std::vector<double> X2diis_;
   std::vector<double> X1err_;
   std::vector<double> X2err_;
+  std::vector<double> Y1diis_;
+  std::vector<double> Y2diis_;
+  std::vector<double> Y1err_;
+  std::vector<double> Y2err_;
 
-  void xbar();
-  void amp_save();
-  double increment_amps();
+  void pertbar();
+  void amp_save(enum hand);
+  double increment_amps(enum hand);
   void build_X1();
   void build_X2();
-  double pseudoresponse();
-  void build_diis_error();
-  void save_diis_vectors();
-  void print_amps();
+  void build_Y1();
+  void build_Y2();
+  double pseudoresponse(enum hand);
+  void build_diis_error(enum hand);
+  void save_diis_vectors(enum hand);
+  void print_amps(enum hand);
 
   friend class CCResp;
 };

@@ -101,38 +101,21 @@ PsiReturnType ugacc(Options& options)
   // Prepare property integrals for perturbed wave functions
   boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref, false));
 
-  // Solve perturbed wave function equations for given perturbation and field frequency
-  // A map might be useful to keep up with a large number of perturbations + frequencies
+  // Solve perturbed wave function equations for given perturbation and +/- field frequency
   map<string, boost::shared_ptr<CCPert> > cc_perts; 
   double omega = 0.00;
   vector<string> cart(3); cart[0] = "X"; cart[1] = "Y"; cart[2] = "Z";
-//  for(auto iter = cart.begin(); iter != cart.end(); iter++) {
 
   for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
     string entry = "Mu" + cart[iter] + std::to_string(omega);
     outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
     cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), omega, cc, hbar));
-    cc_perts[entry]->solve();
+    cc_perts[entry]->solve(right);
     if(omega != 0.0) {
       entry = "Mu" + cart[iter] + std::to_string(-omega);
       outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
       cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), -omega, cc, hbar));
-      cc_perts[entry]->solve();
-    }
-  }
-
-  // Prepare property integrals for perturbed wave functions
-  boost::shared_ptr<Perturbation> L(new Perturbation("L", ref, false));
-  for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
-    string entry = "L" + cart[iter] + std::to_string(omega);
-    outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
-    cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(L->prop_p((int) iter), omega, cc, hbar));
-    cc_perts[entry]->solve();
-    if(omega != 0.0) {
-      entry = "L" + cart[iter] + std::to_string(-omega);
-      outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
-      cc_perts[entry] = boost::shared_ptr<CCPert>(new CCPert(L->prop_p((int) iter), -omega, cc, hbar));
-      cc_perts[entry]->solve();
+      cc_perts[entry]->solve(right);
     }
   }
 
@@ -140,7 +123,7 @@ PsiReturnType ugacc(Options& options)
   // Alternatively, build density-based linear response function
   std::string mu1 = "Mu" + cart[2] + std::to_string(omega);
   std::string mu2 = "Mu" + cart[2] + std::to_string(omega);
-  boost::shared_ptr<CCLinResp> ccpolar(new CCLinResp(cc_perts[mu1], cc_perts[mu2]));
+//  boost::shared_ptr<CCLinResp> ccpolar(new CCLinResp(cc_perts[mu1], cc_perts[mu2]));
 
   return Success;
 }

@@ -23,7 +23,6 @@ protected:
   int nv_;
   boost::shared_ptr<CCPert> Y_;
   boost::shared_ptr<<CCPert> X_;
-
 };
 
 }} // psi::ugaccc

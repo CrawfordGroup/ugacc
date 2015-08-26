@@ -62,6 +62,11 @@ CCLambda::~CCLambda()
 
   free_block(Gvv_);
   free_block(Goo_);
+
+  l1diis_.resize(0);
+  l2diis_.resize(0);
+  l1err_.resize(0);
+  l2err_.resize(0);
 }
 
 void CCLambda::amp_save()

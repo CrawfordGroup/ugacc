@@ -14,14 +14,14 @@ units bohr
 }
 
 set {
-  basis sto-3g
+  basis dzp
   freeze_core true
   r_convergence 1e-15
   d_convergence 1e-13
   e_convergence 1e-15
   diis true
   maxiter 1000
-  omega [0.01]
+#  omega [0.01]
   gauge both
 }
 

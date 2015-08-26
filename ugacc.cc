@@ -104,7 +104,7 @@ PsiReturnType ugacc(Options& options)
   // Solve perturbed wave function equations for given perturbation and field frequency
   // A map might be useful to keep up with a large number of perturbations + frequencies
   map<string, boost::shared_ptr<CCPert> > cc_perts; 
-  double omega = 0.01;
+  double omega = 0.00;
   vector<string> cart(3); cart[0] = "X"; cart[1] = "Y"; cart[2] = "Z";
 //  for(auto iter = cart.begin(); iter != cart.end(); iter++) {
 
@@ -138,6 +138,9 @@ PsiReturnType ugacc(Options& options)
 
   // Use perturbed wfns to construct the linear response function
   // Alternatively, build density-based linear response function
+  std::string mu1 = "Mu" + cart[2] + std::to_string(omega);
+  std::string mu2 = "Mu" + cart[2] + std::to_string(omega);
+  boost::shared_ptr<CCLinResp> ccpolar(new CCLinResp(cc_perts[mu1], cc_perts[mu2]));
 
   return Success;
 }

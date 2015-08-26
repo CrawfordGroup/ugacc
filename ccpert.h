@@ -60,6 +60,8 @@ protected:
   void build_diis_error();
   void save_diis_vectors();
   void print_amps();
+
+  friend class CCResp;
 };
 
 }} // psi::ugacc

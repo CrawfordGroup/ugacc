@@ -255,11 +255,13 @@ void CCPert::build_diis_error(enum hand myhand)
 
   if(myhand == right) { 
     X1diis = X1diis_; X2diis = X2diis_; 
+    X1err = X1err_; X2err = X2err_;
     X1 = X1_; X2 = X2_; 
     X1old = X1old_; X2old = X2old_; 
   }
   else {
     X1diis = Y1diis_; X2diis = Y2diis_; 
+    X1err = Y1err_; X2err = Y2err_;
     X1 = Y1_; X2 = Y2_; 
     X1old = Y1old_; X2old = Y2old_; 
   }

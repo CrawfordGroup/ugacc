@@ -201,8 +201,8 @@ void CCPert::solve(enum hand myhand)
 
     if(myhand == right) { build_X1(); build_X2(); }
     else { build_Y1(); build_Y2(); }
-
     rms = increment_amps(myhand);
+
     if(rms < CC_->convergence_) break;
     if(CC_->do_diis_) {
       build_diis_error(myhand);
@@ -251,19 +251,27 @@ void CCPert::build_diis_error(enum hand myhand)
   int no = no_;
   int nv = nv_;
   double **X1, ****X2, **X1old, ****X2old;
-  std::vector<double> X1diis, X2diis, X1err, X2err;
+  double *X1diis, *X2diis, *X1err, *X2err;
 
   if(myhand == right) { 
-    X1diis = X1diis_; X2diis = X2diis_; 
-    X1err = X1err_; X2err = X2err_;
-    X1 = X1_; X2 = X2_; 
-    X1old = X1old_; X2old = X2old_; 
+    X1diis = X1diis_.data(); 
+    X2diis = X2diis_.data(); 
+    X1err = X1err_.data(); 
+    X2err = X2err_.data();
+    X1 = X1_; 
+    X2 = X2_; 
+    X1old = X1old_; 
+    X2old = X2old_; 
   }
   else {
-    X1diis = Y1diis_; X2diis = Y2diis_; 
-    X1err = Y1err_; X2err = Y2err_;
-    X1 = Y1_; X2 = Y2_; 
-    X1old = Y1old_; X2old = Y2old_; 
+    X1diis = Y1diis_.data(); 
+    X2diis = Y2diis_.data(); 
+    X1err = Y1err_.data(); 
+    X2err = Y2err_.data();
+    X1 = Y1_; 
+    X2 = Y2_; 
+    X1old = Y1old_; 
+    X2old = Y2old_; 
   }
 
   int X1len = 0;
@@ -286,10 +294,20 @@ void CCPert::save_diis_vectors(enum hand myhand)
   int nv = nv_;
 
   double **X1, ****X2;
-  std::vector<double> X1diis, X2diis;
+  double *X1diis, *X2diis;
  
-  if(myhand == right) { X1 = X1_; X2 = X2_; X1diis = X1diis_; X2diis = X2diis_; }
-  else { X1 = Y1_; X2 = Y2_; X1diis = Y1diis_; X2diis = Y2diis_; }
+  if(myhand == right) { 
+    X1 = X1_; 
+    X2 = X2_; 
+    X1diis = X1diis_.data(); 
+    X2diis = X2diis_.data(); 
+  }
+  else { 
+    X1 = Y1_; 
+    X2 = Y2_; 
+    X1diis = Y1diis_.data(); 
+    X2diis = Y2diis_.data(); 
+  }
 
   int X1len = 0;
   int X2len = 0;
@@ -323,7 +341,7 @@ void CCPert::amp_save(enum hand myhand)
   }
 }
 
-double CCPert::increment_amps( enum hand myhand)
+double CCPert::increment_amps(enum hand myhand)
 {
   int no = no_;
   int nv = nv_;
@@ -331,8 +349,8 @@ double CCPert::increment_amps( enum hand myhand)
   double **X1, **X1old;
   double ****X2, ****X2old;
 
-  if(myhand == right) { X1 = X1_; X1old = X1old_; X2 = X2_; X2old = X2_; }
-  else { X1 = Y1_; X1old = Y1old_; X2 = Y2_; X2old = Y2_; }
+  if(myhand == right) { X1 = X1_; X1old = X1old_; X2 = X2_; X2old = X2old_; }
+  else { X1 = Y1_; X1old = Y1old_; X2 = Y2_; X2old = Y2old_; }
 
   double residual1 = 0.0;
   double residual2 = 0.0;

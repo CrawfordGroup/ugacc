@@ -64,7 +64,7 @@ PsiReturnType ugacc(Options& options)
   // Error trapping – need closed-shell SCF in place
   if(!ref) throw PSIEXCEPTION("SCF has not been run yet!");
   if(options.get_str("REFERENCE") != "RHF")
-    throw PSIEXCEPTION("Only for use with RHF references determinants.");
+    throw PSIEXCEPTION("Only for use with RHF references.");
   for(int h=0; h < ref->nirrep(); h++)
     if(ref->soccpi()[h]) throw PSIEXCEPTION("UGACC is for closed-shell systems only.");
 

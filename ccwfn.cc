@@ -1,4 +1,4 @@
-#include "ccwavefunction.h"
+#include "ccwfn.h"
 #include "array.h"
 #include "hamiltonian.h"
 #include <boost/shared_ptr.hpp>
@@ -10,10 +10,8 @@
 
 namespace psi { namespace ugacc {
 
-CCWavefunction::CCWavefunction(boost::shared_ptr<Wavefunction> reference, 
-                                   boost::shared_ptr<Hamiltonian> H, 
-                                   Options &options, boost::shared_ptr<PSIO> psio) : 
-                                   Wavefunction(options, psio)
+CCWfn::CCWfn(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamiltonian> H, 
+             Options &options, boost::shared_ptr<PSIO> psio) : Wavefunction(options, psio)
 {
   wfn_ = options.get_str("WFN");
   convergence_ = options.get_double("R_CONVERGENCE");
@@ -129,7 +127,7 @@ CCWavefunction::CCWavefunction(boost::shared_ptr<Wavefunction> reference,
   }
 }
 
-CCWavefunction::~CCWavefunction()
+CCWfn::~CCWfn()
 {
   int no = no_;
   int nv = nv_;
@@ -169,7 +167,7 @@ CCWavefunction::~CCWavefunction()
   }
 }
 
-double CCWavefunction::compute_energy() { 
+double CCWfn::compute_energy() { 
   double eref, emp2, eccsd, et;
   eref = reference_energy();
 
@@ -180,7 +178,7 @@ double CCWavefunction::compute_energy() {
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, emp2 = energy());
 
   double rms = 0.0;
-  boost::shared_ptr<DIISManager> diis(new DIISManager(8, "CCWavefunction DIIS",
+  boost::shared_ptr<DIISManager> diis(new DIISManager(8, "CCWfn DIIS",
     DIISManager::OldestAdded, DIISManager::InCore));
   diis->set_error_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
   diis->set_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
@@ -234,7 +232,7 @@ double CCWavefunction::compute_energy() {
   return etotal;
 }
 
-double CCWavefunction::energy()
+double CCWfn::energy()
 {
   int no = no_;
   int nv = nv_;
@@ -258,7 +256,7 @@ double CCWavefunction::energy()
   return one_energy + two_energy;
 }
 
-void CCWavefunction::build_tau()
+void CCWfn::build_tau()
 {
   int no = no_;
   int nv = nv_;
@@ -274,7 +272,7 @@ void CCWavefunction::build_tau()
         }
 }
 
-void CCWavefunction::amp_save()
+void CCWfn::amp_save()
 {
   double ****t2tmp = t2_;
   t2_ = t2old_;
@@ -285,7 +283,7 @@ void CCWavefunction::amp_save()
   t1old_ = t1tmp;
 }
 
-void CCWavefunction::build_F()
+void CCWfn::build_F()
 {
   int no = no_;
   int nv = nv_;
@@ -332,7 +330,7 @@ void CCWavefunction::build_F()
     }
 }
 
-void CCWavefunction::build_W()
+void CCWfn::build_W()
 {
   int no = no_;
   int nv = nv_;
@@ -394,7 +392,7 @@ void CCWavefunction::build_W()
         }
 }
 
-void CCWavefunction::build_t1()
+void CCWfn::build_t1()
 {
   int no = no_;
   int nv = nv_;
@@ -433,7 +431,7 @@ void CCWavefunction::build_t1()
    }
 }
 
-void CCWavefunction::build_t2()
+void CCWfn::build_t2()
 {
   int no = no_;
   int nv = nv_;
@@ -520,7 +518,7 @@ void CCWavefunction::build_t2()
   free_4d_array(Zmbij,no,nv,no);
 }
 
-double CCWavefunction::t1norm()
+double CCWfn::t1norm()
 {
   int no = no_;
   int nv = nv_;
@@ -534,7 +532,7 @@ double CCWavefunction::t1norm()
   return sqrt(diag/(2*no));
 }
 
-double CCWavefunction::increment_amps()
+double CCWfn::increment_amps()
 {
   int no = no_;
   int nv = nv_;
@@ -563,7 +561,7 @@ double CCWavefunction::increment_amps()
   return sqrt(residual1 + residual2);
 }
 
-void CCWavefunction::build_diis_error()
+void CCWfn::build_diis_error()
 {
   int no = no_;
   int nv = nv_;
@@ -582,7 +580,7 @@ void CCWavefunction::build_diis_error()
     }
 }
 
-void CCWavefunction::save_diis_vectors()
+void CCWfn::save_diis_vectors()
 {
   int no = no_;
   int nv = nv_;
@@ -599,7 +597,7 @@ void CCWavefunction::save_diis_vectors()
     }
 }
 
-void CCWavefunction::build_tstar()
+void CCWfn::build_tstar()
 {
   int no = no_; 
   int nv = nv_;
@@ -618,7 +616,7 @@ void CCWavefunction::build_tstar()
     }
 }
 
-double CCWavefunction::tcorr()
+double CCWfn::tcorr()
 {
   int no = no_;
   int nv = nv_;
@@ -716,7 +714,7 @@ double CCWavefunction::tcorr()
   return ET_UGA;
 }
 
-double CCWavefunction::tcorr_ooc()
+double CCWfn::tcorr_ooc()
 {
   int no = no_;
   int nv = nv_;
@@ -766,7 +764,7 @@ double CCWavefunction::tcorr_ooc()
   return ET_UGA;
 }
 
-double CCWavefunction::tcorr_ooc_TJL()
+double CCWfn::tcorr_ooc_TJL()
 {
   int no = no_;
   int nv = nv_;
@@ -825,7 +823,7 @@ double CCWavefunction::tcorr_ooc_TJL()
   return ET;
 }
 
-void CCWavefunction::tgrad()
+void CCWfn::tgrad()
 {
   int no = no_;
   int nv = nv_;
@@ -1064,7 +1062,7 @@ void CCWavefunction::tgrad()
 
   -TDC, 1/2014
 */
-void CCWavefunction::tgrad_ooc()
+void CCWfn::tgrad_ooc()
 {
   int no = no_;
   int nv = nv_;
@@ -1167,7 +1165,7 @@ void CCWavefunction::tgrad_ooc()
   return;
 }
 
-void CCWavefunction::t3_ijk(double ***t3, int i, int j, int k, double ****t2, double **fock, double ****ints)
+void CCWfn::t3_ijk(double ***t3, int i, int j, int k, double ****t2, double **fock, double ****ints)
 {
   int no = no_;
   int nv = nv_;
@@ -1203,7 +1201,7 @@ void CCWavefunction::t3_ijk(double ***t3, int i, int j, int k, double ****t2, do
   return;
 }
 
-void CCWavefunction::t3_abc(double ***t3, int a, int b, int c, double ****t2, double **fock, double ****ints)
+void CCWfn::t3_abc(double ***t3, int a, int b, int c, double ****t2, double **fock, double ****ints)
 {
   int no = no_;
   int nv = nv_;
@@ -1237,7 +1235,7 @@ void CCWavefunction::t3_abc(double ***t3, int a, int b, int c, double ****t2, do
       } // ijk
 }
 
-void CCWavefunction::W3_ijk(double ***W3, int i, int j, int k, double ****t2, double ****ints)
+void CCWfn::W3_ijk(double ***W3, int i, int j, int k, double ****t2, double ****ints)
 {
   int no = no_;
   int nv = nv_;
@@ -1269,7 +1267,7 @@ void CCWavefunction::W3_ijk(double ***W3, int i, int j, int k, double ****t2, do
       } // abc
 }
 
-void CCWavefunction::M3_ijk(double ***M3, int i, int j, int k, double ****t2, double **fock, double ****ints)
+void CCWfn::M3_ijk(double ***M3, int i, int j, int k, double ****t2, double **fock, double ****ints)
 {
   int no = no_;
   int nv = nv_;
@@ -1305,7 +1303,7 @@ void CCWavefunction::M3_ijk(double ***M3, int i, int j, int k, double ****t2, do
   return;
 }
 
-void CCWavefunction::M3_abc(double ***M3, int a, int b, int c, double ****t2, double **fock, double ****ints)
+void CCWfn::M3_abc(double ***M3, int a, int b, int c, double ****t2, double **fock, double ****ints)
 {
   int no = no_;
   int nv = nv_;
@@ -1341,7 +1339,7 @@ void CCWavefunction::M3_abc(double ***M3, int a, int b, int c, double ****t2, do
   return;
 }
 
-void CCWavefunction::N3_ijk(double ***N3, int i, int j, int k, double ****t2, double **t1, double **fock, double ****ints)
+void CCWfn::N3_ijk(double ***N3, int i, int j, int k, double ****t2, double **t1, double **fock, double ****ints)
 {
   int no = no_;
   int nv = nv_;
@@ -1366,7 +1364,7 @@ void CCWavefunction::N3_ijk(double ***N3, int i, int j, int k, double ****t2, do
 
 }
 
-void CCWavefunction::N3_abc(double ***N3, int a, int b, int c, double ****t2, double **t1, double **fock, double ****ints)
+void CCWfn::N3_abc(double ***N3, int a, int b, int c, double ****t2, double **t1, double **fock, double ****ints)
 {
   int no = no_;
 

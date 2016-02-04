@@ -15,7 +15,7 @@ public:
 
 protected:
   boost::shared_ptr<Hamiltonian> H_;
-  boost::shared_ptr<CCWavefunction> CC_;
+  boost::shared_ptr<CCWfn> CC_;
   boost::shared_ptr<HBAR> HBAR_;
   boost::shared_ptr<CCLambda> Lambda_;
 

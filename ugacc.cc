@@ -8,7 +8,7 @@
 #include <map>
 
 #include "hamiltonian.h"
-#include "ccwavefunction.h"
+#include "ccwfn.h"
 #include "hbar.h"
 #include "cclambda.h"
 #include "ccdensity.h"
@@ -72,7 +72,7 @@ PsiReturnType ugacc(Options& options)
   std::vector<boost::shared_ptr<MOSpace> > spaces;
   spaces.push_back(MOSpace::all);
   boost::shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
-  boost::shared_ptr<CCWavefunction> cc(new CCWavefunction(ref, H, options, psio));
+  boost::shared_ptr<CCWfn> cc(new CCWfn(ref, H, options, psio));
 
   double ecc = cc->compute_energy();
 

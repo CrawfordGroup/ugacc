@@ -8,7 +8,7 @@
 
 namespace psi { namespace ugacc {
 
-CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWavefunction> CC, boost::shared_ptr<HBAR> HBAR)
+CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWfn> CC, boost::shared_ptr<HBAR> HBAR)
 {
   CC_ = CC;
   HBAR_ = HBAR;

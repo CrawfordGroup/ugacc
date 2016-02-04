@@ -5,7 +5,7 @@
 #include <libmints/mints.h>
 
 #include "hamiltonian.h"
-#include "ccwavefunction.h"
+#include "ccwfn.h"
 #include "hbar.h"
 
 namespace psi { namespace ugacc {
@@ -14,7 +14,7 @@ enum hand {left, right};
 
 class CCPert {
 public:
-  CCPert(double **pert, double omega, boost::shared_ptr<CCWavefunction> CC, boost::shared_ptr<HBAR> HBAR);
+  CCPert(double **pert, double omega, boost::shared_ptr<CCWfn> CC, boost::shared_ptr<HBAR> HBAR);
   ~CCPert();
   void solve(enum hand);
 
@@ -24,7 +24,7 @@ protected:
   double **pert_;
   double omega_;
 
-  boost::shared_ptr<CCWavefunction> CC_;
+  boost::shared_ptr<CCWfn> CC_;
   boost::shared_ptr<Hamiltonian> H_;
   boost::shared_ptr<HBAR> HBAR_;
 

@@ -5,13 +5,13 @@
 #include <libpsio/psio.h>
 
 #include "ccdensity.h"
-#include "ccwavefunction.h"
+#include "ccwfn.h"
 #include "cclambda.h"
 #include "array.h"
 
 namespace psi { namespace ugacc {
 
-CCDensity::CCDensity(boost::shared_ptr<CCWavefunction> CC, boost::shared_ptr<CCLambda> CCLambda)
+CCDensity::CCDensity(boost::shared_ptr<CCWfn> CC, boost::shared_ptr<CCLambda> CCLambda)
 {
   CC_ = CC;
   CCLambda_ = CCLambda;

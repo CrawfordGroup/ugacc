@@ -24,7 +24,7 @@ protected:
   double ****ints_;
   double ****L_;
 
-  friend class CCWavefunction;
+  friend class CCWfn;
   friend class HBAR;
   friend class CCLambda;
   friend class CCDensity;

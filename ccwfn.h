@@ -1,5 +1,5 @@
-#ifndef CCWAVEFUNCTION_H
-#define CCWAVEFUNCTION_H
+#ifndef CCWFN_H
+#define CCWFN_H
 
 #include "hamiltonian.h"
 #include <libmints/mints.h>
@@ -7,12 +7,12 @@
 
 namespace psi { namespace ugacc {
 
-class CCWavefunction: public Wavefunction {
+class CCWfn: public Wavefunction {
 public:
-  CCWavefunction(boost::shared_ptr<Wavefunction> reference, 
+  CCWfn(boost::shared_ptr<Wavefunction> reference, 
                    boost::shared_ptr<Hamiltonian> H,
                    Options &options, boost::shared_ptr<PSIO> psio);
-  virtual ~CCWavefunction();
+  virtual ~CCWfn();
 
 protected:
   std::string wfn_;     // wfn type (CCSD, CCSD_T, etc.)
@@ -106,8 +106,8 @@ public:
   friend class CCLambda;
   friend class CCDensity;
   friend class CCPert;
-}; // CCWavefunction
+}; // CCWfn
 
 }} // psi::ugacc
 
-#endif // CCWAVEFUNCTION_H
+#endif // CCWFN_H

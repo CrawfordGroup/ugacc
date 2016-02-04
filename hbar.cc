@@ -6,7 +6,7 @@
 
 namespace psi { namespace ugacc {
 
-HBAR::HBAR(boost::shared_ptr<Hamiltonian> H, boost::shared_ptr<CCWavefunction> CC)
+HBAR::HBAR(boost::shared_ptr<Hamiltonian> H, boost::shared_ptr<CCWfn> CC)
 {
   CC_ = CC;
   H_ = H;

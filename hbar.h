@@ -2,18 +2,18 @@
 #define HBAR_H
 
 #include "hamiltonian.h"
-#include "ccwavefunction.h"
+#include "ccwfn.h"
 
 namespace psi { namespace ugacc {
 
 class HBAR {
 public:
-  HBAR(boost::shared_ptr<Hamiltonian> H, boost::shared_ptr<CCWavefunction> CC);
+  HBAR(boost::shared_ptr<Hamiltonian> H, boost::shared_ptr<CCWfn> CC);
   ~HBAR();
 
 protected:
   boost::shared_ptr<Hamiltonian> H_;
-  boost::shared_ptr<CCWavefunction> CC_;
+  boost::shared_ptr<CCWfn> CC_;
   int no_;
   int nv_;
   double **Hoo_;
@@ -28,7 +28,7 @@ protected:
   double ****Hovoo_;
   double ****Hvvvo_;
 
-  friend class CCWavefunction;
+  friend class CCWfn;
   friend class CCLambda;
   friend class CCPert;
 };

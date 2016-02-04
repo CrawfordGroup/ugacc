@@ -2,7 +2,7 @@
 #define CCLAMBDA_H
 
 #include "hamiltonian.h"
-#include "ccwavefunction.h"
+#include "ccwfn.h"
 #include "hbar.h"
 #include <libmints/mints.h>
 #include <boost/shared_ptr.hpp>
@@ -11,7 +11,7 @@ namespace psi { namespace ugacc {
 
 class CCLambda {
 public:
-  CCLambda(boost::shared_ptr<CCWavefunction>, boost::shared_ptr<HBAR>);
+  CCLambda(boost::shared_ptr<CCWfn>, boost::shared_ptr<HBAR>);
   virtual ~CCLambda();
 
 protected:
@@ -19,7 +19,7 @@ protected:
   int nv_;  // Number of active virtual MOs
 
   boost::shared_ptr<Hamiltonian> H_;
-  boost::shared_ptr<CCWavefunction> CC_;
+  boost::shared_ptr<CCWfn> CC_;
   boost::shared_ptr<HBAR> HBAR_;
 
   // Energy denominators

@@ -10,7 +10,7 @@
 
 namespace psi { namespace ugacc {
 
-CCLambda::CCLambda(boost::shared_ptr<CCWavefunction> CC, boost::shared_ptr<HBAR> HBAR)
+CCLambda::CCLambda(boost::shared_ptr<CCWfn> CC, boost::shared_ptr<HBAR> HBAR)
 {
   HBAR_ = HBAR;
   CC_ = CC;

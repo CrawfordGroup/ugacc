@@ -1,7 +1,7 @@
 #ifndef CCDENSITY_H
 #define CCDENSITY_H
 
-#include "ccwavefunction.h"
+#include "ccwfn.h"
 #include "cclambda.h"
 #include <libmints/mints.h>
 #include <boost/shared_ptr.hpp>
@@ -10,7 +10,7 @@ namespace psi { namespace ugacc {
 
 class CCDensity {
 public:
-  CCDensity(boost::shared_ptr<CCWavefunction> CC, boost::shared_ptr<CCLambda> CCLambda);
+  CCDensity(boost::shared_ptr<CCWfn> CC, boost::shared_ptr<CCLambda> CCLambda);
   virtual ~CCDensity();
 
 protected:
@@ -19,7 +19,7 @@ protected:
 
   boost::shared_ptr<Hamiltonian> H_;
   boost::shared_ptr<HBAR> HBAR_;
-  boost::shared_ptr<CCWavefunction> CC_;
+  boost::shared_ptr<CCWfn> CC_;
   boost::shared_ptr<CCLambda> CCLambda_;
 
   double **t1_;

@@ -28,5 +28,5 @@ set {
 #gradient('ccsd')
 set ooc true
 #$property('ccsd', properties=['rotation'])
-gradient('ugacc', wfn='ccsd')
+gradient('ugacc', wfn='ccsd(t)')
 

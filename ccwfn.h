@@ -72,9 +72,6 @@ protected:
   double ****Gvvvo_;
   double ****Goovv_;
 
-public:
-  double compute_energy();
-
   double energy();
   void build_tau();
   void amp_save();
@@ -101,6 +98,9 @@ public:
   void M3_abc(double ***M3, int a, int b, int c, double ****t2, double **fock, double ****ints);
   void N3_ijk(double ***N3, int i, int j, int k, double ****t2, double **t1, double **fock, double ****ints);
   void N3_abc(double ***N3, int a, int b, int c, double ****t2, double **t1, double **fock, double ****ints);
+
+public:
+  double compute_energy();
 
   friend class HBAR;
   friend class CCLambda;

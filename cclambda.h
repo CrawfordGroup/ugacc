@@ -49,9 +49,6 @@ protected:
   double **s1_;
   double ****s2_;
 
-public:
-  void compute_lambda();
-
   void amp_save();
   double increment_amps();
   void build_G();
@@ -60,6 +57,9 @@ public:
   double pseudoenergy();
   void build_diis_error();
   void save_diis_vectors();
+
+public:
+  void compute_lambda();
 
   friend class CCDensity;
 

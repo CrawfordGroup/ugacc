@@ -9,9 +9,7 @@ namespace psi { namespace ugacc {
 
 class CCWfn: public Wavefunction {
 public:
-  CCWfn(boost::shared_ptr<Wavefunction> reference, 
-                   boost::shared_ptr<Hamiltonian> H,
-                   Options &options, boost::shared_ptr<PSIO> psio);
+  CCWfn(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamiltonian> H, Options &options);
   virtual ~CCWfn();
 
 protected:

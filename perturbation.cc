@@ -7,7 +7,8 @@
 
 namespace psi { namespace ugacc {
 
-Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, bool full_virtual_space)
+Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, 
+                           boost::shared_ptr<MintsHelper> mints, bool full_virtual_space)
 {
   operator_ = op;
 
@@ -24,7 +25,6 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, 
   nact_ = nmo - nfzc - nfzv;
 
   outfile->Printf("\n\t==> Perturbation = %s <==\n", op.c_str());
-
   outfile->Printf("\tNMO    = %d; NSO = %d; NFZC = %d; NFZV = %d; NACT = %d\n", nmo, nso, nfzc, nfzv, nact_);
 
   int *mo_offset = init_int_array(ref->nirrep()); // Pitzer offsets
@@ -37,7 +37,8 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, 
   // Symmetry info
   boost::shared_ptr<Molecule> mol = ref->molecule();
   boost::shared_ptr<IntegralFactory> fact = ref->integral();
-  OperatorSymmetry dipsym(1, mol, fact);
+  boost::shared_ptr<MatrixFactory> mats = ref->matrix_factory();
+  OperatorSymmetry dipsym(1, mol, fact, mats);
   int *prop_irreps;
   if(operator_ == "Mu" || operator_ == "P" || operator_ == "P*") {
     prop_irreps = new int[3];
@@ -62,13 +63,12 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, 
   }
 
   // Grab the raw SO integrals
-  MintsHelper mints(Process::environment.options, 0);
   std::vector<SharedMatrix> prop;
-  if(operator_ == "Mu") prop = mints.so_dipole();
-  else if(operator_ == "P" || operator_ == "P*") prop = mints.so_nabla();
-  else if(operator_ == "L" || operator_ == "L*") prop = mints.so_angular_momentum();
-  else if(operator_ == "Q") prop = mints.so_traceless_quadrupole();
-  else if(operator_ == "RR") prop = mints.so_quadrupole();
+  if(operator_ == "Mu") prop = mints->so_dipole();
+  else if(operator_ == "P" || operator_ == "P*") prop = mints->so_nabla();
+  else if(operator_ == "L" || operator_ == "L*") prop = mints->so_angular_momentum();
+  else if(operator_ == "Q") prop = mints->so_traceless_quadrupole();
+  else if(operator_ == "RR") prop = mints->so_quadrupole();
 
   // Transform and sort to QT ordering
   SharedMatrix Ca = ref->Ca();

@@ -27,14 +27,12 @@ def run_ugacc(name, **kwargs):
             psi4.set_global_option('WFN', 'CCSD')
         elif (kwargs['wfn'] == 'ccsd(t)'):
             psi4.set_global_option('WFN', 'CCSD_T')
-    scf_helper(name, **kwargs)
-#    psi4.transqt2()
-    returnvalue = psi4.plugin('ugacc.so')
-#    psi4.set_variable('CURRENT ENERGY', returnvalue)
+    scf_wfn = scf_helper(name, **kwargs)
+    return psi4.plugin('ugacc.so', scf_wfn)
 
 def run_ugacc_gradient(name, **kwargs):
     psi4.set_global_option('DERTYPE', 'FIRST')
-    run_ugacc(name, **kwargs)
+    return run_ugacc(name, **kwargs)
 
 # Integration with driver routines
 procedures['energy']['ugacc'] = run_ugacc

@@ -5,13 +5,12 @@
 #include <libqt/qt.h>
 #include <libciomr/libciomr.h>
 #include <cmath>
-#include <libpsio/psio.h>
 #include <libdiis/diismanager.h>
 
 namespace psi { namespace ugacc {
 
 CCWfn::CCWfn(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamiltonian> H, 
-             Options &options, boost::shared_ptr<PSIO> psio) : Wavefunction(options, psio)
+             Options &options) : Wavefunction(options)
 {
   wfn_ = options.get_str("WFN");
   convergence_ = options.get_double("R_CONVERGENCE");
@@ -22,7 +21,7 @@ CCWfn::CCWfn(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamilt
 
   // What does this do?
   set_reference_wavefunction(reference);
-  copy(reference);
+  shallow_copy(reference);
 
   H_ = H;
 

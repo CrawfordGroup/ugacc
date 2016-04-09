@@ -42,7 +42,7 @@ int read_options(std::string name, Options& options)
 }
 
 extern "C" 
-PsiReturnType ugacc(Options& options)
+SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
 {
   outfile->Printf("\n");
   outfile->Printf("\t\t\t**************************\n");
@@ -59,8 +59,6 @@ PsiReturnType ugacc(Options& options)
   outfile->Printf("\tOut-of-core    = %s\n", options.get_bool("OOC") ? "Yes" : "No");
   outfile->Printf("\tDertype        = %s\n", options.get_str("DERTYPE").c_str());
 
-  boost::shared_ptr<Wavefunction> ref = Process::environment.wavefunction();
-
   // Error trapping – need closed-shell SCF in place
   if(!ref) throw PSIEXCEPTION("SCF has not been run yet!");
   if(options.get_str("REFERENCE") != "RHF")
@@ -72,11 +70,11 @@ PsiReturnType ugacc(Options& options)
   std::vector<boost::shared_ptr<MOSpace> > spaces;
   spaces.push_back(MOSpace::all);
   boost::shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
-  boost::shared_ptr<CCWfn> cc(new CCWfn(ref, H, options, psio));
+  boost::shared_ptr<CCWfn> cc(new CCWfn(ref, H, options));
 
   double ecc = cc->compute_energy();
 
-  if(options.get_str("DERTYPE") == "NONE") return Success;
+  if(options.get_str("DERTYPE") == "NONE") return ref;
  
   boost::shared_ptr<HBAR> hbar(new HBAR(H, cc));
   boost::shared_ptr<CCLambda> cclambda(new CCLambda(cc, hbar));
@@ -99,7 +97,8 @@ PsiReturnType ugacc(Options& options)
   Process::environment.globals["CURRENT ENERGY"] = ecc + eref;
 
   // Prepare property integrals for perturbed wave functions
-  boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref, false));
+  boost::shared_ptr<MintsHelper> mints(new MintsHelper(ref->basisset(), options, 0));
+  boost::shared_ptr<Perturbation> mu(new Perturbation("Mu", ref, mints, false));
 
   // Solve perturbed wave function equations for given perturbation and +/- field frequency
   map<string, boost::shared_ptr<CCPert> > cc_perts; 
@@ -125,7 +124,7 @@ PsiReturnType ugacc(Options& options)
   std::string mu2 = "Mu" + cart[2] + std::to_string(omega);
 //  boost::shared_ptr<CCLinResp> ccpolar(new CCLinResp(cc_perts[mu1], cc_perts[mu2]));
 
-  return Success;
+  return cc;
 }
 
 }} // End namespaces

@@ -33,13 +33,13 @@ protected:
   double ****D2_;
 
   // Similarity transformed perturbation operator components
-  double **Xov_;
-  double **Xoo_;
-  double **Xvv_;
-  double **Xvo_;
-  double ****Xovoo_;
-  double ****Xvvvo_;
-  double ****Xvvoo_;
+  double **Aov_;
+  double **Aoo_;
+  double **Avv_;
+  double **Avo_;
+  double ****Aovoo_;
+  double ****Avvvo_;
+  double ****Avvoo_;
 
   // Right-hand perturbed wave function
   double **X1_;
@@ -63,9 +63,14 @@ protected:
   std::vector<double> Y1err_;
   std::vector<double> Y2err_;
 
+  // Three-body intermediates
+  double **Gvv_;
+  double **Goo_;
+
   void pertbar();
   void amp_save(enum hand);
   double increment_amps(enum hand);
+  void build_G();
   void build_X1();
   void build_X2();
   void build_Y1();

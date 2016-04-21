@@ -19,7 +19,6 @@ namespace psi { namespace ugacc {
 class Perturbation {
 public:
   std::string operator_; // perturbation name
-  Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref);
   Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, 
                boost::shared_ptr<MintsHelper> mints, bool full_virtual_space);
   ~Perturbation();

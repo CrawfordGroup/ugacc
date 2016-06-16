@@ -22,13 +22,13 @@ CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWfn> CC, boost::
   int no = no_;
   int nv = nv_;
 
-  Xov_ = block_matrix(no, nv);
-  Xoo_ = block_matrix(no, no);
-  Xvv_ = block_matrix(nv, nv);
-  Xvo_ = block_matrix(nv, no);
-  Xovoo_ = init_4d_array(no, nv, no, no);
-  Xvvvo_ = init_4d_array(nv, nv, nv, no);
-  Xvvoo_ = init_4d_array(nv, nv, no, no);
+  Aov_ = block_matrix(no, nv);
+  Aoo_ = block_matrix(no, no);
+  Avv_ = block_matrix(nv, nv);
+  Avo_ = block_matrix(nv, no);
+  Aovoo_ = init_4d_array(no, nv, no, no);
+  Avvvo_ = init_4d_array(nv, nv, nv, no);
+  Avvoo_ = init_4d_array(nv, nv, no, no);
 
   pertbar();
 
@@ -52,8 +52,8 @@ CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWfn> CC, boost::
   Y1old_ = block_matrix(no, nv);
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      X1_[i][a] = Xvo_[a][i]/(D1_[i][a] + omega_);
-      Y1_[i][a] = Xvo_[a][i]/(D1_[i][a] + omega_);
+      X1_[i][a] = Avo_[a][i]/(D1_[i][a] + omega_);
+      Y1_[i][a] = Avo_[a][i]/(D1_[i][a] + omega_);
     }
 
   X2_ = init_4d_array(no, no, nv, nv);
@@ -64,9 +64,12 @@ CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWfn> CC, boost::
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++) {
-          X2_[i][j][a][b] = (Xvvoo_[a][b][i][j]+Xvvoo_[b][a][j][i])/(D2_[i][j][a][b] + omega_);
-          Y2_[i][j][a][b] = (Xvvoo_[a][b][i][j]+Xvvoo_[b][a][j][i])/(D2_[i][j][a][b] + omega_);
+          X2_[i][j][a][b] = (Avvoo_[a][b][i][j]+Avvoo_[b][a][j][i])/(D2_[i][j][a][b] + omega_);
+          Y2_[i][j][a][b] = (Avvoo_[a][b][i][j]+Avvoo_[b][a][j][i])/(D2_[i][j][a][b] + omega_);
         }
+
+  Gvv_ = block_matrix(nv, nv);
+  Goo_ = block_matrix(no, no);
 
   // DIIS Vectors
   X1diis_.resize(no_*nv_);
@@ -84,13 +87,13 @@ CCPert::~CCPert()
   int no = no_;
   int nv = nv_;
 
-  free_block(Xov_);
-  free_block(Xoo_);
-  free_block(Xvv_);
-  free_block(Xvo_);
-  free_4d_array(Xovoo_, no, nv, no);
-  free_4d_array(Xvvvo_, nv, nv, nv);
-  free_4d_array(Xvvoo_, nv, nv, no);
+  free_block(Aov_);
+  free_block(Aoo_);
+  free_block(Avv_);
+  free_block(Avo_);
+  free_4d_array(Aovoo_, no, nv, no);
+  free_4d_array(Avvvo_, nv, nv, nv);
+  free_4d_array(Avvoo_, nv, nv, no);
 
   free_block(X1_);
   free_block(X1old_);
@@ -104,6 +107,9 @@ CCPert::~CCPert()
 
   free_block(D1_);
   free_4d_array(D2_, no, no, nv);
+
+  free_block(Gvv_);
+  free_block(Goo_);
 
   X1diis_.resize(0);
   X2diis_.resize(0);
@@ -124,62 +130,62 @@ void CCPert::pertbar()
 
   for(int m=0; m < no; m++)
     for(int e=0; e < nv; e++) {
-      Xov_[m][e] = pert_[m][e+no];
+      Aov_[m][e] = pert_[m][e+no];
     }
 
   for(int m=0; m < no; m++)
     for(int i=0; i < no; i++) {
-      Xoo_[m][i] = pert_[m][i];
+      Aoo_[m][i] = pert_[m][i];
       for(int e=0; e < nv; e++)
-        Xoo_[m][i] += t1[i][e] * pert_[m][e+no];
+        Aoo_[m][i] += t1[i][e] * pert_[m][e+no];
     }
 
   for(int a=0; a < nv; a++)
     for(int e=0; e < nv; e++) {
-      Xvv_[a][e] = pert_[a+no][e+no];
+      Avv_[a][e] = pert_[a+no][e+no];
       for(int m=0; m < no; m++)
-        Xvv_[a][e] -= t1[m][a] * pert_[m][e+no];
+        Avv_[a][e] -= t1[m][a] * pert_[m][e+no];
     }
 
   for(int a=0; a < nv; a++)
     for(int i=0; i < no; i++) {
-      Xvo_[a][i] = pert_[a+no][i];
+      Avo_[a][i] = pert_[a+no][i];
       for(int e=0; e < nv; e++)
-        Xvo_[a][i] += t1[i][e] * pert_[a+no][e+no];
+        Avo_[a][i] += t1[i][e] * pert_[a+no][e+no];
       for(int m=0; m < no; m++)
-        Xvo_[a][i] -= t1[m][a] * pert_[m][i];
+        Avo_[a][i] -= t1[m][a] * pert_[m][i];
       for(int m=0; m < no; m++) 
         for(int e=0; e < nv; e++)
-          Xvo_[a][i] += (2.0*t2[m][i][e][a] - t2[i][m][e][a] - t1[i][e] * t1[m][a]) * pert_[m][e+no];
+          Avo_[a][i] += (2.0*t2[m][i][e][a] - t2[i][m][e][a] - t1[i][e] * t1[m][a]) * pert_[m][e+no];
     }
 
   for(int m=0; m < no; m++)
     for(int b=0; b < nv; b++)
       for(int i=0; i < no; i++)
         for(int j=0; j < no; j++) {
-          Xovoo_[m][b][i][j] =0.0;
+          Aovoo_[m][b][i][j] =0.0;
           for(int e=0; e < nv; e++)
-            Xovoo_[m][b][i][j] += t2[i][j][e][b] * pert_[m][e+no];
+            Aovoo_[m][b][i][j] += t2[i][j][e][b] * pert_[m][e+no];
         }
 
   for(int a=0; a < nv; a++)
     for(int b=0; b < nv; b++)
       for(int e=0; e < nv; e++)
         for(int i=0; i < no; i++) {
-          Xvvvo_[a][b][e][i] = 0.0;
+          Avvvo_[a][b][e][i] = 0.0;
           for(int m=0; m < no; m++)
-            Xvvvo_[a][b][e][i] -= t2[m][i][a][b] * pert_[m][e+no];
+            Avvvo_[a][b][e][i] -= t2[m][i][a][b] * pert_[m][e+no];
         }
 
   for(int a=0; a < nv; a++)
     for(int b=0; b < nv; b++)
       for(int i=0; i < no; i++)
         for(int j=0; j < no; j++) {
-          Xvvoo_[a][b][i][j] = 0.0;
+          Avvoo_[a][b][i][j] = 0.0;
           for(int e=0; e < nv; e++)
-            Xvvoo_[a][b][i][j] += t2[i][j][e][b] * Xvv_[a][e];
+            Avvoo_[a][b][i][j] += t2[i][j][e][b] * Avv_[a][e];
           for(int m=0; m < no; m++)
-            Xvvoo_[a][b][i][j] -= t2[m][j][a][b] * Xoo_[m][i];
+            Avvoo_[a][b][i][j] -= t2[m][j][a][b] * Aoo_[m][i];
         }
 }
 
@@ -200,7 +206,7 @@ void CCPert::solve(enum hand myhand)
     amp_save(myhand);
 
     if(myhand == right) { build_X1(); build_X2(); }
-    else { build_Y1(); build_Y2(); }
+    else { build_G(); build_Y1(); build_Y2(); }
     rms = increment_amps(myhand);
 
     if(rms < CC_->convergence_) break;
@@ -237,10 +243,10 @@ double CCPert::pseudoresponse(enum hand myhand)
   double polar2 = 0.0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      polar1 += 2.0 * X1[i][a] * Xvo_[a][i];
+      polar1 += 2.0 * X1[i][a] * Avo_[a][i];
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++)
-          polar2 += 2.0 * (2.0 * X2[i][j][a][b] - X2[i][j][b][a]) * Xvvoo_[a][b][i][j];
+          polar2 += 2.0 * (2.0 * X2[i][j][a][b] - X2[i][j][b][a]) * Avvoo_[a][b][i][j];
     }
 
   return -2.0*(polar1 + polar2);
@@ -375,7 +381,7 @@ void CCPert::build_X1()
 
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      X1_[i][a] = Xvo_[a][i] - omega_ * X1old_[i][a];
+      X1_[i][a] = Avo_[a][i] - omega_ * X1old_[i][a];
       for(int e=0; e < nv; e++) 
         X1_[i][a] += X1old_[i][e] * HBAR_->Hvv_[a][e];
       for(int m=0; m < no; m++)
@@ -431,7 +437,7 @@ void CCPert::build_X2()
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++) {
-          R2[i][j][a][b] = Xvvoo_[a][b][i][j] - 0.5 * omega_ * X2old_[i][j][a][b];
+          R2[i][j][a][b] = Avvoo_[a][b][i][j] - 0.5 * omega_ * X2old_[i][j][a][b];
           for(int e=0; e < nv; e++)
             R2[i][j][a][b] += X1old_[i][e] * HBAR_->Hvvvo_[a][b][e][j];
           for(int m=0; m < no; m++)
@@ -495,13 +501,145 @@ void CCPert::print_amps(enum hand myhand)
 
 }
 
+void CCPert::build_G()
+{
+  int no = no_;
+  int nv = nv_;
+
+  double ****t2 = CC_->t2_;
+  double ****Y2 = Y2old_;
+
+  for(int m=0; m < no; m++)
+    for(int i=0; i < no; i++) {
+      double value = 0.0;
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++)
+          for(int j=0; j < no; j++)
+            value += t2[m][j][a][b] * Y2[i][j][a][b];
+      Goo_[m][i] = value;
+    }
+
+  for(int a=0; a < nv; a++)
+    for(int e=0; e < nv; e++) {
+      double value = 0.0;
+      for(int i=0; i < no; i++)
+        for(int j=0; j < no; j++)
+          for(int b=0; b < nv; b++)
+            value -= t2[i][j][e][b] * Y2[i][j][a][b];
+      Gvv_[a][e] = value;
+    }
+}
+
 void CCPert::build_Y1()
 {
+  int no = no_;
+  int nv = nv_;
+  double **Y1 = Y1old_;
+  double ****Y2 = Y2old_;
+  double **Y1new = Y1_;
 
+  double **Gvv = Gvv_;
+  double **Goo = Goo_;
+  double **Hvv = HBAR_->Hvv_;
+  double **Hoo = HBAR_->Hoo_;
+  double **Hov = HBAR_->Hov_;
+  double ****Hvvvo = HBAR_->Hvvvo_;
+  double ****Hovoo = HBAR_->Hovoo_;
+  double ****Hovvo = HBAR_->Hovvo_;
+  double ****Hovov = HBAR_->Hovov_;
+  double ****Hvovv = HBAR_->Hvovv_;
+  double ****Hooov = HBAR_->Hooov_;
+
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++) {
+      double value = 2*Avo_[a][i] + omega_ * Y1[i][a];
+
+    for(int e=0; e < nv; e++)
+      value += Y1[i][e] * Hvv[e][a];
+
+    for(int m=0; m < no; m++)
+      value -= Y1[m][a] * Hoo[i][m];
+
+    for(int m=0; m < no; m++)
+      for(int e=0; e < nv; e++)
+        value += Y1[m][e] * (2 * Hovvo[i][e][a][m] - Hovov[i][e][m][a]);
+
+      for(int m=0; m < no; m++)
+        for(int e=0; e < nv; e++)
+          for(int f=0; f < nv; f++)
+            value += Y2[i][m][e][f] * Hvvvo[e][f][a][m];
+
+      for(int m=0; m < no; m++)
+        for(int n=0; n < no; n++)
+          for(int e=0; e < nv; e++)
+            value -= Y2[m][n][a][e] * Hovoo[i][e][m][n];
+
+      for(int e=0; e < nv; e++)
+        for(int f=0; f < nv; f++)
+          value -= Gvv[e][f] * (2*Hvovv[e][i][f][a] - Hvovv[e][i][a][f]);
+
+      for(int m=0; m < no; m++)
+        for(int n=0; n < no; n++)
+          value -= Goo[m][n] * (2*Hooov[m][i][n][a] - Hooov[i][m][n][a]);
+  }
 }
 
 void CCPert::build_Y2()
 {
+  int no = no_;
+  int nv = nv_;
+  double **Y1 = Y1old_;
+  double ****Y2 = Y2old_;
+  double ****Y2new = Y2;
+
+  double ****Hvvvo = HBAR_->Hvvvo_;
+  double ****Hovoo = HBAR_->Hovoo_;
+  double ****Hvvvv = HBAR_->Hvvvv_;
+  double ****Hoooo = HBAR_->Hoooo_;
+  double ****Hvovv = HBAR_->Hvovv_;
+  double ****Hooov = HBAR_->Hooov_;
+
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++) {
+          double value = 0.5 * omega_ * Y2[i][j][a][b]; // 1/2 because we'll be permuting (ia,jb)
+
+          value += 2.0*Y1[i][a]*Hov[j][b] - Y1[j][a]*Hov[i][b];
+
+          for(int e=0; e < nv; e++)
+            value += Y2[i][j][e][b]*Hvv[e][a];
+
+          for(int m=0; m < no; m++)
+            value -= Y2[m][j][a][b]*Hoo[i][m];
+
+          for(int m=0; m < no; m++)
+            for(int n=0; n < no; n++)
+              value += 0.5 * Y2[m][n][a][b] * Hoooo[i][j][m][n];
+
+          for(int e=0; e < nv; e++)
+            for(int f=0; f < nv; f++)
+              value += 0.5 * Y2[i][j][e][f] * Hvvvv[e][f][a][b];
+
+          for(int e=0; e < nv; e++)
+              value += Y1[i][e]*(2*Hvovv[e][j][a][b] - Hvovv[e][j][b][a]);
+
+          for(int m=0; m < no; m++)
+              value -= Y1[m][b]*(2*Hooov[j][i][m][a] - Hooov[i][j][m][a]);
+
+          for(int m=0; m < no; m++)
+            for(int e=0; e < nv; e++) {
+              value += Y2[m][j][e][b] * (2*Hovvo[i][e][a][m] - Hovov[i][e][m][a])
+              value -= Y2[m][i][b][e] * Hovov[j][e][m][a];
+              value -= Y2[m][i][e][b] * Hovvo[j][e][a][m];
+            }
+
+          for(int e=0; e < nv; e++)
+            value += Gvv[a][e]*L[i][j][e+no][b+no];
+          for(int m=0; m < no; m++)
+            value -= Goo[m][i]*L[m][j][a+no][b+no];
+
+        }
 
 }
 

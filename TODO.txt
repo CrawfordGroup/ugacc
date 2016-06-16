@@ -1,0 +1,26 @@
+* Move MOSpaces into Hamiltonian object (not needed at ugacc level or in other objects)
+
+* Transform perturbation integrals using built-in functions? transform()? <--
+I don't think so, because I'm not using the Matrix class to keep up with
+symmetry.
+
+* Have objects HBAR, CCPert, and CCDensity derive from CCWfn?  That would be
+cleaner in that all depend on the CCWfn.  No, not sure this really is useful,
+as you'd still need to pass a CCWfn as an argument.  Then again, the
+declarations of the member data would already in place, e.g. no_, nv_, D1_,
+D2_, t1_, t2_, etc., but I'd still need to copy the data or pointers.  Copying
+the data seems like a bad idea (memory), and copying the pointers seems
+dangerous.
+
+Of course, now that I think about it, I'm *already* just copying pointers, so
+the encapsulation is already broken.  For example, in the constructor for
+CCLambda, I pass a shared_ptr to a CC wfn, which I then assign to the CCLambda
+object's CC_ shared_ptr member.  I then use it as a container for various
+pointers, which I use liberally through the CCLambda member functions, e.g.
+
+  double ****t2 = CC_->t2_;
+  H_ = CC_->H_;
+
+If the CC object were to go out of scope while the CCLambda object remained in
+scope, then those pieces of CCLambda would no longer be accessible, and the
+object would be broken.  Bad design.

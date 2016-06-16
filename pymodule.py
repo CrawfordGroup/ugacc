@@ -4,12 +4,12 @@ import os
 import inputparser
 import math
 import warnings
-from driver import *
-from wrappers import *
+import driver
 from molutil import *
 import p4util
-from p4xcpt import *
-
+from p4util.exceptions import *
+import procedures
+from procedures.proc_util import *
 
 def run_ugacc(name, **kwargs):
     r"""Function encoding sequence of PSI module and plugin calls so that
@@ -27,7 +27,11 @@ def run_ugacc(name, **kwargs):
             psi4.set_global_option('WFN', 'CCSD')
         elif (kwargs['wfn'] == 'ccsd(t)'):
             psi4.set_global_option('WFN', 'CCSD_T')
-    scf_wfn = scf_helper(name, **kwargs)
+    scf_wfn = kwargs.get('ref_wfn', None)
+    if scf_wfn is None:
+        scf_wfn = driver.scf_helper(name, **kwargs)
+    check_iwl_file_from_scf_type(psi4.get_option('SCF', 'SCF_TYPE'), scf_wfn)
+
     return psi4.plugin('ugacc.so', scf_wfn)
 
 def run_ugacc_gradient(name, **kwargs):
@@ -35,8 +39,8 @@ def run_ugacc_gradient(name, **kwargs):
     return run_ugacc(name, **kwargs)
 
 # Integration with driver routines
-procedures['energy']['ugacc'] = run_ugacc
-procedures['gradient']['ugacc'] = run_ugacc_gradient
+driver.procedures['energy']['ugacc'] = run_ugacc
+driver.procedures['gradient']['ugacc'] = run_ugacc_gradient
 
 
 def exampleFN():

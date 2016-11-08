@@ -89,6 +89,8 @@ CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H,
         for(int b=0; b < nv; b++)
           t2_[i][j][a][b] = ints[i][j][a+no][b+no]/D2_[i][j][a][b];
 
+  print_amps();
+
   // DIIS Vectors
   t1diis_.resize(no_*nv_);
   t2diis_.resize(no_*no_*nv_*nv_);
@@ -163,6 +165,31 @@ CCWfn::~CCWfn()
     if(ooc_ == false) 
       free_6d_array(l3_, no, no, no, nv, nv);
   }
+}
+
+void CCWfn::print_amps()
+{
+  int no = no_;
+  int nv = nv_;
+
+  double **X1, ****X2;
+  X1 = t1_; 
+  X2 = t2_;
+
+  outfile->Printf("X1 Amplitudes:\n");
+  for(int i=0; i < no; i++)
+    for(int a=0; a < nv; a++)
+      if(fabs(X1[i][a]) > 1e-12)
+        outfile->Printf("X1[%d][%d] = %20.15f\n", i, a, X1[i][a]);
+
+  outfile->Printf("X2 Amplitudes:\n");
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int a=0; a < nv; a++)
+        for(int b=0; b < nv; b++)
+ if(fabs(X2[i][j][a][b]) > 1e-12)
+ outfile->Printf("X2[%d][%d][%d][%d] = %20.15f\n", i, j, a, b, X2[i][j][a][b]);
+
 }
 
 double CCWfn::compute_energy() { 

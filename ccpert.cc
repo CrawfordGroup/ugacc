@@ -592,8 +592,15 @@ void CCPert::build_Y2()
   double ****Y2 = Y2old_;
   double ****Y2new = Y2;
 
+  double **Gvv = Gvv_;
+  double **Goo = Goo_;
+  double **Hvv = HBAR_->Hvv_;
+  double **Hoo = HBAR_->Hoo_;
+  double **Hov = HBAR_->Hov_;
   double ****Hvvvo = HBAR_->Hvvvo_;
   double ****Hovoo = HBAR_->Hovoo_;
+  double ****Hovvo = HBAR_->Hovvo_;
+  double ****Hovov = HBAR_->Hovov_;
   double ****Hvvvv = HBAR_->Hvvvv_;
   double ****Hoooo = HBAR_->Hoooo_;
   double ****Hvovv = HBAR_->Hvovv_;
@@ -629,15 +636,15 @@ void CCPert::build_Y2()
 
           for(int m=0; m < no; m++)
             for(int e=0; e < nv; e++) {
-              value += Y2[m][j][e][b] * (2*Hovvo[i][e][a][m] - Hovov[i][e][m][a])
+              value += Y2[m][j][e][b] * (2*Hovvo[i][e][a][m] - Hovov[i][e][m][a]);
               value -= Y2[m][i][b][e] * Hovov[j][e][m][a];
               value -= Y2[m][i][e][b] * Hovvo[j][e][a][m];
             }
 
           for(int e=0; e < nv; e++)
-            value += Gvv[a][e]*L[i][j][e+no][b+no];
+            value += Gvv[a][e]*H_->L_[i][j][e+no][b+no];
           for(int m=0; m < no; m++)
-            value -= Goo[m][i]*L[m][j][a+no][b+no];
+            value -= Goo[m][i]*H_->L_[m][j][a+no][b+no];
 
         }
 

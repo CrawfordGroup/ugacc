@@ -84,6 +84,7 @@ protected:
   double t1norm();
   double increment_amps();
   void build_tstar();
+  void print_amps();
 
   double tcorr();
   double tcorr_ooc();

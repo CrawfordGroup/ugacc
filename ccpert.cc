@@ -1,14 +1,13 @@
 #include "ccpert.h"
 
-#include <boost/shared_ptr.hpp>
-#include <libciomr/libciomr.h>
-#include <libqt/qt.h>
-#include <libdiis/diismanager.h>
+#include <psi4/libciomr/libciomr.h>
+#include <psi4/libqt/qt.h>
+#include <psi4/libdiis/diismanager.h>
 #include "array.h"
 
 namespace psi { namespace ugacc {
 
-CCPert::CCPert(double **pert, double omega, boost::shared_ptr<CCWfn> CC, boost::shared_ptr<HBAR> HBAR)
+CCPert::CCPert(double **pert, double omega, shared_ptr<CCWfn> CC, shared_ptr<HBAR> HBAR)
 {
   CC_ = CC;
   HBAR_ = HBAR;
@@ -198,7 +197,7 @@ void CCPert::solve(enum hand myhand)
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, pseudoresponse(myhand));
 
   double rms = 0.0;
-  boost::shared_ptr<DIISManager> diis(new DIISManager(8, "CCPert DIIS",
+  shared_ptr<DIISManager> diis(new DIISManager(8, "CCPert DIIS",
     DIISManager::LargestError, DIISManager::InCore));
   diis->set_error_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
   diis->set_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
@@ -530,6 +529,7 @@ void CCPert::build_G()
     }
 }
 
+/*
 void CCPert::build_Y1()
 {
   int no = no_;
@@ -642,5 +642,6 @@ void CCPert::build_Y2()
         }
 
 }
+*/
 
 }} // psi::ugacc

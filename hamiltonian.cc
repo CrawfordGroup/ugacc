@@ -1,18 +1,20 @@
 #include "hamiltonian.h"
 #include "array.h"
-#include <libiwl/iwl.h>
-#include <libmints/wavefunction.h>
-#include <psifiles.h>
-#include <libciomr/libciomr.h>
-#include <libqt/qt.h>
-#include <libtrans/integraltransform.h>
-#include <libdpd/dpd.h>
+#include <psi4/libiwl/iwl.h>
+#include <psi4/libpsio/psio.hpp>
+#include <psi4/libmints/wavefunction.h>
+#include <psi4/libmints/matrix.h>
+#include <psi4/psifiles.h>
+#include <psi4/libciomr/libciomr.h>
+#include <psi4/libqt/qt.h>
+#include <psi4/libtrans/integraltransform.h>
+#include <psi4/libdpd/dpd.h>
 
 #define ID(x) ints.DPD_ID(x)
 
 namespace psi { namespace ugacc {
 
-Hamiltonian::Hamiltonian(boost::shared_ptr<PSIO> psio, boost::shared_ptr<Wavefunction> ref, std::vector<boost::shared_ptr<MOSpace> > spaces)
+Hamiltonian::Hamiltonian(shared_ptr<PSIO> psio, shared_ptr<Wavefunction> ref, std::vector<shared_ptr<MOSpace> > spaces)
 {
   nmo_ = ref->nmo();
   nso_ = ref->nso();

@@ -1,14 +1,15 @@
 #include "perturbation.h"
 
-#include <libciomr/libciomr.h>
-#include <libqt/qt.h>
-#include <libmints/mints.h>
-#include "libparallel/ParallelPrinter.h"
+#include <psi4/libciomr/libciomr.h>
+#include <psi4/libqt/qt.h>
+#include <psi4/libmints/mintshelper.h>
+#include <psi4/libmints/matrix.h>
+#include "psi4/libparallel/ParallelPrinter.h"
 
 namespace psi { namespace ugacc {
 
-Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, 
-                           boost::shared_ptr<MintsHelper> mints, bool full_virtual_space)
+Perturbation::Perturbation(std::string op, shared_ptr<Wavefunction> ref, 
+                           shared_ptr<MintsHelper> mints, bool full_virtual_space)
 {
   operator_ = op;
 
@@ -35,9 +36,9 @@ Perturbation::Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref,
              map, (int *) ref->nmopi(), ref->nirrep());
 
   // Symmetry info
-  boost::shared_ptr<Molecule> mol = ref->molecule();
-  boost::shared_ptr<IntegralFactory> fact = ref->integral();
-  boost::shared_ptr<MatrixFactory> mats = ref->matrix_factory();
+  shared_ptr<Molecule> mol = ref->molecule();
+  shared_ptr<IntegralFactory> fact = ref->integral();
+  shared_ptr<MatrixFactory> mats = ref->matrix_factory();
   OperatorSymmetry dipsym(1, mol, fact, mats);
   int *prop_irreps;
   if(operator_ == "Mu" || operator_ == "P" || operator_ == "P*") {
@@ -115,7 +116,7 @@ Perturbation::~Perturbation()
 
 void Perturbation::print(std::string out)
 {
-  boost::shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:boost::shared_ptr<OutFile>(new OutFile(out)));
+  shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:shared_ptr<OutFile>(new OutFile(out)));
 
   std::string cart = "XYZ";
 
@@ -138,7 +139,7 @@ void Perturbation::print(std::string out)
 
 void Perturbation::print(int i, std::string out)
 {
-  boost::shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:boost::shared_ptr<OutFile>(new OutFile(out)));
+  shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:shared_ptr<OutFile>(new OutFile(out)));
 
   std::string cart = "XYZ";
 
@@ -152,7 +153,7 @@ void Perturbation::print(int i, std::string out)
 
 void Perturbation::print(int i, int j, std::string out)
 {
-  boost::shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:boost::shared_ptr<OutFile>(new OutFile(out)));
+  shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:shared_ptr<OutFile>(new OutFile(out)));
 
   std::string cart = "XYZ";
 

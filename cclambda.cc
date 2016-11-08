@@ -1,16 +1,15 @@
 #include "cclambda.h"
 
-#include <boost/shared_ptr.hpp>
-#include <libqt/qt.h>
-#include <libciomr/libciomr.h>
+#include <psi4/libqt/qt.h>
+#include <psi4/libciomr/libciomr.h>
 #include <cmath>
-#include <libdiis/diismanager.h>
+#include <psi4/libdiis/diismanager.h>
 
 #include "array.h"
 
 namespace psi { namespace ugacc {
 
-CCLambda::CCLambda(boost::shared_ptr<CCWfn> CC, boost::shared_ptr<HBAR> HBAR)
+CCLambda::CCLambda(shared_ptr<CCWfn> CC, shared_ptr<HBAR> HBAR)
 {
   HBAR_ = HBAR;
   CC_ = CC;
@@ -110,7 +109,7 @@ void CCLambda::compute_lambda()
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, pseudoenergy());
 
   double rms = 0.0;
-  boost::shared_ptr<DIISManager> diis(new DIISManager(8, "CCLambda DIIS",
+  shared_ptr<DIISManager> diis(new DIISManager(8, "CCLambda DIIS",
     DIISManager::LargestError, DIISManager::InCore));
   diis->set_error_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
   diis->set_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);

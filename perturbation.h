@@ -1,7 +1,7 @@
 #ifndef PERTURBATION_H
 #define PERTURBATION_H
 
-#include <libmints/mints.h>
+#include "psi4/libmints/mintshelper.h"
 
 // Allowed operators:
 //
@@ -14,13 +14,15 @@
 // RR = quadrupole
 // 
 
+using namespace std;
+
 namespace psi { namespace ugacc {
 
 class Perturbation {
 public:
   std::string operator_; // perturbation name
-  Perturbation(std::string op, boost::shared_ptr<Wavefunction> ref, 
-               boost::shared_ptr<MintsHelper> mints, bool full_virtual_space);
+  Perturbation(std::string op, shared_ptr<Wavefunction> ref, 
+               shared_ptr<MintsHelper> mints, bool full_virtual_space);
   ~Perturbation();
   double **prop_p(int i) { return prop_[i]; }
   double **prop_p(int i, int j) // for quarupolar peturbations

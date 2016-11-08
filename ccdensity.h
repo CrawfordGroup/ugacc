@@ -3,24 +3,25 @@
 
 #include "ccwfn.h"
 #include "cclambda.h"
-#include <libmints/mints.h>
-#include <boost/shared_ptr.hpp>
+#include "psi4/libmints/mintshelper.h"
+
+using namespace std;
 
 namespace psi { namespace ugacc {
 
 class CCDensity {
 public:
-  CCDensity(boost::shared_ptr<CCWfn> CC, boost::shared_ptr<CCLambda> CCLambda);
+  CCDensity(shared_ptr<CCWfn> CC, shared_ptr<CCLambda> CCLambda);
   virtual ~CCDensity();
 
 protected:
   int no_;
   int nv_;
 
-  boost::shared_ptr<Hamiltonian> H_;
-  boost::shared_ptr<HBAR> HBAR_;
-  boost::shared_ptr<CCWfn> CC_;
-  boost::shared_ptr<CCLambda> CCLambda_;
+  shared_ptr<Hamiltonian> H_;
+  shared_ptr<HBAR> HBAR_;
+  shared_ptr<CCWfn> CC_;
+  shared_ptr<CCLambda> CCLambda_;
 
   double **t1_;
   double ****t2_;

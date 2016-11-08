@@ -1,15 +1,17 @@
 #ifndef HAMILTONIAN_H
 #define HAMILTONIAN_H
 
-#include <boost/shared_ptr.hpp>
-#include <libmints/mints.h>
-#include <libtrans/integraltransform.h>
+#include "psi4/libmints/mintshelper.h"
+#include "psi4/libtrans/integraltransform.h"
+#include "psi4/libpsio/psio.h"
+
+using namespace std;
 
 namespace psi { namespace ugacc {
 
 class Hamiltonian {
 public:
-  Hamiltonian(boost::shared_ptr<PSIO>, boost::shared_ptr<Wavefunction>, std::vector<boost::shared_ptr<MOSpace> >);
+  Hamiltonian(shared_ptr<PSIO>, shared_ptr<Wavefunction>, std::vector<shared_ptr<MOSpace> >);
   virtual ~Hamiltonian();
 
 protected:

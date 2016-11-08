@@ -1,8 +1,7 @@
-#include <boost/shared_ptr.hpp>
-#include <libqt/qt.h>
-#include <libciomr/libciomr.h>
+#include <psi4/libqt/qt.h>
+#include <psi4/libciomr/libciomr.h>
 #include <cmath>
-#include <libpsio/psio.h>
+#include <psi4/libpsio/psio.hpp>
 
 #include "ccdensity.h"
 #include "ccwfn.h"
@@ -11,7 +10,7 @@
 
 namespace psi { namespace ugacc {
 
-CCDensity::CCDensity(boost::shared_ptr<CCWfn> CC, boost::shared_ptr<CCLambda> CCLambda)
+CCDensity::CCDensity(shared_ptr<CCWfn> CC, shared_ptr<CCLambda> CCLambda)
 {
   CC_ = CC;
   CCLambda_ = CCLambda;

@@ -1,12 +1,13 @@
 #ifndef CCPERT_H
 #define CCPERT_H
 
-#include <boost/shared_ptr.hpp>
-#include <libmints/mints.h>
+#include "psi4/libmints/mintshelper.h"
 
 #include "hamiltonian.h"
 #include "ccwfn.h"
 #include "hbar.h"
+
+using namespace std;
 
 namespace psi { namespace ugacc {
 
@@ -14,7 +15,7 @@ enum hand {left, right};
 
 class CCPert {
 public:
-  CCPert(double **pert, double omega, boost::shared_ptr<CCWfn> CC, boost::shared_ptr<HBAR> HBAR);
+  CCPert(double **pert, double omega, shared_ptr<CCWfn> CC, shared_ptr<HBAR> HBAR);
   ~CCPert();
   void solve(enum hand);
 
@@ -24,9 +25,9 @@ protected:
   double **pert_;
   double omega_;
 
-  boost::shared_ptr<CCWfn> CC_;
-  boost::shared_ptr<Hamiltonian> H_;
-  boost::shared_ptr<HBAR> HBAR_;
+  shared_ptr<CCWfn> CC_;
+  shared_ptr<Hamiltonian> H_;
+  shared_ptr<HBAR> HBAR_;
 
   // Energy denominators
   double **D1_;

@@ -2,14 +2,16 @@
 #define CCWFN_H
 
 #include "hamiltonian.h"
-#include <libmints/mints.h>
-#include <boost/shared_ptr.hpp>
+#include "psi4/libmints/mintshelper.h"
+#include "psi4/libmints/molecule.h"
+
+using namespace std;
 
 namespace psi { namespace ugacc {
 
 class CCWfn: public Wavefunction {
 public:
-  CCWfn(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamiltonian> H, Options &options);
+  CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H, Options &options);
   virtual ~CCWfn();
 
 protected:
@@ -23,7 +25,7 @@ protected:
   int no_;  // Number of active occupied MOs
   int nv_;  // Number of active virtual MOs
 
-  boost::shared_ptr<Hamiltonian> H_; // integrals and Fock matrix
+  shared_ptr<Hamiltonian> H_; // integrals and Fock matrix
 
   // Energy denominators
   double **D1_;

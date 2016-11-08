@@ -1,15 +1,14 @@
 #include "ccwfn.h"
 #include "array.h"
 #include "hamiltonian.h"
-#include <boost/shared_ptr.hpp>
-#include <libqt/qt.h>
-#include <libciomr/libciomr.h>
+#include <psi4/libqt/qt.h>
+#include <psi4/libciomr/libciomr.h>
 #include <cmath>
-#include <libdiis/diismanager.h>
+#include <psi4/libdiis/diismanager.h>
 
 namespace psi { namespace ugacc {
 
-CCWfn::CCWfn(boost::shared_ptr<Wavefunction> reference, boost::shared_ptr<Hamiltonian> H, 
+CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H, 
              Options &options) : Wavefunction(options)
 {
   wfn_ = options.get_str("WFN");
@@ -177,7 +176,7 @@ double CCWfn::compute_energy() {
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, emp2 = energy());
 
   double rms = 0.0;
-  boost::shared_ptr<DIISManager> diis(new DIISManager(8, "CCWfn DIIS",
+  shared_ptr<DIISManager> diis(new DIISManager(8, "CCWfn DIIS",
     DIISManager::OldestAdded, DIISManager::InCore));
   diis->set_error_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
   diis->set_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);

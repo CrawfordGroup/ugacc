@@ -1,12 +1,11 @@
 #include "hbar.h"
 #include "array.h"
-#include <boost/shared_ptr.hpp>
-#include <libqt/qt.h>
-#include <libciomr/libciomr.h>
+#include <psi4/libqt/qt.h>
+#include <psi4/libciomr/libciomr.h>
 
 namespace psi { namespace ugacc {
 
-HBAR::HBAR(boost::shared_ptr<Hamiltonian> H, boost::shared_ptr<CCWfn> CC)
+HBAR::HBAR(shared_ptr<Hamiltonian> H, shared_ptr<CCWfn> CC)
 {
   CC_ = CC;
   H_ = H;

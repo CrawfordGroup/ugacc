@@ -4,23 +4,24 @@
 #include "hamiltonian.h"
 #include "ccwfn.h"
 #include "hbar.h"
-#include <libmints/mints.h>
-#include <boost/shared_ptr.hpp>
+#include "psi4/libmints/mintshelper.h"
+
+using namespace std;
 
 namespace psi { namespace ugacc {
 
 class CCLambda {
 public:
-  CCLambda(boost::shared_ptr<CCWfn>, boost::shared_ptr<HBAR>);
+  CCLambda(shared_ptr<CCWfn>, shared_ptr<HBAR>);
   virtual ~CCLambda();
 
 protected:
   int no_;  // Number of active occupied MOs
   int nv_;  // Number of active virtual MOs
 
-  boost::shared_ptr<Hamiltonian> H_;
-  boost::shared_ptr<CCWfn> CC_;
-  boost::shared_ptr<HBAR> HBAR_;
+  shared_ptr<Hamiltonian> H_;
+  shared_ptr<CCWfn> CC_;
+  shared_ptr<HBAR> HBAR_;
 
   // Energy denominators
   double **D1_;

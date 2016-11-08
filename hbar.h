@@ -4,16 +4,18 @@
 #include "hamiltonian.h"
 #include "ccwfn.h"
 
+using namespace std;
+
 namespace psi { namespace ugacc {
 
 class HBAR {
 public:
-  HBAR(boost::shared_ptr<Hamiltonian> H, boost::shared_ptr<CCWfn> CC);
+  HBAR(shared_ptr<Hamiltonian> H, shared_ptr<CCWfn> CC);
   ~HBAR();
 
 protected:
-  boost::shared_ptr<Hamiltonian> H_;
-  boost::shared_ptr<CCWfn> CC_;
+  shared_ptr<Hamiltonian> H_;
+  shared_ptr<CCWfn> CC_;
   int no_;
   int nv_;
   double **Hoo_;

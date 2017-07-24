@@ -89,7 +89,7 @@ CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H,
         for(int b=0; b < nv; b++)
           t2_[i][j][a][b] = ints[i][j][a+no][b+no]/D2_[i][j][a][b];
 
-  print_amps();
+  //print_amps();
 
   // DIIS Vectors
   t1diis_.resize(no_*nv_);
@@ -167,7 +167,7 @@ CCWfn::~CCWfn()
   }
 }
 
-void CCWfn::print_amps()
+/*void CCWfn::print_amps()
 {
   int no = no_;
   int nv = nv_;
@@ -191,8 +191,8 @@ void CCWfn::print_amps()
  outfile->Printf("X2[%d][%d][%d][%d] = %20.15f\n", i, j, a, b, X2[i][j][a][b]);
 
 }
-
-double CCWfn::compute_energy() { 
+*/
+  double CCWfn::compute_energy() { 
   double eref, emp2, eccsd, et;
   eref = reference_energy();
 

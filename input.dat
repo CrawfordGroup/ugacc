@@ -16,17 +16,12 @@ units bohr
 set {
   basis sto-3g
   freeze_core true
-  r_convergence 1e-15
+  r_convergence 1e-13
   d_convergence 1e-13
-  e_convergence 1e-15
+  e_convergence 1e-13
   diis true
-  maxiter 500
-#  omega [0.01]
-  gauge both
+  maxiter 50
+  dertype first
+  hand left
 }
-
-#gradient('ccsd')
-set ooc true
-#$property('ccsd', properties=['rotation'])
-gradient('ugacc', wfn='ccsd(t)')
-
+energy('ugacc')

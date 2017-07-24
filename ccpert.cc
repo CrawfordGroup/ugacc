@@ -194,7 +194,10 @@ void CCPert::pertbar()
 
 void CCPert::solve(enum hand myhand)
 {
+  if (myhand == right)
   outfile->Printf("\n\tCoupled-Cluster RH Perturbed Wfn Iteration:\n");
+  else
+  outfile->Printf("\n\tCoupled-Cluster LH Perturbed Wfn Iteration:\n");
   outfile->Printf(  "\t-------------------------------------\n");
   outfile->Printf(  "\t Iter   Pseudoresponse      RMS   \n");
   outfile->Printf(  "\t-------------------------------------\n");

@@ -59,6 +59,7 @@ int read_options(std::string name, Options& options)
     options.add_str("REFERENCE", "RHF");
     options.add_str("WFN", "CCSD");
     options.add_str("DERTYPE", "NONE");
+    options.add_str("HAND", "RIGHT");
     options.add_int("MAXITER", 100);
     options.add_bool("DIIS", true);
     options.add_double("R_CONVERGENCE", 1e-7);
@@ -87,6 +88,8 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   outfile->Printf("\tOut-of-core    = %s\n", options.get_bool("OOC") ? "Yes" : "No");
   outfile->Printf("\tDertype        = %s\n", options.get_str("DERTYPE").c_str());
   outfile->Printf("\tOMEGA          = %3.1e\n", options.get_double("MY_OMEGA"));
+  outfile->Printf("\tHAND           = %s\n", options.get_str("HAND").c_str()); 
+
 
   const char * rol = options.get_str("HAND").c_str() ;
 
@@ -142,8 +145,8 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   vector<string> cart(3); cart[0] = "X"; cart[1] = "Y"; cart[2] = "Z";
 
   hand my_hand ;
-  if (!strcmp(rol,"RIGHT")) my_hand = right;
-  else  my_hand = left;
+  if (!strcmp(rol,"RIGHT")) hand my_hand = right;
+  else  hand my_hand = left;
 
 
     outfile->Printf("\n\tSolving right hand perturbed CC amplitudes\n");
@@ -181,6 +184,8 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
          polar += 0.5 * ccpolar->linresp(cc_perts[pert_q], cc_perts[pert_p]);
       }     
       string label = "<<Mu_" + cart[p] + ";" "Mu_" + cart[q] + ">>";
+      polars[label] = polar;
+      label = "<<Mu_" + cart[q] + ";" "Mu_" + cart[p] + ">>";
       polars[label] = polar;
     }
 

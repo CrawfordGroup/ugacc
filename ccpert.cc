@@ -533,7 +533,7 @@ void CCPert::build_G()
     }
 }
 
-/*
+
 void CCPert::build_Y1()
 {
   int no = no_;
@@ -556,35 +556,35 @@ void CCPert::build_Y1()
 
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      double value = 2*Avo_[a][i] + omega_ * Y1[i][a];
+      Y1_[i][a] = 2*pert_[i][a+no] + omega_ * Y1[i][a];
 
     for(int e=0; e < nv; e++)
-      value += Y1[i][e] * Hvv[e][a];
+      Y1_[i][a] += Y1[i][e] * Hvv[e][a];
 
     for(int m=0; m < no; m++)
-      value -= Y1[m][a] * Hoo[i][m];
+      Y1_[i][a] -= Y1[m][a] * Hoo[i][m];
 
     for(int m=0; m < no; m++)
       for(int e=0; e < nv; e++)
-        value += Y1[m][e] * (2 * Hovvo[i][e][a][m] - Hovov[i][e][m][a]);
+        Y1_[i][a] += Y1[m][e] * (2 * Hovvo[i][e][a][m] - Hovov[i][e][m][a]);
 
       for(int m=0; m < no; m++)
         for(int e=0; e < nv; e++)
           for(int f=0; f < nv; f++)
-            value += Y2[i][m][e][f] * Hvvvo[e][f][a][m];
+            Y1_[i][a] += Y2[i][m][e][f] * Hvvvo[e][f][a][m];
 
       for(int m=0; m < no; m++)
         for(int n=0; n < no; n++)
           for(int e=0; e < nv; e++)
-            value -= Y2[m][n][a][e] * Hovoo[i][e][m][n];
+            Y1_[i][a] -= Y2[m][n][a][e] * Hovoo[i][e][m][n];
 
       for(int e=0; e < nv; e++)
         for(int f=0; f < nv; f++)
-          value -= Gvv[e][f] * (2*Hvovv[e][i][f][a] - Hvovv[e][i][a][f]);
+          Y1_[i][a] -= Gvv[e][f] * (2*Hvovv[e][i][f][a] - Hvovv[e][i][a][f]);
 
       for(int m=0; m < no; m++)
         for(int n=0; n < no; n++)
-          value -= Goo[m][n] * (2*Hooov[m][i][n][a] - Hooov[i][m][n][a]);
+          Y1_[i][a] -= Goo[m][n] * (2*Hooov[m][i][n][a] - Hooov[i][m][n][a]);
   }
 }
 
@@ -614,45 +614,45 @@ void CCPert::build_Y2()
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++) {
-          double value = 0.5 * omega_ * Y2[i][j][a][b]; // 1/2 because we'll be permuting (ia,jb)
+          Y2_[i][j][a][b] = 0.5 * omega_ * Y2[i][j][a][b]; // 1/2 because we'll be permuting (ia,jb)
 
-          value += 2.0*Y1[i][a]*Hov[j][b] - Y1[j][a]*Hov[i][b];
+          Y2_[i][j][a][b] += 2.0*Y1[i][a]*Hov[j][b] - Y1[j][a]*Hov[i][b];
 
           for(int e=0; e < nv; e++)
-            value += Y2[i][j][e][b]*Hvv[e][a];
+            Y2_[i][j][a][b] += Y2[i][j][e][b]*Hvv[e][a];
 
           for(int m=0; m < no; m++)
-            value -= Y2[m][j][a][b]*Hoo[i][m];
+            Y2_[i][j][a][b] -= Y2[m][j][a][b]*Hoo[i][m];
 
           for(int m=0; m < no; m++)
             for(int n=0; n < no; n++)
-              value += 0.5 * Y2[m][n][a][b] * Hoooo[i][j][m][n];
+              Y2_[i][j][a][b] += 0.5 * Y2[m][n][a][b] * Hoooo[i][j][m][n];
 
           for(int e=0; e < nv; e++)
             for(int f=0; f < nv; f++)
-              value += 0.5 * Y2[i][j][e][f] * Hvvvv[e][f][a][b];
+              Y2_[i][j][a][b] += 0.5 * Y2[i][j][e][f] * Hvvvv[e][f][a][b];
 
           for(int e=0; e < nv; e++)
-              value += Y1[i][e]*(2*Hvovv[e][j][a][b] - Hvovv[e][j][b][a]);
+              Y2_[i][j][a][b] += Y1[i][e]*(2*Hvovv[e][j][a][b] - Hvovv[e][j][b][a]);
 
           for(int m=0; m < no; m++)
-              value -= Y1[m][b]*(2*Hooov[j][i][m][a] - Hooov[i][j][m][a]);
+              Y2_[i][j][a][b] -= Y1[m][b]*(2*Hooov[j][i][m][a] - Hooov[i][j][m][a]);
 
           for(int m=0; m < no; m++)
             for(int e=0; e < nv; e++) {
-              value += Y2[m][j][e][b] * (2*Hovvo[i][e][a][m] - Hovov[i][e][m][a]);
-              value -= Y2[m][i][b][e] * Hovov[j][e][m][a];
-              value -= Y2[m][i][e][b] * Hovvo[j][e][a][m];
+              Y2_[i][j][a][b] += Y2[m][j][e][b] * (2*Hovvo[i][e][a][m] - Hovov[i][e][m][a]);
+              Y2_[i][j][a][b] -= Y2[m][i][b][e] * Hovov[j][e][m][a];
+              Y2_[i][j][a][b] -= Y2[m][i][e][b] * Hovvo[j][e][a][m];
             }
 
           for(int e=0; e < nv; e++)
-            value += Gvv[a][e]*H_->L_[i][j][e+no][b+no];
+            Y2_[i][j][a][b] += Gvv[a][e]*H_->L_[i][j][e+no][b+no];
           for(int m=0; m < no; m++)
-            value -= Goo[m][i]*H_->L_[m][j][a+no][b+no];
+            Y2_[i][j][a][b] -= Goo[m][i]*H_->L_[m][j][a+no][b+no];
 
         }
 
 }
-*/
+
 
 }} // psi::ugacc

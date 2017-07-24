@@ -7,16 +7,20 @@
 
 namespace psi { namespace ugacc {
 
-CCPert::CCPert(double **pert, double omega, shared_ptr<CCWfn> CC, shared_ptr<HBAR> HBAR)
+CCPert::CCPert(double **pert, double omega, shared_ptr<CCWfn> CC, shared_ptr<HBAR> HBAR, shared_ptr<CCLambda> CCLambda)
 {
   CC_ = CC;
   HBAR_ = HBAR;
   pert_ = pert;
   omega_ = omega;
+  CCLambda_= CCLambda;
+
 
   H_ = CC_->H_;
   no_ = CC_->no_;
   nv_ = CC_->nv_;
+  l1_ = CCLambda_->l1_;
+  l2_ = CCLambda_->l2_;
 
   int no = no_;
   int nv = nv_;

@@ -63,6 +63,7 @@ public:
   void compute_lambda();
 
   friend class CCDensity;
+  friend class CCPert;
 
 }; // CCLambda
 

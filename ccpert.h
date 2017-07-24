@@ -6,6 +6,7 @@
 #include "hamiltonian.h"
 #include "ccwfn.h"
 #include "hbar.h"
+#include "cclambda.h"
 
 using namespace std;
 
@@ -15,7 +16,7 @@ enum hand {left, right};
 
 class CCPert {
 public:
-  CCPert(double **pert, double omega, shared_ptr<CCWfn> CC, shared_ptr<HBAR> HBAR);
+  CCPert(double **pert, double omega, shared_ptr<CCWfn> CC, shared_ptr<HBAR> HBAR, shared_ptr<CCLambda> CCLambda);
   ~CCPert();
   void solve(enum hand);
 
@@ -28,10 +29,13 @@ protected:
   shared_ptr<CCWfn> CC_;
   shared_ptr<Hamiltonian> H_;
   shared_ptr<HBAR> HBAR_;
+  shared_ptr<CCLambda> CCLambda_;
 
   // Energy denominators
   double **D1_;
   double ****D2_;
+  double **l1_;
+  double ****l2_;
 
   // Similarity transformed perturbation operator components
   double **Aov_;

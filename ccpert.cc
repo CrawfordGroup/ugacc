@@ -593,7 +593,7 @@ void CCPert::build_Y1()
 ////
 //Extra terms below 
 ////
-
+     
       for(int m=0; m < no; m++)
         for(int e=0; e < nv; e++)
 	      Y1_[i][a] += 2.0 * X1_[m][e] * H_->L_[i][m][a+no][e+no];   // (i)
@@ -733,6 +733,7 @@ void CCPert::build_Y1()
 	            Y1_[i][a] -=  X2_[m][n][e][f] * (2*Hooov[i][m][o][e] - Hooov[m][i][o][e]) * l2_[n][o][f][a] ;      // (t)
               }
             }
+     
   }
 }
 

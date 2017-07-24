@@ -13,7 +13,6 @@ using namespace std;
 namespace psi { namespace ugacc {
 
 enum hand {left, right};
-extern hand my_hand;
 
 class CCPert {
 public:

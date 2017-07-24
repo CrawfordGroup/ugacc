@@ -30,6 +30,6 @@ set {
   diis true
   maxiter 50
   dertype first
-  hand left
+  myhand left 
 }
 energy('ugacc')

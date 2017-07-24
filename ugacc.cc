@@ -59,7 +59,7 @@ int read_options(std::string name, Options& options)
     options.add_str("REFERENCE", "RHF");
     options.add_str("WFN", "CCSD");
     options.add_str("DERTYPE", "NONE");
-    options.add_str("HAND", "RIGHT");
+    options.add_str("MYHAND", "RIGHT");
     options.add_int("MAXITER", 100);
     options.add_bool("DIIS", true);
     options.add_double("R_CONVERGENCE", 1e-7);
@@ -88,10 +88,10 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   outfile->Printf("\tOut-of-core    = %s\n", options.get_bool("OOC") ? "Yes" : "No");
   outfile->Printf("\tDertype        = %s\n", options.get_str("DERTYPE").c_str());
   outfile->Printf("\tOMEGA          = %3.1e\n", options.get_double("MY_OMEGA"));
-  outfile->Printf("\tHAND           = %s\n", options.get_str("HAND").c_str()); 
+  outfile->Printf("\tHAND           = %s\n", options.get_str("MYHAND").c_str()); 
 
 
-  const char * rol = options.get_str("HAND").c_str() ;
+  const char * rol = options.get_str("MYHAND").c_str() ;
 
   // Error trapping – need closed-shell SCF in place
   if(!ref) throw PSIEXCEPTION("SCF has not been run yet!");
@@ -145,9 +145,10 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   vector<string> cart(3); cart[0] = "X"; cart[1] = "Y"; cart[2] = "Z";
 
   hand my_hand ;
-  if (!strcmp(rol,"RIGHT")) hand my_hand = right;
-  else  hand my_hand = left;
-
+  if (!strcmp(rol,"RIGHT")) 
+     my_hand = right;
+  else  
+     my_hand = left;
 
     outfile->Printf("\n\tSolving right hand perturbed CC amplitudes\n");
     for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
@@ -161,16 +162,12 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
       cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), -omega, cc, hbar, cclambda));
       cc_perts[entry]->solve(right);
      }
-   }
 
-  if (my_hand == left){
-    outfile->Printf("\n\tSolving left hand perturbed CC amplitudes\n");
-    for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
-      string entry = "Mu" + cart[iter] + std::to_string(omega);
-      outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
-      cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), omega, cc, hbar, cclambda));
-      cc_perts[entry]->solve(left); 
- } }
+    if (my_hand == left){
+       outfile->Printf("\n\tSolving left hand perturbed CC amplitudes\n");
+       cc_perts[entry]->solve(left);
+    }
+   }
 
   for(vector<string>::size_type p = 0; p != cart.size(); p++)
     for(vector<string>::size_type q = 0 ; q <= p; q++) {
@@ -193,14 +190,6 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
       outfile->Printf("\t%s : %20.14lf ", elem.first.c_str(), elem.second);
       outfile->Printf("\n\n");
       }
-
-
-
-  // Use perturbed wfns to construct the linear response function
-  // Alternatively, build density-based linear response function
-//  std::string mu1 = "Mu" + cart[2] + std::to_string(omega);
-//  std::string mu2 = "Mu" + cart[2] + std::to_string(omega);
-//  shared_ptr<CCLinResp> ccpolar(new CCLinResp(cc_perts[mu1], cc_perts[mu2]));
 
   return cc;
 }

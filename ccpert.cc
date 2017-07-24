@@ -553,6 +553,8 @@ void CCPert::build_Y1()
   double ****Hovov = HBAR_->Hovov_;
   double ****Hvovv = HBAR_->Hvovv_;
   double ****Hooov = HBAR_->Hooov_;
+  double ****Hvvvv = HBAR_->Hvvvv_;
+  double ****Hoooo = HBAR_->Hoooo_;
 
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
@@ -585,6 +587,149 @@ void CCPert::build_Y1()
       for(int m=0; m < no; m++)
         for(int n=0; n < no; n++)
           Y1_[i][a] -= Goo[m][n] * (2*Hooov[m][i][n][a] - Hooov[i][m][n][a]);
+////
+//Extra terms below 
+////
+
+      for(int m=0; m < no; m++)
+        for(int e=0; e < nv; e++)
+	      Y1_[i][a] += 2.0 * X1_[m][e] * H_->L_[i][m][a+no][e+no];   // (i)
+
+      for(int m=0; m < no; m++)
+          Y1_[i][a] -= l1_[m][a] * Aoo_[i][m];  // (m)
+
+      for(int e=0; e < nv; e++)
+          Y1_[i][a] += l1_[i][e] * Avv_[e][a];  // (m)
+
+      for(int m=0; m < no; m++)
+        for(int e=0; e < nv; e++)
+          for(int f=0; f < nv; f++)
+            Y1_[i][a] += l2_[i][m][f][e] * Avvvo_[f][e][a][m];     // (n)
+
+      for(int m=0; m < no; m++)
+        for(int n=0; n < no; n++)
+          for(int e=0; e < nv; e++){
+            Y1_[i][a] -= 0.5 * l2_[m][n][e][a] * Aovoo_[i][e][n][m];    //  (n)
+            Y1_[i][a] -= 0.5 * l2_[m][n][a][e] * Aovoo_[i][e][m][n];    //  (n)
+	      }
+
+      for(int m=0; m < no; m++)
+        for(int e=0; e < nv; e++){
+	      Y1_[i][a] -= X1_[m][e] * Hov[m][a] * l1_[i][e];  // (q)	
+	      Y1_[i][a] -= X1_[m][e] * Hov[i][e] * l1_[m][a];  // (q)	
+          for(int n=0; n < no; n++){
+            Y1_[i][a] -= X1_[m][e] * (2*Hooov[m][i][n][a] - Hooov[i][m][n][a]) * l1_[n][e];  // (q)  
+            Y1_[i][a] -= X1_[m][e] * (2*Hooov[i][m][n][e] - Hooov[m][i][n][e]) * l1_[n][a];  // (q) 
+		  }
+          for(int f=0; f < nv; f++){
+            Y1_[i][a] += X1_[m][e] * (2*Hvovv[f][m][a][e] - Hvovv[f][m][e][a]) * l1_[i][f];   // (q)
+            Y1_[i][a] += X1_[m][e] * (2*Hvovv[f][i][e][a] - Hvovv[f][i][a][e]) * l1_[m][f];   // (q) 
+          }
+        }
+  
+      for(int m=0; m < no; m++)
+        for(int n=0; n < no; n++)
+          for(int e=0; e < nv; e++)
+            for(int f=0; f < nv; f++){
+       	      Y1_[i][a] += 2.0 * X2_[m][n][e][f] * H_->L_[i][m][a+no][e+no] * l1_[n][f];   // (r)
+       	      Y1_[i][a] -= X2_[m][n][e][f] * H_->L_[i][m][a+no][f+no] * l1_[n][e];         // (r)
+       	      Y1_[i][a] -= X2_[m][n][e][f] * H_->L_[m][i][e+no][f+no] * l1_[n][a];         // (r)
+       	      Y1_[i][a] -= X2_[m][n][e][f] * H_->L_[n][m][f+no][a+no] * l1_[i][e];         // (r)
+  			}
+
+      for(int m=0; m < no; m++)
+        for(int e=0; e < nv; e++){
+          for(int n=0; n < no; n++)
+            for(int f=0; f < nv; f++){
+              Y1_[i][a] -= X1_[m][e] * Hovov[m][f][n][a] * l2_[n][i][e][f]; 	// (s)
+	          Y1_[i][a] -= X1_[m][e] * Hovov[i][f][n][e] * l2_[n][m][a][f]; 	// (s)
+	          Y1_[i][a] -= X1_[m][e] * Hovvo[m][f][a][n] * l2_[n][i][f][e];     // (s)	
+	          Y1_[i][a] -= X1_[m][e] * Hovvo[i][f][e][n] * l2_[n][m][f][a];     // (s)
+		    }
+
+	    for(int f=0; f < nv; f++)
+          for(int g=0; g < nv; g++){
+            Y1_[i][a] += 0.5 * X1_[m][e] * Hvvvv[f][g][a][e] * l2_[i][m][f][g];   // (s) ---problem
+            Y1_[i][a] += 0.5 * X1_[m][e] * Hvvvv[f][g][e][a] * l2_[m][i][f][g];   // (s) ---problem
+          }
+        for(int n=0; n < no; n++)
+          for(int o=0; o < no; o++){
+            Y1_[i][a] += 0.5 * X1_[m][e] * Hoooo[i][m][n][o] * l2_[n][o][a][e];   // (s)  ---problem
+            Y1_[i][a] += 0.5 * X1_[m][e] * Hoooo[m][i][n][o] * l2_[n][o][e][a];   // (s)  ---problem
+          }
+        }    
+
+// //double **Zvv = block_matrix(nv,nv);
+ double ****t2 = CC_->t2_;
+////
+////       for(int f=0; f < nv; f++)
+////          for(int b=0; b < nv; b++)
+////    	     for(int j=0; j < no; j++)
+////                 for(int m=0; m < no; m++)
+////                     for(int e=0; e < nv; e++)
+////                       Zvv[f][b] += t2[j][m][f][e] * l2_[j][m][b][e];
+////
+////        double **Zoo = block_matrix(no,no);
+////
+////       for(int n=0; n < no; n++)
+////          for(int j=0; j < no; j++)
+////             for(int b=0; b < nv; b++)
+////               for(int f=0; f < nv; f++) {
+////                          Zoo[n][i] += t2[j][n][b][f] * l2_[j][i][b][f];
+////        }
+////
+////       for(int n=0; n < no; n++)
+////          for(int b=0; b < nv; b++)
+////             for(int f=0; f < nv; f++){
+////              Y1_[i][a] -= 0.5 * H_->L_[i][n][a+no][f+no] * Zvv[f][b] * X1_[n][b];
+////              Y1_[i][a] -= 0.5 * H_->L_[n][i][b+no][f+no] * Zvv[f][a] * X1_[n][b];
+////        }
+////
+////        for(int m=0; m < no; m++)
+////           for(int n=0; n < no; n++)
+////              for(int e=0; e < nv; e++){
+////                 Y1_[i][a] -= 0.5 * H_->L_[m][n][e+no][a+no] * Zoo[n][i] * X1_[m][e];
+////                 Y1_[i][a] -= 0.5 * H_->L_[i][n][a+no][e+no] * Zoo[n][m] * X1_[m][e];
+////        }
+////
+
+      for(int m=0; m < no; m++)
+        for(int n=0; n < no; n++)
+          for(int e=0; e < nv; e++)
+            for(int f=0; f < nv; f++)
+              for(int j=0; j < no; j++)
+                 for(int b=0; b < nv; b++){
+                    Y1_[i][a] -=  H_->L_[i][n][a+no][f+no] * X1_[n][b] * t2[j][m][f][e] * l2_[j][m][b][e] ;
+                    Y1_[i][a] -=  H_->L_[m][i][e+no][f+no] * X1_[m][e] * t2[j][n][f][b] * l2_[j][n][a][b] ;
+		            Y1_[i][a] -=  H_->L_[m][n][e+no][a+no] * X1_[m][e] * t2[j][n][f][b] * l2_[j][i][f][b] ;
+		            Y1_[i][a] -=  H_->L_[i][n][a+no][f+no] * X1_[j][f] * t2[n][m][e][b] * l2_[j][m][e][b] ;
+                 }
+
+
+
+
+
+      for(int m=0; m < no; m++)
+        for(int n=0; n < no; n++)
+          for(int e=0; e < nv; e++)
+            for(int f=0; f < nv; f++){
+              Y1_[i][a] -=  X2_[m][n][e][f] * Hov[m][a] * l2_[n][i][f][e];   // (t)
+	          Y1_[i][a] -=  X2_[m][n][e][f] * Hov[i][e] * l2_[n][m][f][a];   // (t)
+              for(int g=0; g < nv; g++){
+	            Y1_[i][a] -=  X2_[m][n][e][f] * Hvovv[g][n][e][a] * l2_[i][m][f][g] ; 	//(t)
+	            Y1_[i][a] -=  X2_[m][n][e][f] * Hvovv[g][n][a][e] * l2_[m][i][f][g] ; 	//(t)
+	            Y1_[i][a] -=  X2_[m][n][e][f] * Hvovv[g][i][e][f] * l2_[n][m][a][g] ;      //(t) 
+	            Y1_[i][a] +=  X2_[m][n][e][f] * (2*Hvovv[g][m][a][e] - Hvovv[g][m][e][a]) * l2_[n][i][f][g] ; 	//(t)
+	            Y1_[i][a] +=  X2_[m][n][e][f] * (2*Hvovv[g][i][e][a] - Hvovv[g][i][a][e]) * l2_[n][m][f][g] ;      //(t)
+	          }
+              for(int o=0; o < no; o++){
+	            Y1_[i][a] +=  X2_[m][n][e][f] * Hooov[m][n][o][a] * l2_[o][i][e][f] ; // (t)	
+	            Y1_[i][a] +=  X2_[m][n][e][f] * Hooov[i][n][o][e] * l2_[o][m][a][f] ; // (t) 	
+	            Y1_[i][a] +=  X2_[m][n][e][f] * Hooov[m][i][o][f] * l2_[o][n][e][a] ; // (t)	
+	            Y1_[i][a] -=  X2_[m][n][e][f] * (2*Hooov[m][i][o][a] - Hooov[i][m][o][a]) * l2_[n][o][f][e] ; 	// (t)
+	            Y1_[i][a] -=  X2_[m][n][e][f] * (2*Hooov[i][m][o][e] - Hooov[m][i][o][e]) * l2_[n][o][f][a] ;      // (t)
+              }
+            }
   }
 }
 

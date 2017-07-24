@@ -43,6 +43,7 @@
 #include "ccdensity.h"
 #include "perturbation.h"
 #include "ccpert.h"
+#include "ccresp.h"
 
 #include "array.h"
 
@@ -61,6 +62,7 @@ int read_options(std::string name, Options& options)
     options.add_int("MAXITER", 100);
     options.add_bool("DIIS", true);
     options.add_double("R_CONVERGENCE", 1e-7);
+    options.add_double("MY_OMEGA", 0.00);
     options.add_bool("OOC", false);
   }
 
@@ -84,6 +86,9 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   outfile->Printf("\tDIIS           = %s\n", options.get_bool("DIIS") ? "Yes" : "No");
   outfile->Printf("\tOut-of-core    = %s\n", options.get_bool("OOC") ? "Yes" : "No");
   outfile->Printf("\tDertype        = %s\n", options.get_str("DERTYPE").c_str());
+  outfile->Printf("\tOMEGA          = %3.1e\n", options.get_double("MY_OMEGA"));
+
+  const char * rol = options.get_str("HAND").c_str() ;
 
   // Error trapping – need closed-shell SCF in place
   if(!ref) throw PSIEXCEPTION("SCF has not been run yet!");
@@ -123,30 +128,68 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   Process::environment.globals["CURRENT ENERGY"] = ecc + eref;
 
   // Prepare property integrals for perturbed wave functions
-/*
+
   shared_ptr<MintsHelper> mints(new MintsHelper(ref->basisset(), options, 0));
   shared_ptr<Perturbation> mu(new Perturbation("Mu", ref, mints, false));
-*/
+
 
   // Solve perturbed wave function equations for given perturbation and +/- field frequency
-/*
+
   map<string, shared_ptr<CCPert> > cc_perts; 
-  double omega = 0.00;
+  map<string, double > polars; 
+  double polar;
+  double omega = options.get_double("MY_OMEGA");
   vector<string> cart(3); cart[0] = "X"; cart[1] = "Y"; cart[2] = "Z";
 
-  for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
+  hand my_hand ;
+  if (!strcmp(rol,"RIGHT")) my_hand = right;
+  else  my_hand = left;
+
+
+    outfile->Printf("\n\tSolving right hand perturbed CC amplitudes\n");
+    for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
     string entry = "Mu" + cart[iter] + std::to_string(omega);
     outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
-    cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), omega, cc, hbar));
+    cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), omega, cc, hbar, cclambda));
     cc_perts[entry]->solve(right);
-    if(omega != 0.0) {
+    if(omega != 0.0 && my_hand == right) {
       entry = "Mu" + cart[iter] + std::to_string(-omega);
       outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
-      cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), -omega, cc, hbar));
+      cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), -omega, cc, hbar, cclambda));
       cc_perts[entry]->solve(right);
+     }
+   }
+
+  if (my_hand == left){
+    outfile->Printf("\n\tSolving left hand perturbed CC amplitudes\n");
+    for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
+      string entry = "Mu" + cart[iter] + std::to_string(omega);
+      outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
+      cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), omega, cc, hbar, cclambda));
+      cc_perts[entry]->solve(left); 
+ } }
+
+  for(vector<string>::size_type p = 0; p != cart.size(); p++)
+    for(vector<string>::size_type q = 0 ; q <= p; q++) {
+      string pert_p = "Mu" + cart[p] + std::to_string(omega);
+      string pert_q = "Mu" + cart[q] + std::to_string(omega);
+      shared_ptr<CCResp> ccpolar(new CCResp(cc_perts[pert_p], cc_perts[pert_q]));
+      if (p == q)
+         polar = ccpolar->linresp(cc_perts[pert_p], cc_perts[pert_q]);
+      else {
+         polar = 0.5 * ccpolar->linresp(cc_perts[pert_p], cc_perts[pert_q]);
+         polar += 0.5 * ccpolar->linresp(cc_perts[pert_q], cc_perts[pert_p]);
+      }     
+      string label = "<<Mu_" + cart[p] + ";" "Mu_" + cart[q] + ">>";
+      polars[label] = polar;
     }
-  }
-*/
+
+   for(auto elem : polars){
+      outfile->Printf("\t%s : %20.14lf ", elem.first.c_str(), elem.second);
+      outfile->Printf("\n\n");
+      }
+
+
 
   // Use perturbed wfns to construct the linear response function
   // Alternatively, build density-based linear response function

@@ -64,6 +64,7 @@ public:
 
   friend class CCDensity;
   friend class CCPert;
+  friend class CCResp;
 
 }; // CCLambda
 

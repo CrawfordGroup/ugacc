@@ -23,3 +23,6 @@ output.dat
 psi.timer.dat
 psi.32
 Makefile
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake

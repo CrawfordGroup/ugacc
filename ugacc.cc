@@ -134,13 +134,16 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
 
   shared_ptr<MintsHelper> mints(new MintsHelper(ref->basisset(), options, 0));
   shared_ptr<Perturbation> mu(new Perturbation("Mu", ref, mints, false));
+  shared_ptr<Perturbation> am(new Perturbation("L", ref, mints, false));
 
 
   // Solve perturbed wave function equations for given perturbation and +/- field frequency
 
   map<string, shared_ptr<CCPert> > cc_perts; 
   map<string, double > polars; 
+  map<string, double > rots; 
   double polar;
+  double rotation;
   double omega = options.get_double("MY_OMEGA");
   vector<string> cart(3); cart[0] = "X"; cart[1] = "Y"; cart[2] = "Z";
 
@@ -150,26 +153,37 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   else  
      my_hand = left;
 
+  /* Below is the recipe for calculating length gauge optical rotation and polarizability*/
+
     outfile->Printf("\n\tSolving right hand perturbed CC amplitudes\n");
     for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
     string entry = "Mu" + cart[iter] + std::to_string(omega);
-    outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
+    string entry_1 = "L" + cart[iter] + std::to_string(omega);
+    outfile->Printf("\n\tCC RH Perturbed Wavefunction: %s\n", entry.c_str());
     cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), omega, cc, hbar, cclambda));
     cc_perts[entry]->solve(right);
+    outfile->Printf("\n\tCC RH Perturbed Wavefunction: %s\n", entry_1.c_str());
+    cc_perts[entry_1] = shared_ptr<CCPert>(new CCPert(am->prop_p((int) iter), omega, cc, hbar, cclambda));
+    cc_perts[entry_1]->solve(right);
     if(omega != 0.0 && my_hand == right) {
       entry = "Mu" + cart[iter] + std::to_string(-omega);
-      outfile->Printf("\n\tCC Perturbed Wavefunction: %s\n", entry.c_str());
+      outfile->Printf("\n\tCC RH Perturbed Wavefunction: %s\n", entry.c_str());
       cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), -omega, cc, hbar, cclambda));
       cc_perts[entry]->solve(right);
      }
 
     if (my_hand == left){
        outfile->Printf("\n\tSolving left hand perturbed CC amplitudes\n");
+       outfile->Printf("\n\tCC LH Perturbed Wavefunction: %s\n", entry.c_str());
        cc_perts[entry]->solve(left);
+       outfile->Printf("\n\tCC LH Perturbed Wavefunction: %s\n", entry_1.c_str());
+       cc_perts[entry_1]->solve(left);
     }
    }
+ 
+  /* Dipole polarizabilities */ 
 
-  for(vector<string>::size_type p = 0; p != cart.size(); p++)
+  for(vector<string>::size_type p = 0; p != cart.size(); p++){
     for(vector<string>::size_type q = 0 ; q <= p; q++) {
       string pert_p = "Mu" + cart[p] + std::to_string(omega);
       string pert_q = "Mu" + cart[q] + std::to_string(omega);
@@ -185,8 +199,32 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
       label = "<<Mu_" + cart[q] + ";" "Mu_" + cart[p] + ">>";
       polars[label] = polar;
     }
+  }
 
+  /* Length gauge optical rotation */ 
+
+  for(vector<string>::size_type p = 0; p != cart.size(); p++){
+    for(vector<string>::size_type q = 0 ; q != cart.size(); q++) {
+      string pert_p = "Mu" + cart[p] + std::to_string(omega);
+      string pert_q = "L" + cart[q] + std::to_string(omega);
+      shared_ptr<CCResp> ccrot(new CCResp(cc_perts[pert_p], cc_perts[pert_q]));
+      rotation = 0.5 * ccrot->linresp(cc_perts[pert_p], cc_perts[pert_q]);
+      rotation -= 0.5 * ccrot->linresp(cc_perts[pert_q], cc_perts[pert_p]);
+      string label = "<<Mu_" + cart[p] + ";" "L_" + cart[q] + ">>";
+      rots[label] = -1.0 * rotation;
+    }
+  }
+
+
+
+    outfile->Printf("\n\tDipole Polarizabilities (au)\n\n");
    for(auto elem : polars){
+      outfile->Printf("\t%s : %20.14lf ", elem.first.c_str(), elem.second);
+      outfile->Printf("\n\n");
+      }
+
+    outfile->Printf("\n\tOptical rotation (length gauge) (a.u)\n\n");
+   for(auto elem : rots){
       outfile->Printf("\t%s : %20.14lf ", elem.first.c_str(), elem.second);
       outfile->Printf("\n\n");
       }

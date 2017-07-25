@@ -13,11 +13,20 @@ import ugacc
 #units bohr
 #}
 
-molecule water{
-O
-H 1 1.1
-H 1 1.1 2 104
+#molecule water{
+#O
+#H 1 1.1
+#H 1 1.1 2 104
+#
+#symmetry c1
+#}
 
+molecule h2o2 {
+ O     -0.028962160801    -0.694396279686    -0.049338350190
+ O      0.028962160801     0.694396279686    -0.049338350190
+ H      0.350498145881    -0.910645626300     0.783035421467
+ H     -0.350498145881     0.910645626300     0.783035421467
+noreorient
 symmetry c1
 }
 
@@ -28,8 +37,9 @@ set {
   d_convergence 1e-13
   e_convergence 1e-13
   diis true
-  maxiter 50
+  maxiter 500
   dertype first
   myhand left 
+  my_omega 0.01
 }
 energy('ugacc')

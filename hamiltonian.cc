@@ -20,7 +20,7 @@ Hamiltonian::Hamiltonian(shared_ptr<PSIO> psio, shared_ptr<Wavefunction> ref, st
   nso_ = ref->nso();
   nfzc_ = ref->nfrzc();
   nfzv_ = 0;
-  for(int i=0; i < ref->nirrep(); i++) 
+  for(int i=0; i < ref->nirrep(); i++)
     nfzv_ += ref->frzvpi()[i];
   nact_ = nmo_ - nfzc_ - nfzv_;
 
@@ -30,8 +30,13 @@ Hamiltonian::Hamiltonian(shared_ptr<PSIO> psio, shared_ptr<Wavefunction> ref, st
   for(int h=1; h < ref->nirrep(); h++) mo_offset[h] = mo_offset[h-1] + ref->nmopi()[h-1];
 
   int *map = init_int_array(nmo_); // Translates from Pitzer (including frozen docc) to QT
-  reorder_qt((int *) ref->doccpi(), (int *) ref->soccpi(), (int *) ref->frzcpi(), (int *) ref->frzvpi(), 
-             map, (int *) ref->nmopi(), ref->nirrep());
+  Dimension doccpi = ref->doccpi();
+  Dimension soccpi = ref->soccpi();
+  Dimension frzcpi = ref->frzcpi();
+  Dimension frzvpi = ref->frzvpi();
+  Dimension nmopi = ref->nmopi();
+  reorder_qt((int *) doccpi, (int *) soccpi, (int *) frzcpi, (int *) frzvpi,
+             map, (int *) nmopi, ref->nirrep());
 
   // Prepare Fock matrix in MO basis in QT ordering
   SharedMatrix Fa = ref->Fa();
@@ -52,16 +57,13 @@ Hamiltonian::Hamiltonian(shared_ptr<PSIO> psio, shared_ptr<Wavefunction> ref, st
   free(map);
 
   // Use reorder_qt() to generate a new mapping array w/o frozen core or virtual orbitals
-  int *doccpi = init_int_array(ref->nirrep());
-  int *nmopi = init_int_array(ref->nirrep());
   int *null = init_int_array(ref->nirrep());
   for(int h=0; h < ref->nirrep(); h++) {
     doccpi[h] = ref->doccpi()[h] - ref->frzcpi()[h];
     nmopi[h] = ref->nmopi()[h] - ref->frzcpi()[h] - ref->frzvpi()[h];
   }
   int *map2 = init_int_array(nact); // Translates from Pitzer (w/o frozen MOs) to QT
-  reorder_qt(doccpi, (int *) ref->soccpi(), null, null, map2, nmopi, ref->nirrep());
-  free(null); free(nmopi); free(doccpi);
+  reorder_qt((int*) doccpi, (int*) soccpi, null, null, map2, (int*) nmopi, ref->nirrep());
 
   IntegralTransform ints(ref, spaces, IntegralTransform::Restricted, IntegralTransform::DPDOnly);
   ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
@@ -89,7 +91,7 @@ Hamiltonian::Hamiltonian(shared_ptr<PSIO> psio, shared_ptr<Wavefunction> ref, st
   global_dpd_->buf4_close(&K);
   psio->close(PSIF_LIBTRANS_DPD, 1);
 
-  // L(pqrs) = 2<pq|rs> - <pq|sr>  
+  // L(pqrs) = 2<pq|rs> - <pq|sr>
   L_ = init_4d_array(nact, nact, nact, nact);
   for(int p=0; p < nact; p++)
     for(int q=0; q < nact; q++)
@@ -103,7 +105,7 @@ Hamiltonian::~Hamiltonian()
 {
   free_4d_array(ints_, nact_, nact_, nact_);
   free_4d_array(L_, nact_, nact_, nact_);
-  free_block(fock_); 
+  free_block(fock_);
 }
 
 }} // namespace psi::ugacc

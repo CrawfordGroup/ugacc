@@ -4,11 +4,11 @@
 #include <psi4/libqt/qt.h>
 #include <psi4/libmints/mintshelper.h>
 #include <psi4/libmints/matrix.h>
-#include "psi4/libparallel/ParallelPrinter.h"
+#include "psi4/libpsi4util/PsiOutStream.h"
 
 namespace psi { namespace ugacc {
-
-Perturbation::Perturbation(std::string op, shared_ptr<Wavefunction> ref, 
+typedef psi::PsiOutStream  OutFile;
+Perturbation::Perturbation(std::string op, shared_ptr<Wavefunction> ref,
                            shared_ptr<MintsHelper> mints, bool full_virtual_space)
 {
   operator_ = op;
@@ -18,10 +18,10 @@ Perturbation::Perturbation(std::string op, shared_ptr<Wavefunction> ref,
   int nso = ref->nso();
   int nfzc = ref->nfrzc();
   int nfzv = 0;
-  std::vector<int> frzvpi(ref->nirrep());
+  Dimension frzvpi(ref->nirrep());
   if(!full_virtual_space)
     for(int i=0; i < ref->nirrep(); i++) { frzvpi[i] = ref->frzvpi()[i]; nfzv += ref->frzvpi()[i]; }
-  else 
+  else
     for(int i=0; i < ref->nirrep(); i++) frzvpi[i] = 0;
   nact_ = nmo - nfzc - nfzv;
 
@@ -32,8 +32,11 @@ Perturbation::Perturbation(std::string op, shared_ptr<Wavefunction> ref,
   for(int h=1; h < ref->nirrep(); h++) mo_offset[h] = mo_offset[h-1] + ref->nmopi()[h-1];
 
   int *map = init_int_array(nmo); // Translates from Pitzer (including frozen docc) to QT
-  reorder_qt((int *) ref->doccpi(), (int *) ref->soccpi(), (int *) ref->frzcpi(), (int *) &frzvpi[0],
-             map, (int *) ref->nmopi(), ref->nirrep());
+  Dimension doccpi = ref->doccpi();
+  Dimension soccpi = ref->soccpi();
+  Dimension frzcpi = ref->frzcpi();
+  Dimension nmopi = ref->nmopi();
+  reorder_qt( (int*) doccpi, (int*) soccpi, (int*) frzcpi, (int*) frzvpi, map, (int*) nmopi, ref->nirrep());
 
   // Symmetry info
   shared_ptr<Molecule> mol = ref->molecule();

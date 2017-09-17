@@ -31,7 +31,7 @@ CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H,
     nv_ += nmopi_[i] - doccpi_[i] - frzvpi_[i];
     nfrzv += frzvpi_[i];
   }
-  char ** labels = molecule_->irrep_labels();
+  std::vector<std::string> labels = molecule_->irrep_labels();
 
   outfile->Printf("\n\tReference Wfn Parameters:\n");
   outfile->Printf("\t---------------------------\n");
@@ -46,15 +46,11 @@ CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H,
   outfile->Printf("\t-----\t-----\t------\t------\t------\t------\n");
   for(int i=0; i < nirrep_; i++) {
       outfile->Printf("\t %s\t   %d\t    %d\t    %d\t    %d\t    %d\n",
-              labels[i],nmopi_[i],frzcpi_[i],doccpi_[i],nmopi_[i]-doccpi_[i],frzvpi_[i]);
+              labels[i].c_str(),nmopi_[i],frzcpi_[i],doccpi_[i],nmopi_[i]-doccpi_[i],frzvpi_[i]);
     }
   outfile->Printf("\n\tNuclear Repulsion Energy    = %20.15f\n", molecule_->nuclear_repulsion_energy());
   outfile->Printf( "\tFrozen Core Energy          = %20.15f\n", H_->efzc_);
   outfile->Printf( "\tTotal SCF Energy (ref)      = %20.15f\n", reference_wavefunction_->reference_energy());
-
-  for(int i=0; i < nirrep_; i++) free(labels[i]);
-  free(labels);
-
 
   // Prepare energy denominators
   int no = no_;

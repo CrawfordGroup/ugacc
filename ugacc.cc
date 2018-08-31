@@ -28,6 +28,7 @@
  */
 
 #include "psi4/psi4-dec.h"
+#include "psi4/libpsi4util/PsiOutStream.h"
 #include "psi4/liboptions/liboptions.h"
 #include "psi4/libpsio/psio.hpp"
 
@@ -50,7 +51,7 @@ using namespace std;
 
 namespace psi { namespace ugacc {
 
-extern "C" 
+extern "C" PSI_API
 int read_options(std::string name, Options& options)
 {
   if(name == "UGACC" || options.read_globals()) {
@@ -69,7 +70,7 @@ int read_options(std::string name, Options& options)
   return true;
 }
 
-extern "C" 
+extern "C" PSI_API
 SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
 {
   outfile->Printf("\n");

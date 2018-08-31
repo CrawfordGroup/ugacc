@@ -12,6 +12,8 @@
 
 #define ID(x) ints.DPD_ID(x)
 
+using namespace std;
+
 namespace psi { namespace ugacc {
 
 Hamiltonian::Hamiltonian(shared_ptr<PSIO> psio, shared_ptr<Wavefunction> ref, std::vector<shared_ptr<MOSpace> > spaces)
@@ -65,7 +67,7 @@ Hamiltonian::Hamiltonian(shared_ptr<PSIO> psio, shared_ptr<Wavefunction> ref, st
   int *map2 = init_int_array(nact); // Translates from Pitzer (w/o frozen MOs) to QT
   reorder_qt((int*) doccpi, (int*) soccpi, null, null, map2, (int*) nmopi, ref->nirrep());
 
-  IntegralTransform ints(ref, spaces, IntegralTransform::Restricted, IntegralTransform::DPDOnly);
+  IntegralTransform ints(ref, spaces, IntegralTransform::TransformationType::Restricted, IntegralTransform::OutputType::DPDOnly);
   ints.transform_tei(MOSpace::all, MOSpace::all, MOSpace::all, MOSpace::all);
   efzc_ = ints.get_frozen_core_energy();
 

@@ -99,7 +99,7 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
     throw PSIEXCEPTION("Only for use with RHF references.");
   for(int h=0; h < ref->nirrep(); h++)
     if(ref->soccpi()[h]) throw PSIEXCEPTION("UGACC is for closed-shell systems only.");
-
+  
   shared_ptr<PSIO> psio(_default_psio_lib_);
   std::vector<shared_ptr<MOSpace> > spaces;
   spaces.push_back(MOSpace::all);

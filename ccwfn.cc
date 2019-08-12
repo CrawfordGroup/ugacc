@@ -50,7 +50,7 @@ CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H,
     }
   outfile->Printf("\n\tNuclear Repulsion Energy    = %20.15f\n", molecule_->nuclear_repulsion_energy(reference_wavefunction_->get_dipole_field_strength()));
   outfile->Printf( "\tFrozen Core Energy          = %20.15f\n", H_->efzc_);
-  outfile->Printf( "\tTotal SCF Energy (ref)      = %20.15f\n", reference_wavefunction_->reference_energy());
+  outfile->Printf( "\tTotal SCF Energy (ref)      = %20.15f\n", reference_wavefunction_->energy());
 
   // Prepare energy denominators
   int no = no_;
@@ -190,7 +190,7 @@ CCWfn::~CCWfn()
 */
   double CCWfn::compute_energy() { 
   double eref, emp2, eccsd, et;
-  eref = reference_energy();
+  eref = energy();
 
   outfile->Printf("\n\tThe Coupled-Cluster Iteration:\n");
   outfile->Printf(  "\t---------------------------------------------------\n");

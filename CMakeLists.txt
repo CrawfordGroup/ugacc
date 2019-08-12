@@ -1,11 +1,11 @@
 #
 # @BEGIN LICENSE
 #
-# myplugin by Psi4 Developer, a plugin to:
+# ugacc by Psi4 Developer, a plugin to:
 #
 # Psi4: an open-source quantum chemistry software package
 #
-# Copyright (c) 2007-2018 The Psi4 Developers.
+# Copyright (c) 2007-2019 The Psi4 Developers.
 #
 # The copyrights for code used from other parties are included in
 # the corresponding files.
@@ -34,4 +34,5 @@ project(ugacc CXX)
 
 find_package(psi4 1.1 REQUIRED)
 
-add_psi4_plugin(ugacc ugacc.cc array.cc cclambda.cc ccresp.cc hamiltonian.cc perturbation.cc ccdensity.cc ccpert.cc ccwfn.cc hbar.cc)
+add_psi4_plugin(ugacc array.cc cclambda.cc ccresp.cc hamiltonian.cc perturbation.cc ccdensity.cc ccpert.cc ccwfn.cc hbar.cc ugacc.cc)
+

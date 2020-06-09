@@ -105,6 +105,7 @@ CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H,
   Woooo_ = init_4d_array(no,no,no,no);
   Wovov_ = init_4d_array(no,nv,no,nv);
   Wovvo_ = init_4d_array(no,nv,nv,no);
+  Wovoo_ = init_4d_array(no,nv,no,no); // Zmbij part of Wabef
 
   if(wfn_ == "CCSD_T" && ooc_ == false)
     t3_ = init_6d_array(no, no, no, nv, nv, nv);
@@ -142,6 +143,7 @@ CCWfn::~CCWfn()
   free_4d_array(Woooo_, no, no, no);
   free_4d_array(Wovov_, no, nv, no);
   free_4d_array(Wovvo_, no, nv, nv);
+  free_4d_array(Wovoo_, no, nv, no);
 
   free_block(t1s_);
   free_4d_array(t2s_, no, no, nv);
@@ -412,6 +414,18 @@ void CCWfn::build_W()
           }
           Wovvo_[m][b][e][j] = value;
         }
+
+  for(int m=0; m < no; m++)
+    for(int b=0; b < nv; b++)
+      for(int i=0; i < no; i++)
+        for(int j=0; j < no; j++) {
+          double value = 0.0;
+          for(int e=0; e < nv; e++) {
+            for(int f=0; f < nv; f++)
+              value += ints[m][b+no][e+no][f+no] * tau[i][j][e][f];
+          }
+          Wovoo_[m][b][i][j] = value;
+        }
 }
 
 void CCWfn::build_t1()
@@ -463,6 +477,7 @@ void CCWfn::build_t2()
   double ****Wmnij = Woooo_;
   double ****Wmbej = Wovvo_;
   double ****Wmbje = Wovov_;
+  double ****Zmbij = Wovoo_;
   double **t1 = t1old_;
   double **Fme = Fov_;
   double **Fmi = Foo_;
@@ -500,11 +515,13 @@ void CCWfn::build_t2()
           for(int m=0; m < no; m++)
             for(int e=0; e < nv; e++) {
               value += (t2[i][m][a][e] - t2[i][m][e][a]) * Wmbej[m][b][e][j];
+              value += (t2[j][m][b][e] - t2[j][m][e][b]) * Wmbej[m][a][e][i];
+
               value += t2[i][m][a][e] * (Wmbej[m][b][e][j] + Wmbje[m][b][j][e]);
+              value += t2[j][m][b][e] * (Wmbej[m][a][e][i] + Wmbje[m][a][i][e]);
+
               value += t2[m][j][a][e] * Wmbje[m][b][i][e];
               value += t2[i][m][e][b] * Wmbje[m][a][j][e];
-              value += t2[j][m][b][e] * (Wmbej[m][a][e][i] + Wmbje[m][a][i][e]);
-              value += (t2[j][m][b][e] - t2[j][m][e][b]) * Wmbej[m][a][e][i];
             }
           for(int m=0; m < no; m++)
             for(int e=0; e < nv; e++) {
@@ -513,31 +530,11 @@ void CCWfn::build_t2()
               value -= t1[j][e]*t1[m][a]*ints[m][b+no][i][e+no];
               value -= t1[j][e]*t1[m][b]*ints[m][a+no][e+no][i];
             }
+          for(int m=0; m < no; m++)
+            value -= t1[m][a]*Zmbij[m][b][i][j] + t1[m][b]*Zmbij[m][a][j][i];
+
           t2new[i][j][a][b] = value;
         }
-
-  double ****Zmbij = init_4d_array(no, nv, no, no);
-  for(int m=0; m < no; m++)
-    for(int b=0; b < nv; b++)
-      for(int i=0; i < no; i++)
-        for(int j=0; j < no; j++) {
-          Zmbij[m][b][i][j] = 0.0;
-          for(int e=0; e < nv; e++)
-            for(int f=0; f < nv; f++)
-              Zmbij[m][b][i][j] += ints[m][b+no][e+no][f+no] * tau[i][j][e][f];
-        }
-
-  for(int i=0; i < no; i++)
-    for(int j=0; j < no; j++)
-      for(int a=0; a < nv; a++)
-        for(int b=0; b < nv; b++) {
-          double value = 0.0;
-          for(int m=0; m < no; m++)
-            value -= t1[m][a]*Zmbij[m][b][i][j];
-          t2new[i][j][a][b] += value;
-          t2new[j][i][b][a] += value;
-        }
-  free_4d_array(Zmbij,no,nv,no);
 }
 
 double CCWfn::t1norm()

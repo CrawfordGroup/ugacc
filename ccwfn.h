@@ -59,6 +59,7 @@ protected:
   double ****Woooo_; 
   double ****Wovvo_; 
   double ****Wovov_; 
+  double ****Wovoo_; // Zmbij part of Wabef
 
   // Extra contributions for (T) gradients
   double ******t3_; // only for in-core code

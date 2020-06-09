@@ -3,15 +3,15 @@
 sys.path.insert(0, './..')
 import ugacc
 
-#molecule {
-#0 1
-#    O         0.000000000000     0.000000000000    -0.116529192243
-#    H        -0.000000000000     1.344767972762     0.924701422022
-#    H        -0.000000000000    -1.344767972762     0.924701422022
-#no_reorient
-#no_com
-#units bohr
-#}
+molecule {
+0 1
+    O         0.000000000000     0.000000000000    -0.116529192243
+    H        -0.000000000000     1.344767972762     0.924701422022
+    H        -0.000000000000    -1.344767972762     0.924701422022
+no_reorient
+no_com
+units bohr
+}
 
 #molecule water{
 #O
@@ -21,14 +21,14 @@ import ugacc
 #symmetry c1
 #}
 
-molecule h2o2 {
- O     -0.028962160801    -0.694396279686    -0.049338350190
- O      0.028962160801     0.694396279686    -0.049338350190
- H      0.350498145881    -0.910645626300     0.783035421467
- H     -0.350498145881     0.910645626300     0.783035421467
-noreorient
-symmetry c1
-}
+#molecule h2o2 {
+# O     -0.028962160801    -0.694396279686    -0.049338350190
+# O      0.028962160801     0.694396279686    -0.049338350190
+# H      0.350498145881    -0.910645626300     0.783035421467
+# H     -0.350498145881     0.910645626300     0.783035421467
+#noreorient
+#symmetry c1
+#}
 
 set {
   basis sto-3g
@@ -38,9 +38,10 @@ set {
   e_convergence 1e-13
   diis true
   maxiter 500
-  dertype first
-  myhand left 
-  my_omega 0.01
+  dertype none
+#  myhand left 
+#  my_omega 0.01
 }
 
-properties('ugacc', wfn='ccsd',properties=['rotation'])
+energy('ugacc', wfn='ccsd(t)')
+#energy('ccsd(t)')

@@ -32,14 +32,14 @@ symmetry c1
 
 set {
   basis sto-3g
-  #freeze_core true
+  freeze_core true
   r_convergence 1e-13
   d_convergence 1e-13
   e_convergence 1e-13
   diis true
   maxiter 500
-  dertype first
+  dertype none
   myhand left 
   my_omega 0.01
 }
-energy('ugacc')
+energy('ugacc', wfn='ccsd(t)')

@@ -73,12 +73,11 @@ int read_options(std::string name, Options& options)
 extern "C" PSI_API
 SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
 {
-  outfile->Printf("\n");
-  outfile->Printf("\t\t\t**************************\n");
-  outfile->Printf("\t\t\t*                        *\n");
-  outfile->Printf("\t\t\t*         UGA-CC         *\n");
-  outfile->Printf("\t\t\t*                        *\n");
-  outfile->Printf("\t\t\t**************************\n");
+  outfile->Printf("\t**************************\n");
+  outfile->Printf("\t*                        *\n");
+  outfile->Printf("\t*         UGA-CC         *\n");
+  outfile->Printf("\t*                        *\n");
+  outfile->Printf("\t**************************\n");
   outfile->Printf("\n");
 
   outfile->Printf("\tWave function  = %s\n", options.get_str("WFN").c_str());
@@ -90,9 +89,6 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   outfile->Printf("\tOMEGA          = %3.1e\n", options.get_double("MY_OMEGA"));
   outfile->Printf("\tHAND           = %s\n", options.get_str("MYHAND").c_str()); 
 
-
-  const char * rol = options.get_str("MYHAND").c_str() ;
-
   // Error trapping – need closed-shell SCF in place
   if(!ref) throw PSIEXCEPTION("SCF has not been run yet!");
   if(options.get_str("REFERENCE") != "RHF")
@@ -100,25 +96,37 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   for(int h=0; h < ref->nirrep(); h++)
     if(ref->soccpi()[h]) throw PSIEXCEPTION("UGACC is for closed-shell systems only.");
   
+  // Set up I/O object
   shared_ptr<PSIO> psio(_default_psio_lib_);
+
+  // Prepare MO space vector that runs over all orbitals
   std::vector<shared_ptr<MOSpace> > spaces;
   spaces.push_back(MOSpace::all);
+
+  // Prepare Hamiltonian (transform the integrals and sort them into member arrays)
   shared_ptr<Hamiltonian> H(new Hamiltonian(psio, ref, spaces));
+
+  // Prepare to build a CC wave function (preps denominators and storage for amps and DIIS vectors)
   shared_ptr<CCWfn> cc(new CCWfn(ref, H, options));
 
+  // Solve the T-amplitude equations and compute the CC energy (including triples, if needed)
   double ecc = cc->compute_energy();
 
   if(options.get_str("DERTYPE") == "NONE") return ref;
  
+  // Build the similarity-transformed Hamiltonian
   shared_ptr<HBAR> hbar(new HBAR(H, cc));
+
+  // Solve for Lambda amplitude equations (Lagrange multipliers)
   shared_ptr<CCLambda> cclambda(new CCLambda(cc, hbar));
   cclambda->compute_lambda();
 
+  // Build the one- and two-electron densities
   shared_ptr<CCDensity> ccdensity(new CCDensity(cc, cclambda));
 
   double eone = ccdensity->onepdm();
   double etwo = ccdensity->twopdm();
-  double eref = cc->reference_energy();
+  double eref = ref->energy();
 
   outfile->Printf("\tOne-Electron Energy        = %20.14f\n", eone);
   outfile->Printf("\tTwo-Electron Energy        = %20.14f\n", etwo);
@@ -147,8 +155,9 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   double omega = options.get_double("MY_OMEGA");
   vector<string> cart(3); cart[0] = "X"; cart[1] = "Y"; cart[2] = "Z";
 
+  // const char * rol = options.get_str("MYHAND").c_str() ;
   hand my_hand ;
-  if (!strcmp(rol,"RIGHT")) 
+  if (!strcmp(options.get_str("MYHAND").c_str(),"RIGHT")) 
      my_hand = right;
   else  
      my_hand = left;

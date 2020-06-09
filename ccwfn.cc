@@ -190,7 +190,7 @@ CCWfn::~CCWfn()
 */
   double CCWfn::compute_energy() { 
   double eref, emp2, eccsd, et;
-  eref = energy();
+  eref = reference_wavefunction_->energy();
 
   outfile->Printf("\n\tThe Coupled-Cluster Iteration:\n");
   outfile->Printf(  "\t---------------------------------------------------\n");
@@ -228,7 +228,8 @@ CCWfn::~CCWfn()
     throw PSIEXCEPTION("Computation has not converged.");
 
   double etotal = eccsd;
-  outfile->Printf(  "\n\tMP2 Correlation Energy     = %20.14f\n", emp2);
+  outfile->Printf(  "\n\tReference Energy           = %20.14f\n", eref);
+  outfile->Printf(  "\tMP2 Correlation Energy     = %20.14f\n", emp2);
   outfile->Printf(  "\tMP2 Total Energy           = %20.14f\n", emp2 + eref);
   outfile->Printf(  "\tCCSD Correlation Energy    = %20.14f\n", eccsd);
   outfile->Printf(  "\tCCSD Total Energy          = %20.14f\n", eccsd + eref);

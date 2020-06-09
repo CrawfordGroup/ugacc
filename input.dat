@@ -38,8 +38,9 @@ set {
   e_convergence 1e-13
   diis true
   maxiter 500
-  dertype none
+  dertype first
   myhand left 
   my_omega 0.01
 }
-energy('ugacc', wfn='ccsd(t)')
+
+properties('ugacc', wfn='ccsd',properties=['rotation'])

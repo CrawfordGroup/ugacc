@@ -65,6 +65,8 @@ int read_options(std::string name, Options& options)
     options.add_double("R_CONVERGENCE", 1e-7);
     options.add_double("MY_OMEGA", 0.00);
     options.add_bool("OOC", false);
+    options.add_str("PROPERTY", "POLARIZABILITY", "POLARIZABILITY ROTATION ROA ROA_TENSOR ALL");
+
   }
 
   return true;

@@ -33,12 +33,6 @@ protected:
   double ****l2_;    /* current l2 amplitudes */
   double ****l2old_; /* previous l2 amplitudes */
 
-  // DIIS-related vectors
-  std::vector<double> l1diis_;
-  std::vector<double> l2diis_;
-  std::vector<double> l1err_;
-  std::vector<double> l2err_;
-
   // Three-body intermediates
   double **Gvv_;
   double **Goo_;
@@ -56,8 +50,8 @@ protected:
   void build_l1();
   void build_l2();
   double pseudoenergy();
-  void build_diis_error();
-  void save_diis_vectors();
+  void build_diis_error(std::shared_ptr<Vector>, std::shared_ptr<Vector>, std::shared_ptr<Vector>, std::shared_ptr<Vector>);
+  void save_diis_vectors(std::shared_ptr<Vector>, std::shared_ptr<Vector>);
 
 public:
   void compute_lambda();

@@ -37,12 +37,6 @@ protected:
   double ****t2_;    // Current T2
   double ****t2old_; // Previous iteration T2
 
-  // DIIS-related vectors
-  std::vector<double> t1diis_;
-  std::vector<double> t2diis_;
-  std::vector<double> t1err_;
-  std::vector<double> t2err_;
-
   // Effective doubles 
   double ****tau_;  // tau(ijab) = t2(ijab) + t1(ia) * t1(jb)
   double ****ttau_; // ttau(ijab) = t2(ijab) + (1/2) t1(ia) * t1(jb)
@@ -80,8 +74,8 @@ protected:
   void build_W();
   void build_t1();
   void build_t2();
-  void build_diis_error();
-  void save_diis_vectors();
+  void build_diis_error(std::shared_ptr<Vector> t1err_, std::shared_ptr<Vector> t2_err_, std::shared_ptr<Vector> t1diis_, std::shared_ptr<Vector> t2diis_);
+  void save_diis_vectors(std::shared_ptr<Vector> t1diis_, std::shared_ptr<Vector> t2diis_);
   double t1norm();
   double increment_amps();
   void build_tstar();

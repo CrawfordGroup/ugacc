@@ -59,7 +59,7 @@ def run_ugacc_gradient(name, **kwargs):
     return run_ugacc(name, **kwargs)
 
 def run_ugacc_properties(name, **kwargs):
-    psi4.core.set_global_option('DERTYPE', 'NONE')
+    psi4.core.set_global_option('DERTYPE', 'SECOND')
     return run_ugacc(name, **kwargs)
 
 # Integration with driver routines
@@ -67,7 +67,3 @@ psi4.driver.procedures['energy']['ugacc'] = run_ugacc
 psi4.driver.procedures['gradient']['ugacc'] = run_ugacc_gradient
 psi4.driver.procedures['properties']['ugacc'] = run_ugacc_properties
 
-
-def exampleFN():
-    # Your Python code goes here
-    pass

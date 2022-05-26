@@ -5,6 +5,7 @@
 #include <psi4/libciomr/libciomr.h>
 #include <cmath>
 #include <psi4/libdiis/diismanager.h>
+#include <psi4/libmints/vector.h>
 
 namespace psi { namespace ugacc {
 
@@ -86,12 +87,6 @@ CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H,
           t2_[i][j][a][b] = ints[i][j][a+no][b+no]/D2_[i][j][a][b];
 
   //print_amps();
-
-  // DIIS Vectors
-  t1diis_.resize(no_*nv_);
-  t2diis_.resize(no_*no_*nv_*nv_);
-  t1err_.resize(no_*nv_);
-  t2err_.resize(no_*no_*nv_*nv_);
 
   tau_ = init_4d_array(no,no,nv,nv);
   ttau_ = init_4d_array(no,no,nv,nv);
@@ -201,10 +196,16 @@ CCWfn::~CCWfn()
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, emp2 = energy());
 
   double rms = 0.0;
-  shared_ptr<DIISManager> diis(new DIISManager(8, "CCWfn DIIS",
-    DIISManager::OldestAdded, DIISManager::InCore));
-  diis->set_error_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
-  diis->set_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
+
+  bool diised = false;
+  auto t1err = std::make_shared<Vector>("T1 Error", no_*nv_);
+  auto t2err = std::make_shared<Vector>("T2 Error", no_*no_*nv_*nv_);
+  auto t1diis = std::make_shared<Vector>("T1 DIIS", no_*nv_);
+  auto t2diis = std::make_shared<Vector>("T2 DIIS", no_*no_*nv_*nv_);
+  DIISManager diis(8, "CCWfn DIIS");
+  diis.set_error_vector_size(t1err.get(), t2err.get());
+  diis.set_vector_size(t1diis.get(), t2diis.get());
+
   for(int iter=1; iter <= maxiter_; iter++) {
     amp_save();
     build_F();
@@ -214,10 +215,10 @@ CCWfn::~CCWfn()
     rms = increment_amps();
     if(rms < convergence_) break;
     if(do_diis_) {
-      build_diis_error();
-      diis->add_entry(4, t1err_.data(), t2err_.data(), t1diis_.data(), t2diis_.data());   
-      if(diis->subspace_size() > 2) diis->extrapolate(2, t1diis_.data(), t2diis_.data());
-      save_diis_vectors();
+      build_diis_error(t1err, t2err, t1diis, t2diis);
+      diis.add_entry(t1err.get(), t2err.get(), t1diis.get(), t2diis.get());   
+      if(diis.subspace_size() > 2) diised = diis.extrapolate(t1diis.get(), t2diis.get());
+      save_diis_vectors(t1diis, t2diis);
     }
     build_tau();
     outfile->Printf(  "\t  %3d  %20.15f  %8.6f  %8.6e\n",iter, eccsd = energy(), t1norm(), rms);
@@ -580,38 +581,46 @@ double CCWfn::increment_amps()
   return sqrt(residual1 + residual2);
 }
 
-void CCWfn::build_diis_error()
+void CCWfn::build_diis_error(std::shared_ptr<Vector> t1err_, std::shared_ptr<Vector> t2err_, std::shared_ptr<Vector> t1diis_, std::shared_ptr<Vector> t2diis_)
 {
   int no = no_;
   int nv = nv_;
+
+  double *t1diis_p = t1diis_->pointer();
+  double *t2diis_p = t2diis_->pointer();
+  double *t1err_p = t1err_->pointer();
+  double *t2err_p = t2err_->pointer();
 
   int t1len = 0;
   int t2len = 0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      t1diis_[t1len] = t1_[i][a];
-      t1err_[t1len++] = t1_[i][a] - t1old_[i][a];
+      t1diis_p[t1len] = t1_[i][a];
+      t1err_p[t1len++] = t1_[i][a] - t1old_[i][a];
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
-          t2diis_[t2len] = t2_[i][j][a][b];
-          t2err_[t2len++] = t2_[i][j][a][b] - t2old_[i][j][a][b];
+          t2diis_p[t2len] = t2_[i][j][a][b];
+          t2err_p[t2len++] = t2_[i][j][a][b] - t2old_[i][j][a][b];
         }
     }
 }
 
-void CCWfn::save_diis_vectors()
+void CCWfn::save_diis_vectors(std::shared_ptr<Vector> t1diis_, std::shared_ptr<Vector> t2diis_)
 {
   int no = no_;
   int nv = nv_;
+
+  double *t1diis_p = t1diis_->pointer();
+  double *t2diis_p = t2diis_->pointer();
 
   int t1len = 0;
   int t2len = 0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      t1_[i][a] = t1diis_[t1len++];
+      t1_[i][a] = t1diis_p[t1len++];
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
-          t2_[i][j][a][b] = t2diis_[t2len++];
+          t2_[i][j][a][b] = t2diis_p[t2len++];
         }
     }
 }

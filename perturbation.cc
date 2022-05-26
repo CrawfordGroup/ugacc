@@ -117,62 +117,62 @@ Perturbation::~Perturbation()
   delete [] prop_;
 }
 
-void Perturbation::print(std::string out)
-{
-  shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:shared_ptr<OutFile>(new OutFile(out)));
+// void Perturbation::print(std::string out)
+// {
+//   shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:shared_ptr<OutFile>(new OutFile(out)));
+// 
+//   std::string cart = "XYZ";
+// 
+//   printer->Printf("\n");
+//   if(dipole(operator_)) {
+//     for(int i=0; i < 3; i++) {
+//       printer->Printf("%s(%c)\n", operator_.c_str(), cart[i]);
+//       mat_print(prop_[i], nact_, nact_, out);
+//     }
+//   }
+//   else if(quadrupole(operator_)) {
+//     for(int i=0,ij=0; i < 3; i++) {
+//       for(int j=i; j < 3; j++,ij++) {
+//         printer->Printf("%s(%c,%c)\n", operator_.c_str(), cart[i], cart[j]);
+//         mat_print(prop_[ij], nact_, nact_, out);
+//       }
+//     }
+//   }
+// }
 
-  std::string cart = "XYZ";
+// void Perturbation::print(int i, std::string out)
+// {
+//   shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:shared_ptr<OutFile>(new OutFile(out)));
+// 
+//   std::string cart = "XYZ";
+// 
+//   printer->Printf("\n");
+//   if(dipole(operator_)) {
+//     printer->Printf("%s(%c)\n", operator_.c_str(), cart[i]);
+//     mat_print(prop_[i], nact_, nact_, out);
+//   }
+//   else throw PSIEXCEPTION("Single Cartesian index given for multipolar property?");
+// }
 
-  printer->Printf("\n");
-  if(dipole(operator_)) {
-    for(int i=0; i < 3; i++) {
-      printer->Printf("%s(%c)\n", operator_.c_str(), cart[i]);
-      mat_print(prop_[i], nact_, nact_, out);
-    }
-  }
-  else if(quadrupole(operator_)) {
-    for(int i=0,ij=0; i < 3; i++) {
-      for(int j=i; j < 3; j++,ij++) {
-        printer->Printf("%s(%c,%c)\n", operator_.c_str(), cart[i], cart[j]);
-        mat_print(prop_[ij], nact_, nact_, out);
-      }
-    }
-  }
-}
+// void Perturbation::print(int i, int j, std::string out)
+// {
+//   shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:shared_ptr<OutFile>(new OutFile(out)));
+// 
+//   std::string cart = "XYZ";
+// 
+//   printer->Printf("\n");
+//   if(dipole(operator_))
+//    throw PSIEXCEPTION("Two Cartesian indices given for dipolar property?");
+//   else if(quadrupole(operator_)) {
+//     int ij = ((i) > (j) ? (i)*((i)+1)/2 + (j) : (j)*((j)+1)/2 + (i));
+//     printer->Printf("%s(%c,%c)\n", operator_.c_str(), cart[i], cart[j]);
+//     mat_print(prop_[ij], nact_, nact_, out);
+//   }
+// }
 
-void Perturbation::print(int i, std::string out)
-{
-  shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:shared_ptr<OutFile>(new OutFile(out)));
-
-  std::string cart = "XYZ";
-
-  printer->Printf("\n");
-  if(dipole(operator_)) {
-    printer->Printf("%s(%c)\n", operator_.c_str(), cart[i]);
-    mat_print(prop_[i], nact_, nact_, out);
-  }
-  else throw PSIEXCEPTION("Single Cartesian index given for multipolar property?");
-}
-
-void Perturbation::print(int i, int j, std::string out)
-{
-  shared_ptr<psi::PsiOutStream> printer=(out=="outfile"?outfile:shared_ptr<OutFile>(new OutFile(out)));
-
-  std::string cart = "XYZ";
-
-  printer->Printf("\n");
-  if(dipole(operator_))
-   throw PSIEXCEPTION("Two Cartesian indices given for dipolar property?");
-  else if(quadrupole(operator_)) {
-    int ij = ((i) > (j) ? (i)*((i)+1)/2 + (j) : (j)*((j)+1)/2 + (i));
-    printer->Printf("%s(%c,%c)\n", operator_.c_str(), cart[i], cart[j]);
-    mat_print(prop_[ij], nact_, nact_, out);
-  }
-}
-
-void Perturbation::print() { print("outfile"); }
-void Perturbation::print(int i) { print(i, "outfile"); }
-void Perturbation::print(int i, int j) { print(i, j, "outfile"); }
+// void Perturbation::print() { print("outfile"); }
+// void Perturbation::print(int i) { print(i, "outfile"); }
+// void Perturbation::print(int i, int j) { print(i, j, "outfile"); }
 
 bool Perturbation::allowed(std::string op)
 {

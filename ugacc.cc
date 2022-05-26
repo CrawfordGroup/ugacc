@@ -115,7 +115,7 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   double ecc = cc->compute_energy();
 
   if(options.get_str("DERTYPE") == "NONE") return ref;
- 
+
   // Build the similarity-transformed Hamiltonian
   shared_ptr<HBAR> hbar(new HBAR(H, cc));
 
@@ -140,12 +140,13 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
 
   Process::environment.globals["CURRENT ENERGY"] = ecc + eref;
 
+  if(options.get_str("DERTYPE") == "FIRST") return ref;
+
   // Prepare property integrals for perturbed wave functions
 
   shared_ptr<MintsHelper> mints(new MintsHelper(ref->basisset(), options, 0));
   shared_ptr<Perturbation> mu(new Perturbation("Mu", ref, mints, false));
   shared_ptr<Perturbation> am(new Perturbation("L", ref, mints, false));
-
 
   // Solve perturbed wave function equations for given perturbation and +/- field frequency
 
@@ -160,14 +161,14 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   // const char * rol = options.get_str("MYHAND").c_str() ;
   hand my_hand ;
   if (!strcmp(options.get_str("MYHAND").c_str(),"RIGHT")) 
-     my_hand = right;
+    my_hand = right;
   else  
-     my_hand = left;
+    my_hand = left;
 
   /* Below is the recipe for calculating length gauge optical rotation and polarizability*/
 
-    outfile->Printf("\n\tSolving right hand perturbed CC amplitudes\n");
-    for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
+  outfile->Printf("\n\tSolving right hand perturbed CC amplitudes\n");
+  for(vector<string>::size_type iter = 0; iter != cart.size(); iter++) {
     string entry = "Mu" + cart[iter] + std::to_string(omega);
     string entry_1 = "L" + cart[iter] + std::to_string(omega);
     outfile->Printf("\n\tCC RH Perturbed Wavefunction: %s\n", entry.c_str());
@@ -181,16 +182,16 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
       outfile->Printf("\n\tCC RH Perturbed Wavefunction: %s\n", entry.c_str());
       cc_perts[entry] = shared_ptr<CCPert>(new CCPert(mu->prop_p((int) iter), -omega, cc, hbar, cclambda));
       cc_perts[entry]->solve(right);
-     }
+    }
 
     if (my_hand == left){
-       outfile->Printf("\n\tSolving left hand perturbed CC amplitudes\n");
-       outfile->Printf("\n\tCC LH Perturbed Wavefunction: %s\n", entry.c_str());
-       cc_perts[entry]->solve(left);
-       outfile->Printf("\n\tCC LH Perturbed Wavefunction: %s\n", entry_1.c_str());
-       cc_perts[entry_1]->solve(left);
+      outfile->Printf("\n\tSolving left hand perturbed CC amplitudes\n");
+      outfile->Printf("\n\tCC LH Perturbed Wavefunction: %s\n", entry.c_str());
+      cc_perts[entry]->solve(left);
+      outfile->Printf("\n\tCC LH Perturbed Wavefunction: %s\n", entry_1.c_str());
+      cc_perts[entry_1]->solve(left);
     }
-   }
+  }
  
   /* Dipole polarizabilities */ 
 
@@ -213,7 +214,6 @@ SharedWavefunction ugacc(SharedWavefunction ref, Options& options)
   }
 
   /* Length gauge optical rotation */ 
-
   for(vector<string>::size_type p = 0; p != cart.size(); p++){
     for(vector<string>::size_type q = 0 ; q != cart.size(); q++) {
       string pert_p = "Mu" + cart[p] + std::to_string(omega);

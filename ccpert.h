@@ -58,16 +58,6 @@ protected:
   double **Y1old_;
   double ****Y2old_;
 
-  // DIIS-related vectors
-  std::vector<double> X1diis_;
-  std::vector<double> X2diis_;
-  std::vector<double> X1err_;
-  std::vector<double> X2err_;
-  std::vector<double> Y1diis_;
-  std::vector<double> Y2diis_;
-  std::vector<double> Y1err_;
-  std::vector<double> Y2err_;
-
   // Three-body intermediates
   double **Gvv_;
   double **Goo_;
@@ -81,8 +71,8 @@ protected:
   void build_Y1();
   void build_Y2();
   double pseudoresponse(enum hand);
-  void build_diis_error(enum hand);
-  void save_diis_vectors(enum hand);
+  void build_diis_error(enum hand, std::shared_ptr<Vector>, std::shared_ptr<Vector>, std::shared_ptr<Vector>, std::shared_ptr<Vector>);
+  void save_diis_vectors(enum hand, std::shared_ptr<Vector>, std::shared_ptr<Vector>);
   void print_amps(enum hand);
 
   friend class CCResp;

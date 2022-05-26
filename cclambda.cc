@@ -4,6 +4,7 @@
 #include <psi4/libciomr/libciomr.h>
 #include <cmath>
 #include <psi4/libdiis/diismanager.h>
+#include <psi4/libmints/vector.h>
 
 #include "array.h"
 
@@ -41,12 +42,6 @@ CCLambda::CCLambda(shared_ptr<CCWfn> CC, shared_ptr<HBAR> HBAR)
 
   Gvv_ = block_matrix(nv, nv);
   Goo_ = block_matrix(no, no);
-
-  // DIIS Vectors
-  l1diis_.resize(no_*nv_);
-  l2diis_.resize(no_*no_*nv_*nv_);
-  l1err_.resize(no_*nv_);
-  l2err_.resize(no_*no_*nv_*nv_);
 }
 
 CCLambda::~CCLambda()
@@ -61,11 +56,6 @@ CCLambda::~CCLambda()
 
   free_block(Gvv_);
   free_block(Goo_);
-
-  l1diis_.resize(0);
-  l2diis_.resize(0);
-  l1err_.resize(0);
-  l2err_.resize(0);
 }
 
 void CCLambda::amp_save()
@@ -109,10 +99,16 @@ void CCLambda::compute_lambda()
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, pseudoenergy());
 
   double rms = 0.0;
-  shared_ptr<DIISManager> diis(new DIISManager(8, "CCLambda DIIS",
-    DIISManager::LargestError, DIISManager::InCore));
-  diis->set_error_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
-  diis->set_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
+
+  bool diised = false;
+  auto l1err = std::make_shared<Vector>("L1 Error", no_*nv_);
+  auto l2err = std::make_shared<Vector>("L2 Error", no_*no_*nv_*nv_);
+  auto l1diis = std::make_shared<Vector>("L1 DIIS", no_*nv_);
+  auto l2diis = std::make_shared<Vector>("L2 DIIS", no_*no_*nv_*nv_);
+  DIISManager diis(8, "CCLambda DIIS");
+  diis.set_error_vector_size(l1err.get(), l2err.get());
+  diis.set_vector_size(l1diis.get(), l2diis.get());
+
   for(int iter=1; iter <= CC_->maxiter_; iter++) {
     amp_save();    
     build_G();
@@ -121,10 +117,10 @@ void CCLambda::compute_lambda()
     rms = increment_amps();
     if(rms < CC_->convergence_) break;
     if(CC_->do_diis_) {
-      build_diis_error();
-      diis->add_entry(4, l1err_.data(), l2err_.data(), l1diis_.data(), l2diis_.data());
-      if(diis->subspace_size() > 2) diis->extrapolate(2, l1diis_.data(), l2diis_.data());
-      save_diis_vectors();
+      build_diis_error(l1err, l2err, l1diis, l2diis);
+      diis.add_entry(l1err.get(), l2err.get(), l1diis.get(), l2diis.get());
+      if(diis.subspace_size() > 2) diised = diis.extrapolate(l1diis.get(), l2diis.get());
+      save_diis_vectors(l1diis, l2diis);
     }
     outfile->Printf(  "\t  %3d  %20.15f  %5.3e\n",iter, pseudoenergy(), rms);
   }
@@ -314,38 +310,47 @@ double CCLambda::pseudoenergy()
   return energy;
 }
 
-void CCLambda::build_diis_error()
+void CCLambda::build_diis_error(std::shared_ptr<Vector> l1err_, std::shared_ptr<Vector> l2err_, std::shared_ptr<Vector> l1diis_, std::shared_ptr<Vector> l2diis_)
+
 {
   int no = no_;
   int nv = nv_;
+
+  double *l1diis_p = l1diis_->pointer();
+  double *l2diis_p = l2diis_->pointer();
+  double *l1err_p = l1err_->pointer();
+  double *l2err_p = l2err_->pointer();
 
   int t1len = 0;
   int t2len = 0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      l1diis_[t1len] = l1_[i][a];
-      l1err_[t1len++] = l1_[i][a] - l1old_[i][a];
+      l1diis_p[t1len] = l1_[i][a];
+      l1err_p[t1len++] = l1_[i][a] - l1old_[i][a];
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
-          l2diis_[t2len] = l2_[i][j][a][b];
-          l2err_[t2len++] = l2_[i][j][a][b] - l2old_[i][j][a][b];
+          l2diis_p[t2len] = l2_[i][j][a][b];
+          l2err_p[t2len++] = l2_[i][j][a][b] - l2old_[i][j][a][b];
         }
     }
 }
 
-void CCLambda::save_diis_vectors()
+void CCLambda::save_diis_vectors(std::shared_ptr<Vector> l1diis_, std::shared_ptr<Vector> l2diis_)
 {
   int no = no_;
   int nv = nv_;
+
+  double *l1diis_p = l1diis_->pointer();
+  double *l2diis_p = l2diis_->pointer();
 
   int t1len = 0;
   int t2len = 0;
   for(int i=0; i < no; i++)
     for(int a=0; a < nv; a++) {
-      l1_[i][a] = l1diis_[t1len++];
+      l1_[i][a] = l1diis_p[t1len++];
       for(int j=0; j < no; j++)
         for(int b=0; b < nv; b++) {
-          l2_[i][j][a][b] = l2diis_[t2len++];
+          l2_[i][j][a][b] = l2diis_p[t2len++];
         }
     }
 }

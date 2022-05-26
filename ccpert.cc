@@ -4,6 +4,7 @@
 #include <psi4/libqt/qt.h>
 #include <psi4/libdiis/diismanager.h>
 #include "array.h"
+#include <psi4/libmints/vector.h>
 
 namespace psi { namespace ugacc {
 
@@ -73,16 +74,6 @@ CCPert::CCPert(double **pert, double omega, shared_ptr<CCWfn> CC, shared_ptr<HBA
 
   Gvv_ = block_matrix(nv, nv);
   Goo_ = block_matrix(no, no);
-
-  // DIIS Vectors
-  X1diis_.resize(no_*nv_);
-  X2diis_.resize(no_*no_*nv_*nv_);
-  X1err_.resize(no_*nv_);
-  X2err_.resize(no_*no_*nv_*nv_);
-  Y1diis_.resize(no_*nv_);
-  Y2diis_.resize(no_*no_*nv_*nv_);
-  Y1err_.resize(no_*nv_);
-  Y2err_.resize(no_*no_*nv_*nv_);
 }
 
 CCPert::~CCPert()
@@ -113,15 +104,6 @@ CCPert::~CCPert()
 
   free_block(Gvv_);
   free_block(Goo_);
-
-  X1diis_.resize(0);
-  X2diis_.resize(0);
-  X1err_.resize(0);
-  X2err_.resize(0);
-  Y1diis_.resize(0);
-  Y2diis_.resize(0);
-  Y1err_.resize(0);
-  Y2err_.resize(0);
 }
 
 void CCPert::pertbar()
@@ -204,10 +186,20 @@ void CCPert::solve(enum hand myhand)
   outfile->Printf(  "\t  %3d  %20.15f\n", 0, pseudoresponse(myhand));
 
   double rms = 0.0;
-  shared_ptr<DIISManager> diis(new DIISManager(8, "CCPert DIIS",
-    DIISManager::LargestError, DIISManager::InCore));
-  diis->set_error_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
-  diis->set_vector_size(2, DIISEntry::Pointer, no_*nv_, DIISEntry::Pointer, no_*no_*nv_*nv_);
+  bool diised = false;
+  auto X1err = std::make_shared<Vector>("X1 Error", no_*nv_);
+  auto X2err = std::make_shared<Vector>("X2 Error", no_*no_*nv_*nv_);
+  auto X1diis = std::make_shared<Vector>("X1 DIIS", no_*nv_);
+  auto X2diis = std::make_shared<Vector>("X2 DIIS", no_*no_*nv_*nv_);
+  auto Y1err = std::make_shared<Vector>("Y1 Error", no_*nv_);
+  auto Y2err = std::make_shared<Vector>("Y2 Error", no_*no_*nv_*nv_);
+  auto Y1diis = std::make_shared<Vector>("Y1 DIIS", no_*nv_);
+  auto Y2diis = std::make_shared<Vector>("Y2 DIIS", no_*no_*nv_*nv_);
+
+  DIISManager diis(8, "CCPert DIIS");
+  diis.set_error_vector_size(X1err.get(), X2err.get());
+  diis.set_vector_size(X1diis.get(), X2diis.get());
+
   for(int iter=1; iter <= CC_->maxiter_; iter++) {
     amp_save(myhand);
 
@@ -217,16 +209,18 @@ void CCPert::solve(enum hand myhand)
 
     if(rms < CC_->convergence_) break;
     if(CC_->do_diis_) {
-      build_diis_error(myhand);
       if(myhand == right) {
-        diis->add_entry(4, X1err_.data(), X2err_.data(), X1diis_.data(), X2diis_.data());
-        if(diis->subspace_size() > 2) diis->extrapolate(2, X1diis_.data(), X2diis_.data());
+        build_diis_error(myhand, X1err, X2err, X1diis, X2diis);
+        diis.add_entry(X1err.get(), X2err.get(), X1diis.get(), X2diis.get());
+        if(diis.subspace_size() > 2) diis.extrapolate(X1diis.get(), X2diis.get());
+        save_diis_vectors(myhand, X1diis, X2diis);
       }
       else {
-        diis->add_entry(4, Y1err_.data(), Y2err_.data(), Y1diis_.data(), Y2diis_.data());
-        if(diis->subspace_size() > 2) diis->extrapolate(2, Y1diis_.data(), Y2diis_.data());
+        build_diis_error(myhand, Y1err, Y2err, Y1diis, Y2diis);
+        diis.add_entry(Y1err.get(), Y2err.get(), Y1diis.get(), Y2diis.get());
+        if(diis.subspace_size() > 2) diis.extrapolate(Y1diis.get(), Y2diis.get());
+        save_diis_vectors(myhand, Y1diis, Y2diis);
       }
-      save_diis_vectors(myhand);
     }
     outfile->Printf(  "\t  %3d  %20.15f  %5.3e\n",iter, pseudoresponse(myhand), rms);
   }
@@ -258,28 +252,25 @@ double CCPert::pseudoresponse(enum hand myhand)
   return -2.0*(polar1 + polar2);
 }
 
-void CCPert::build_diis_error(enum hand myhand)
+void CCPert::build_diis_error(enum hand myhand, std::shared_ptr<Vector> t1err, std::shared_ptr<Vector> t2err, std::shared_ptr<Vector> t1diis, std::shared_ptr<Vector> t2diis)
 {
   int no = no_;
   int nv = nv_;
   double **X1, ****X2, **X1old, ****X2old;
   double *X1diis, *X2diis, *X1err, *X2err;
 
+  X1diis = t1diis->pointer(); 
+  X2diis = t2diis->pointer(); 
+  X1err = t1err->pointer(); 
+  X2err = t2err->pointer();
+
   if(myhand == right) { 
-    X1diis = X1diis_.data(); 
-    X2diis = X2diis_.data(); 
-    X1err = X1err_.data(); 
-    X2err = X2err_.data();
     X1 = X1_; 
     X2 = X2_; 
     X1old = X1old_; 
     X2old = X2old_; 
   }
   else {
-    X1diis = Y1diis_.data(); 
-    X2diis = Y2diis_.data(); 
-    X1err = Y1err_.data(); 
-    X2err = Y2err_.data();
     X1 = Y1_; 
     X2 = Y2_; 
     X1old = Y1old_; 
@@ -300,25 +291,24 @@ void CCPert::build_diis_error(enum hand myhand)
     }
 }
 
-void CCPert::save_diis_vectors(enum hand myhand)
+void CCPert::save_diis_vectors(enum hand myhand, std::shared_ptr<Vector> t1diis, std::shared_ptr<Vector> t2diis)
 {
   int no = no_;
   int nv = nv_;
 
   double **X1, ****X2;
   double *X1diis, *X2diis;
+
+  X1diis = t1diis->pointer(); 
+  X2diis = t2diis->pointer(); 
  
   if(myhand == right) { 
     X1 = X1_; 
     X2 = X2_; 
-    X1diis = X1diis_.data(); 
-    X2diis = X2diis_.data(); 
   }
   else { 
     X1 = Y1_; 
     X2 = Y2_; 
-    X1diis = Y1diis_.data(); 
-    X2diis = Y2diis_.data(); 
   }
 
   int X1len = 0;

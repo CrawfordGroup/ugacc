@@ -34,5 +34,5 @@ project(ugacc CXX)
 
 find_package(psi4 1.1 REQUIRED)
 
-add_psi4_plugin(ugacc array.cc cclambda.cc ccresp.cc hamiltonian.cc perturbation.cc ccdensity.cc ccpert.cc ccwfn.cc hbar.cc ugacc.cc)
+add_psi4_plugin(ugacc array.cc ccwfn.cc cclambda.cc ccresp.cc hamiltonian.cc perturbation.cc ccdensity.cc ccpert.cc hbar.cc ugacc.cc)
 

@@ -28,8 +28,8 @@ CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H,
   int nfrzv = 0;
   no_ = nv_ = 0;
   for(int i=0; i < nirrep_; i++) {
-    no_ += doccpi_[i] - frzcpi_[i];
-    nv_ += nmopi_[i] - doccpi_[i] - frzvpi_[i];
+    no_ += doccpi()[i] - frzcpi_[i];
+    nv_ += nmopi_[i] - doccpi()[i] - frzvpi_[i];
     nfrzv += frzvpi_[i];
   }
   std::vector<std::string> labels = molecule_->irrep_labels();
@@ -47,7 +47,7 @@ CCWfn::CCWfn(shared_ptr<Wavefunction> reference, shared_ptr<Hamiltonian> H,
   outfile->Printf("\t-----\t-----\t------\t------\t------\t------\n");
   for(int i=0; i < nirrep_; i++) {
       outfile->Printf("\t %s\t   %d\t    %d\t    %d\t    %d\t    %d\n",
-              labels[i].c_str(),nmopi_[i],frzcpi_[i],doccpi_[i],nmopi_[i]-doccpi_[i],frzvpi_[i]);
+              labels[i].c_str(),nmopi_[i],frzcpi_[i],doccpi()[i],nmopi_[i]-doccpi()[i],frzvpi_[i]);
     }
   outfile->Printf("\n\tNuclear Repulsion Energy    = %20.15f\n", molecule_->nuclear_repulsion_energy(reference_wavefunction_->get_dipole_field_strength()));
   outfile->Printf( "\tFrozen Core Energy          = %20.15f\n", H_->efzc_);
@@ -1186,6 +1186,14 @@ void CCWfn::tgrad_ooc()
         for(int b=0; b < nv; b++) {
           s2[i][j][a][b] = X2[i][j][a][b] + X2[j][i][b][a];
         }
+
+  outfile->Printf("Dvv:\n");
+  for(int a=0; a < nv; a++)
+    outfile->Printf("%d %20.15f\n", a, Dvv[a][a]);
+
+  outfile->Printf("Doo:\n");
+  for(int i=0; i < no; i++)
+    outfile->Printf("%d %20.15f\n", i, Doo[i][i]);
 
   free_block(X1);
   free_4d_array(X2, no, no, nv);

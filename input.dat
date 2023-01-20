@@ -13,22 +13,22 @@ import ugacc
 #units bohr
 #}
 
-#molecule water{
-#O
-#H 1 1.1
-#H 1 1.1 2 104
-#
-#symmetry c1
-#}
+molecule water{
+O
+H 1 1.1
+H 1 1.1 2 104
 
-molecule h2o2 {
- O     -0.028962160801    -0.694396279686    -0.049338350190
- O      0.028962160801     0.694396279686    -0.049338350190
- H      0.350498145881    -0.910645626300     0.783035421467
- H     -0.350498145881     0.910645626300     0.783035421467
-noreorient
 symmetry c1
 }
+
+#molecule h2o2 {
+# O     -0.028962160801    -0.694396279686    -0.049338350190
+# O      0.028962160801     0.694396279686    -0.049338350190
+# H      0.350498145881    -0.910645626300     0.783035421467
+# H     -0.350498145881     0.910645626300     0.783035421467
+#noreorient
+#symmetry c1
+#}
 
 set {
   basis sto-3g
@@ -43,8 +43,9 @@ set {
   my_omega 0.077357
   omega [589, nm]
   gauge length
+  ooc = true
 }
 
-gradient('ugacc', wfn='ccsd')
-gradient('ccsd')
+energy('ugacc', wfn='ccsd(t)')
+#energy('ccsd(t)')
 #properties('ccsd', properties=['rotation'])

@@ -1076,10 +1076,11 @@ void CCWfn::tgrad()
         for(int b=0; b < nv; b++) {
           Goovv[i][j][a][b] = 0.0;
           for(int m=0; m < no; m++)
-            for(int e=0; e < nv; e++)
+            for(int e=0; e < nv; e++) {
               Goovv[i][j][a][b] += 4.0 * t1[m][e] *
                   ( 2.0 * (t3[i][j][m][a][b][e] - t3[i][j][m][a][e][b]) - (t3[i][j][m][b][a][e] - t3[i][j][m][b][e][a]) );
-           if(fabs(Goovv[i][j][a][b]) > 1e-12) outfile->Printf("Goovv[%d][%d][%d][%d] = %20.15f\n", i, j, a, b, Goovv[i][j][a][b]);
+            }
+           // if(fabs(Goovv[i][j][a][b]) > 1e-12) outfile->Printf("Goovv[%d][%d][%d][%d] = %20.15f\n", i, j, a, b, Goovv[i][j][a][b]);
 
         }
 
@@ -1128,14 +1129,10 @@ void CCWfn::tgrad_ooc()
         for(int a=0; a < nv; a++)
           for(int b=0; b < nv; b++)
             for(int c=0; c < nv; c++) {
-              // outfile->Printf("M3(%d %d %d %d %d %d) = %20.12f\n", i, j, k, a, b, c, M3[a][b][c]);
-
               X3[a][b][c] = 8.0*M3[a][b][c]-4.0*M3[b][a][c]-4.0*M3[a][c][b]-4.0*M3[c][b][a]+2.0*M3[c][a][b]+2.0*M3[b][c][a];
               Y3[a][b][c] = 8.0*N3[a][b][c]-4.0*N3[b][a][c]-4.0*N3[a][c][b]-4.0*N3[c][b][a]+2.0*N3[c][a][b]+2.0*N3[b][c][a];
-              Z3[a][b][c] = 2.0*(M3[a][b][c] - M3[a][c][b]) - (M3[b][a][c] - M3[b][c][a]);
-              // Z3[a][b][c] = M3[b][c][a];
+              Z3[a][b][c] = (2.0*(M3[a][b][c] - M3[a][c][b]) - (M3[b][a][c] - M3[b][c][a]));
             }
-        // outfile->Printf("||M3(%d,%d,%d)|| = %20.12f\n", i,j,k, sqrt(norm));
 
         double norm = 0.0;
         for(int a=0; a < nv; a++)
@@ -1145,10 +1142,8 @@ void CCWfn::tgrad_ooc()
 
               Dvv[a][a] += 0.5 * M3[a][b][c] * (X3[a][b][c] + Y3[a][b][c]);
               s1[i][a] += (4.0*M3[a][b][c] - 2.0*M3[c][b][a] - 2.0*M3[a][c][b] + M3[b][c][a]) * ints[j][k][b+no][c+no];
-              // norm += M3[a][b][c] * M3[a][b][c];
-              //outfile->Printf("Z3(%d %d %d %d %d %d) = %20.12f\n", i, j, k, a, b, c, 2.0*(M3[a][b][c] - M3[a][c][b]) - (M3[b][a][c] - M3[b][c][a]));
 
-              // Goovv[i][j][a][b] += 4.0 * t1[k][c] * (2.0*(M3[a][b][c] - M3[a][c][b]) - (M3[b][a][c] - M3[b][c][a]));
+              //Goovv[i][j][a][b] += 4.0 * t1[k][c] * (2.0*(M3[a][b][c] - M3[a][c][b]) - (M3[b][a][c] - M3[b][c][a]));
               Goovv[i][j][a][b] += 4.0 * t1[k][c] * Z3[a][b][c];
 
               for(int l=0; l < no; l++) {
@@ -1162,13 +1157,13 @@ void CCWfn::tgrad_ooc()
               }
 
             } // abc
-        outfile->Printf("||Z3(%d,%d,%d)|| = %20.12f\n", i,j,k, sqrt(norm));
 
       } // ijk
   free_3d_array(M3, nv, nv);
   free_3d_array(N3, nv, nv);
   free_3d_array(X3, nv, nv);
   free_3d_array(Y3, nv, nv);
+  free_3d_array(Z3, nv, nv);
 
   M3 = init_3d_array(no, no, no);
   N3 = init_3d_array(no, no, no);
@@ -1190,7 +1185,6 @@ void CCWfn::tgrad_ooc()
         for(int i=0; i < no; i++)
           for(int j=0; j < no; j++)
             for(int k=0; k < no; k++) {
-//                outfile->Printf("N3(%d %d %d %d %d %d) = %20.12f\n", a, b, c, i, j, k, N3[i][j][k]);
                 Doo[i][i] -= 0.5 * M3[i][j][k] * (X3[i][j][k] + Y3[i][j][k]);
             }
 
@@ -1227,17 +1221,33 @@ void CCWfn::tgrad_ooc()
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++)
- if(fabs(s2[i][j][a][b]) > 1e-12)
- outfile->Printf("s2[%d][%d][%d][%d] = %20.15f\n", i, j, a, b, s2[i][j][a][b]);
+          if(fabs(s2[i][j][a][b]) > 1e-12)
+            outfile->Printf("s2[%d][%d][%d][%d] = %20.15f\n", i, j, a, b, s2[i][j][a][b]);
 
-*/
   outfile->Printf("Goovv Density:\n");
   for(int i=0; i < no; i++)
     for(int j=0; j < no; j++)
       for(int a=0; a < nv; a++)
         for(int b=0; b < nv; b++)
- if(fabs(Goovv[i][j][a][b]) > 1e-12)
- outfile->Printf("Goovv[%d][%d][%d][%d] = %20.15f\n", i, j, a, b, Goovv[i][j][a][b]);
+          if(fabs(Goovv[i][j][a][b]) > 1e-12)
+            outfile->Printf("Goovv[%d][%d][%d][%d] = %20.15f\n", i, j, a, b, Goovv[i][j][a][b]);
+
+  outfile->Printf("Gooov Density:\n");
+  for(int i=0; i < no; i++)
+    for(int j=0; j < no; j++)
+      for(int k=0; k < no; k++)
+        for(int a=0; a < nv; a++)
+          if(fabs(Gooov[i][j][k][a]) > 1e-12)
+            outfile->Printf("Gooov[%d][%d][%d][%d] = %20.15f\n", i, j, k, a, Gooov[i][j][k][b]);
+
+  outfile->Printf("Gvvvo Density:\n");
+  for(int a=0; a < nv; a++)
+    for(int b=0; b < nv; b++)
+      for(int c=0; c < nv; c++)
+        for(int i=0; i < no; i++)
+          if(fabs(Gvvvo[a][b][c][i]) > 1e-12)
+            outfile->Printf("Gvvvo[%d][%d][%d][%d] = %20.15f\n", a, b, c, i, Gvvvo[a][b][c][i]);
+*/
 
   free_block(X1);
   free_4d_array(X2, no, no, nv);

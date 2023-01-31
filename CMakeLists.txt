@@ -28,7 +28,7 @@
 # @END LICENSE
 #
 
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 project(ugacc CXX)
 
